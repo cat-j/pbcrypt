@@ -1,3 +1,8 @@
+*IMPORTANT: DES is a BAD and OBSOLETE encryption algorithm and the initial key
+permutation is just needlessly complicated for something that's not even useful
+anymore. I'm gonna go straight to Blowfish and add another algorithm if needed
+because the 58-bit key is just pointlessly contrived.*
+
 # DES
 
 It is a block cipher, meaning it ALWAYS operates on complete blocks of data
@@ -26,6 +31,9 @@ that made it suspicious/vulnerable could be a learning opportunity
   Shuffle bits!)
   - PC-1 is 56 bytes, so it would require at least 4 XMM registers, which means
     this takes several operations!
+  - Maybe it's better to operate in a general purpose register, since there are
+    no AVX instructions for single-bit manipulation
+    - PEXT in 64 bits: 
 - Divide the resulting key into two 28-bit halves, probably with shifts or masks
 - Loop to create 16 block pairs by shifting the previous block by the corresponding
   amount of bits. Permute each of these block pairs with PC-2. These are K1-K16.
