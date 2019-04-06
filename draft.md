@@ -1,11 +1,40 @@
+# Blowfish
+
+Blowfish was selected for this project because it's essentially similar to DES
+but not cryptographically obsolete and probably free of pointless 56-bit keys.
+
+- Block cipher, fixed block size (64 bits)
+- Variable key length (32 to 448 bits)
+- 16-round Feistel network
+- 18 32-bit subkeys P_n, consisting of the binary representation of the decimal
+  part of pi
+- Four 32-bit S-boxes with 256 entries each
+
+## Parameters
+
+- Pointer to string
+- String length
+- Pointer to key
+- Key length
+
+## General operations
+
+- Compute subkeys:
+  - Initialise P1, ... , P18 as binary digits of pi and S-boxes in the same way
+    (this is in blowfish/constants.txt)
+  - XOR Pn with the nth 32 key bits (repeat key bits if necessary)
+- For each 64-bit block of the plaintext message:
+  - Split into two halves L0 and R0
+  - FEISTEL NETWORK: for n = 1,...,16, do the following
+    - Ln = Ln-1 XOR Pn
+    - Rn = Rn-1 XOR F(Ln-1)
+
 *IMPORTANT: DES is a BAD and OBSOLETE encryption algorithm and the initial key
 permutation is just needlessly complicated for something that's not even useful
 anymore. I'm gonna go straight to Blowfish and add another algorithm if needed
-because the 58-bit key is just pointlessly contrived.*
+because the 56-bit key is just pointlessly contrived.*
 
 # DES
-
-It is a block cipher, meaning it ALWAYS operates on complete blocks of data
 
 - Fixed block size (64 bits)
 - Blocks are divided into 32-bit L and R sub-blocks
