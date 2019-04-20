@@ -1,3 +1,18 @@
+# bcrypt
+
+OK, so there's no escaping this stupid high entropy key with encryption functions.
+I can either assume the key is already known and justify that assumption as
+providing a more realistic scope for this work or only do hashing functions,
+which do not take encryption keys.
+
+- 128-bit salt
+- 192-bit magic value
+
+Steps:
+1. Initialise state of `eksblowfish` (this is the slow key phase). Password
+   and key can also be strengthened if necessary.
+2. Encrypt magic 192-bit value 64 times with `eksblowfish`
+
 # Blowfish
 
 Blowfish was selected for this project because it's essentially similar to DES
@@ -76,3 +91,20 @@ that made it suspicious/vulnerable could be a learning opportunity
     - First step of the f calculation: selection table E, probably a bit shuffle
     - XOR it with the corresponding key
     - Replace each resulting 6-bit block with a 4-bit block
+
+# How John the Ripper does all the horrible stuff
+
+John actually keeps a key buffer - it doesn't really bother with key generation.
+No idea where it gets the keys from. It's also built to run on several nodes,
+which again is well outside the scope of this project.
+
+Wait... the function `inc_key_loop` seems to indicate that John actually does
+brute force keys. Maybe I could just assume something outside my cracker is brute
+forcing the keys and focus on optimising encryption.
+
+John has something called _incremental mode_, which is more advanced than wordlist
+mode and actually tries all possible character combinations. It's absolutely
+outside this work's scope and one can assume it doesn't even terminate a lot of
+the time, so I could just limit myself to wordlist mode - incremental is the best
+for an industrial password cracker, but not for a uni project which will need to
+be carefully tested and have its performance measured.

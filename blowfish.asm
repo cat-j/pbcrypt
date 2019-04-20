@@ -6,6 +6,7 @@ global blowfish_encrypt
 
 section .data
 
+; TODO: declare these in a header file instead and compare performance
 ; 18 32-bit constants P_n (0 <= n < 18) derived from the hexadecimal digits of pi,
 ; later to be encrypted with a secret key
 ; split into three tags for readability, but only P_ARRAY is used
@@ -17,6 +18,8 @@ P_ARRAY_2: dd 0xc0ac29b7, 0xc97c50dd, 0x3f84d5b5, 0xb5470917, 0x9216d5d9, 0x8979
 %define P_VALUE_MEMORY_SIZE 4
 ; number of elements in P-array
 %define P_ARRAY_LENGTH 18
+; encryption rounds
+%define ROUNDS 16
 
 section .text
 
@@ -62,6 +65,8 @@ blowfish_encrypt:
         mov r9, P_ARRAY_LENGTH ; initialise P counter
 
     .compute_subkeys:
+        ; at the end of this loop, rax will point to an array of encrypted P values
+        ; which should be used for the actual encryption loop
         %define key edx
         %define pvalue edi
         %define pptr rsi
@@ -86,12 +91,18 @@ blowfish_encrypt:
         inc pidx
         dec pcounter
         jnz .compute_subkeys ; another loop iteration
-        jmp .end ; TODO: replace this with whatever should ACTUALLY BE DONE afterwards!
+        jmp .initialise_for_encryption
         
         .reset_key_counter:
         mov keycounter, keylength
         xor keyidx, keyidx
         jmp .compute_subkeys_advance
+    
+    .initialise_for_encryption:
+        ; NO LONGER NEEDED: key length, key pointer
+        ; NEEDED: target pointer (rax)
+
+    .encrypt:
     
     .end:
         pop r14
