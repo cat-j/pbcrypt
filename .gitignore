@@ -1,7 +1,7 @@
 .vscode/
 .gdb_history
+.references/
 *.o
 testexec
 des.asm
 blowfish/
-references/
