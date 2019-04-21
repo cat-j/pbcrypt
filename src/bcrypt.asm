@@ -92,9 +92,10 @@ blowfish_expand_state_asm:
     ; r8:  key index
     ; r9:  8 key bytes
     ; r10: 8 XOR'd P-array bytes
-    ; initialise indices at 0
+    ; initialise indices and key data at 0
     xor r8, r8
     xor r11, r11
+    xor r9, r9 ; because a^0 = a
 
     .xor_p_array_loop:
         mov ctx_data, [ctx_ptr + BLF_CTX_P_OFFSET + p_idx] ; read two P elements
@@ -116,7 +117,7 @@ blowfish_expand_state_asm:
         mov [ctx_ptr + BLF_CTX_P_OFFSET + p_idx], ctx_data
         add p_idx, 2 ; p-array is dword-indexed
         cmp p_idx, 18
-        jge .xor_p_array_loop
+        jl  .xor_p_array_loop
 
     .end:
         pop rbx
