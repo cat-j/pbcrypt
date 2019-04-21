@@ -22,6 +22,8 @@ section .data
 ; P-array byte offset within context struct
 %define BLF_CTX_P_OFFSET 4096
 
+%define SALT_BYTES 16
+
 section .text
 
 ; void blowfish_init_state_asm(blf_ctx* state)
@@ -118,6 +120,14 @@ blowfish_expand_state_asm:
         add p_idx, 2 ; p-array is dword-indexed
         cmp p_idx, 18
         jl  .xor_p_array_loop
+    
+    .encrypt_p_array:
+        %define datal ymm0
+        %define datar ymm1
+        
+        vpxor ymm0, ymm0
+        vpxor ymm1, ymm1
+        vbroadcastf128 ymm15, [rsi] ; ymm15 = |salt|salt|
 
     .end:
         pop rbx

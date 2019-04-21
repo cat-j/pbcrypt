@@ -19,8 +19,8 @@ int main(int argc, char** argv) {
     blf_ctx* state;
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     
-    char salt[128];
-    for (int i = 0; i < 128; ++i)
+    char salt[16];
+    for (int i = 0; i < 16; ++i)
         salt[i] = 'a';
     
     char key[9] = "assassas\0";
@@ -29,9 +29,6 @@ int main(int argc, char** argv) {
     blowfish_expand_state_asm(state, (const char*) &salt, (const char*) &key, 9);
     
     free(state);
-    // uint8_t teststring[] = "cum squirter, nerd hurter\n";
-    // uint8_t key[4] = "asss";
-    // uint8_t* encrypted = blowfish_encrypt(teststring, 3, key, 32);
-    // printf(encrypted);
+
     return 0;
 }
