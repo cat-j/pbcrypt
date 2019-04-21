@@ -73,28 +73,31 @@ blowfish_expand_state_asm:
         push r12
         push rbx
     
-    ; initialise regs
-    ; rdi+4096 -> P-array
-    ; rdx      -> key
-    ; r8:  key index
-    ; r9:  8 key bytes
-    ; r10: 8 XOR'd P-array bytes
     %define key_data r9
     %define key_data_lower r9b
     %define ctx_data r10
 
     %define key_idx r8
-    %define ctx_idx r11
+    %define p_idx r11
 
     %define key_ptr rdx
     %define ctx_ptr rdi
     
     %define key_data_ctr r12
     %define key_len rcx
+
+    ; initialise regs
+    ; rdi+4096 -> P-array
+    ; rdx      -> key
+    ; r8:  key index
+    ; r9:  8 key bytes
+    ; r10: 8 XOR'd P-array bytes
+    ; initialise indices at 0
     xor r8, r8
+    xor r11, r11
 
     .xor_p_array_loop:
-        mov ctx_data, [ctx_ptr + ctx_idx] ; read two P elements
+        mov ctx_data, [ctx_ptr + BLF_CTX_P_OFFSET + p_idx] ; read two P elements
         xor key_data_ctr, key_data_ctr
 
         .read_key_data:
@@ -110,10 +113,10 @@ blowfish_expand_state_asm:
             jl  .read_key_data
         
         xor ctx_data, key_data
-        mov [ctx_ptr], ctx_data
-        sub key_idx, 16 ; key is byte-indexed
-        sub ctx_idx, 2 ; p-array is dword-indexed
-        jnz .xor_p_array_loop
+        mov [ctx_ptr + BLF_CTX_P_OFFSET + p_idx], ctx_data
+        add p_idx, 2 ; p-array is dword-indexed
+        cmp p_idx, 18
+        jge .xor_p_array_loop
 
     .end:
         pop rbx
