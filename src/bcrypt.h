@@ -9,6 +9,7 @@ typedef struct BlowfishContext {
 	uint32_t P[18];	/* Subkeys */
 } blf_ctx;
 
+void blowfish_init_state_asm(blf_ctx* state);
 void blowfish_expand_state_asm(blf_ctx* state);
 
 #endif

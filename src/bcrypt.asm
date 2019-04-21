@@ -70,6 +70,8 @@ blowfish_expand_state_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push r12
+        push rbx
     
     ; initialise regs
     ; rdi+4096 -> P-array
@@ -77,18 +79,45 @@ blowfish_expand_state_asm:
     ; r8:  key index
     ; r9:  8 key bytes
     ; r10: 8 XOR'd P-array bytes
+    %define key_data r9
+    %define key_data_lower r9b
+    %define ctx_data r10
+
+    %define key_idx r8
+    %define ctx_idx r11
+
+    %define key_ptr rdx
+    %define ctx_ptr rdi
+    
+    %define key_data_ctr r12
+    %define key_len rcx
     xor r8, r8
 
     .xor_p_array_loop:
-        mov ctx_data, [ctx_ptr + ctx_idx] ; read two elements
+        mov ctx_data, [ctx_ptr + ctx_idx] ; read two P elements
+        xor key_data_ctr, key_data_ctr
+
+        .read_key_data:
+            cmp key_idx, key_len
+            jl  .continue
+            xor key_idx, key_idx ; wrap around key w/o modulus
+            .continue:
+            shl key_data, 8 ; next byte goes in lowest 8
+            mov key_data_lower, [key_ptr + key_idx]
+            inc key_idx
+            inc key_data_ctr
+            cmp key_data_ctr, 8
+            jl  .read_key_data
+        
         xor ctx_data, key_data
         mov [ctx_ptr], ctx_data
         sub key_idx, 16 ; key is byte-indexed
         sub ctx_idx, 2 ; p-array is dword-indexed
         jnz .xor_p_array_loop
-        jmp .end_loop
 
     .end:
+        pop rbx
+        pop r12
         pop rbp
         ret
 
