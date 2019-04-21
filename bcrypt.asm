@@ -5,6 +5,7 @@ extern free
 ; variables
 extern initstate
 
+global blowfish_init_state_asm
 global blowfish_expand_state_asm
 ; global bcrypt_encrypt
 
@@ -23,9 +24,9 @@ section .data
 
 section .text
 
-; void blowfish_expand_state_asm(blf_ctx* state)
+; void blowfish_init_state_asm(blf_ctx* state)
 
-blowfish_expand_state_asm:
+blowfish_init_state_asm:
     ; rdi -> blowfish state (modified)
     ; address MUST be 32-bit aligned
     .build_frame:
@@ -53,6 +54,39 @@ blowfish_expand_state_asm:
         vmovdqa [rdi + BLF_CTX_P_OFFSET + 32], ymm0
         mov     rdx, [initstate + BLF_CTX_P_OFFSET + 64] ; last bytes
         mov     [rdi + BLF_CTX_P_OFFSET + 64], rdx
+
+    .end:
+        pop rbp
+        ret
+
+; void blowfish_expand_state_asm(blf_ctx* state, const char* salt,
+;                                const char* key, uint16_t keybytes)
+
+blowfish_expand_state_asm:
+    ; rdi -> blowfish state (modified)
+    ; rsi -> 128-bit salt
+    ; rdx -> 4 to 56 byte key
+    ; rcx:   key length in bytes
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+    
+    ; initialise regs
+    ; rdi+4096 -> P-array
+    ; rdx      -> key
+    ; r8:  key index
+    ; r9:  8 key bytes
+    ; r10: 8 XOR'd P-array bytes
+    xor r8, r8
+
+    .xor_p_array_loop:
+        mov ctx_data, [ctx_ptr + ctx_idx] ; read two elements
+        xor ctx_data, key_data
+        mov [ctx_ptr], ctx_data
+        sub key_idx, 16 ; key is byte-indexed
+        sub ctx_idx, 2 ; p-array is dword-indexed
+        jnz .xor_p_array_loop
+        jmp .end_loop
 
     .end:
         pop rbp
