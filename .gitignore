@@ -1,6 +1,6 @@
 .vscode/
 .gdb_history
-.references/
+.references/tp_pino/
 *.o
 testexec
 des.asm
