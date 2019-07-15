@@ -57,9 +57,9 @@
 /* Function for Feistel Networks */
 
 #define F(s, x) ((((s)[        (((x)>>24)&0xFF)]  \
-		 + (s)[0x100 + (((x)>>16)&0xFF)]) \
-		 ^ (s)[0x200 + (((x)>> 8)&0xFF)]) \
-		 + (s)[0x300 + ( (x)     &0xFF)])
+		 		 + (s)[0x100 + (((x)>>16)&0xFF)]) \
+		 		 ^ (s)[0x200 + (((x)>> 8)&0xFF)]) \
+		 		 + (s)[0x300 + ( (x)     &0xFF)])
 
 #define BLFRND(s,p,i,j,n) (i ^= F(s,j) ^ (p)[n])
 
