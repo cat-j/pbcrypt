@@ -3,6 +3,9 @@
 #ifndef _BCRYPT_H_
 #define _BCRYPT_H_
 
+#define S_BOX_LENGTH 256
+#define P_ARRAY_LENGTH 18
+
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
 	uint32_t S[4][256];	/* S-Boxes */

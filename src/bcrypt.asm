@@ -3,7 +3,7 @@ extern malloc
 extern free
 
 ; variables
-extern initstate
+extern initstate_asm
 
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
@@ -14,7 +14,7 @@ section .data
 ; how many 1-byte memory slots each P_n takes up
 %define P_VALUE_MEMORY_SIZE 4
 ; number of elements in P-array
-%define P_ARRAY_LENGTH 18
+; %define P_ARRAY_LENGTH 18
 ; encryption rounds
 %define ROUNDS 16
 ; YMM register size in bytes
@@ -47,7 +47,7 @@ blowfish_init_state_asm:
         ; 4 bytes per element => 4096 bytes total
         ; 32 bytes per YMM register => 4096/32 = 128 accesses to copy all the boxes
         %rep    128
-            vmovdqa ymm0, [initstate + i*YMM_SIZE]
+            vmovdqa ymm0, [initstate_asm + i*YMM_SIZE]
             vmovdqa [rdi + i*YMM_SIZE], ymm0
             %assign i i+1
         %endrep
@@ -56,11 +56,11 @@ blowfish_init_state_asm:
         ; 18 4-byte elements => 72 bytes
         ; 32 bytes per YMM register => 2 accesses for the first 64
         ; 1 access to 8 remaining bytes
-        vmovdqa ymm0, [initstate + BLF_CTX_P_OFFSET]
+        vmovdqa ymm0, [initstate_asm + BLF_CTX_P_OFFSET]
         vmovdqa [rdi + BLF_CTX_P_OFFSET], ymm0
-        vmovdqa ymm0, [initstate + BLF_CTX_P_OFFSET + 32]
+        vmovdqa ymm0, [initstate_asm + BLF_CTX_P_OFFSET + 32]
         vmovdqa [rdi + BLF_CTX_P_OFFSET + 32], ymm0
-        mov     rdx, [initstate + BLF_CTX_P_OFFSET + 64] ; last bytes
+        mov     rdx, [initstate_asm + BLF_CTX_P_OFFSET + 64] ; last bytes
         mov     [rdi + BLF_CTX_P_OFFSET + 64], rdx
 
     .end:
