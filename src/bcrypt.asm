@@ -26,6 +26,12 @@ section .data
 
 section .text
 
+; Function for Feistel network
+; %1 -> S-box
+; %2: right half of data block
+%macro F 2
+%endmacro
+
 ; void blowfish_init_state_asm(blf_ctx* state)
 
 blowfish_init_state_asm:
@@ -124,7 +130,7 @@ blowfish_expand_state_asm:
     .encrypt_p_array:
         %define datal ymm0
         %define datar ymm1
-        
+
         vpxor ymm0, ymm0
         vpxor ymm1, ymm1
         vbroadcastf128 ymm15, [rsi] ; ymm15 = |salt|salt|
