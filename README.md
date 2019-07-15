@@ -1,5 +1,8 @@
 # simd-crypto
 
-Final project for Computer Organisation II course, MSc Computer Science, University of Buenos Aires (UBA).
+Final project for Computer Organisation II course, MSc Computer Science,
+University of Buenos Aires (UBA).
 
-Password cracker with cryptographic functions implemented in x86-64 assembly language, using Intel's AVX instruction set.
+This is basically research into whether a *brute-force password cracker for bcrypt*
+can be optimised by rearranging the bytes from all plaintexts so that hashing
+is done with SIMD for several passwords at once.
