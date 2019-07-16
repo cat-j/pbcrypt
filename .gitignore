@@ -6,3 +6,4 @@ testexec
 des.asm
 blowfish/
 KeccakTools/
+build/
