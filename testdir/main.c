@@ -78,6 +78,21 @@ void test_F_asm(uint32_t x, const blf_ctx *state) {
     }
 }
 
+void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
+                             uint32_t n)
+{
+    uint32_t actual = blowfish_round_asm(xl, xr, state, n);
+    // uint32_t actual = 0;
+    uint32_t expected = blfrnd_wrapper(state, xl, xr, n);
+
+    if (actual == expected) {
+        test_pass("test_blowfish_round_asm successful.\n");
+    } else {
+        test_fail("test_blowfish_round_asm failed.\n"
+            "Expected: 0x%08x\tActual: 0x%08x\n", expected, actual);
+    }
+}
+
 int main(int argc, char const *argv[]) {
     test_blowfish_init_state_asm();
 
@@ -102,6 +117,8 @@ int main(int argc, char const *argv[]) {
     test_F_asm(0x12345678, state);
     test_F_asm(0x20002000, state);
     test_F_asm(0x00c0ffee, state);
+
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
     
     free(state);
 

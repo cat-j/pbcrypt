@@ -48,6 +48,8 @@
 		 		 ^ (s)[0x200 + (((x)>> 8)&0xFF)]) \
 		 		 + (s)[0x300 + ( (x)     &0xFF)])
 
+#define BLFRND(s,p,i,j,n) (i ^= F(s,j) ^ (p)[n])
+
 void
 Blowfish_initstate(blf_ctx *c)
 {
@@ -330,4 +332,12 @@ Blowfish_initstate(blf_ctx *c)
 uint32_t f_wrapper(uint32_t x, const blf_ctx *state) {
 	const uint32_t *s = state->S[0];
 	return F(s, x);
+}
+
+uint32_t blfrnd_wrapper(const blf_ctx *state, uint32_t xl, uint32_t xr,
+                        uint32_t n)
+{
+	const uint32_t *s = state->S[0];
+	const uint32_t *p = state->P;
+	return BLFRND(s, p, xr, xl, n);
 }
