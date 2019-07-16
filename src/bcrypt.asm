@@ -103,9 +103,9 @@ blowfish_round_asm:
     push rbp
     mov  rbp, rsp
 
-    mov  r8, [rdx + BLF_CTX_P_OFFSET]
-    BLOWFISH_ROUND rdx, r8, rsi, rdi, r8, r9, r10
-    mov rax, rsi
+    lea  r8, [rdx + BLF_CTX_P_OFFSET]
+    BLOWFISH_ROUND rdx, r8, rsi, rdi, rcx, r9, r10
+    mov  rax, rsi
 
     pop rbp
     ret

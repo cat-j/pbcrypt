@@ -19,7 +19,7 @@ void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 
 uint32_t f_asm(uint32_t x, const blf_ctx *state);
 
-uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, blf_ctx *state,
+uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
                             uint32_t n);
 
 #endif
