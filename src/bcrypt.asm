@@ -13,6 +13,10 @@ section .data
 
 ; how many 1-byte memory slots each P_n takes up
 %define P_VALUE_MEMORY_SIZE 4
+; how many 1-byte memory slots each element in an S-box takes up
+%define S_ELEMENT_MEMORY_SIZE 4
+; how many 1-byte memory slots one S-box takes up
+%define S_BOX_MEMORY_SIZE 1024
 ; number of elements in P-array
 ; %define P_ARRAY_LENGTH 18
 ; encryption rounds
@@ -26,13 +30,54 @@ section .data
 
 section .text
 
+; TODO: see if this can be optimised by indexing
+; with an 8-bit register instead of using & 0xff
+
 ; Function for Feistel network
-; %1 -> S-box
-; %2: right half of data block
-%macro F 2
+; %1 -> array of S-box
+; %2: right half of data block, x
+; %3: temporary register for shifting x
+; %4: output
+%macro F 4
+    ; %4 <- S[0][x >> 24] + S[1][x >> 16 & 0xff]
+    mov %3, %2
+    shr %3, 24 ; highest 8 bits
+    mov %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+    mov %3, %2
+    shr %3, 16
+    and %3, 0xff ; second-highest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+
+    ; %4 <- %4 ^ S[2][x >> 8 & 0xff]
+    mov %3, %2
+    shr %3, 8
+    and %3, 0xff ; second-lowest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    xor %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+
+    ; %4 <- %4 + S[3][x & 0xff]
+    mov %3, %2
+    and %3, 0xff ; lowest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
 %endmacro
 
-; void blowfish_init_state_asm(blf_ctx* state)
+; Intended exclusively for testing Feistel function
+; uint32_t f_asm(uint32_t x, blf_ctx *state)
+f_asm:
+    ; rdi: right half of data block, x
+    ; rsi -> blowfish state
+    ; address MUST be 32-bit aligned
+    push rbp
+    mov  rbp, rsp
+
+    F rsi, rdi, rdx, rax
+
+    pop rbp
+    ret
+
+; void blowfish_init_state_asm(blf_ctx *state)
 
 blowfish_init_state_asm:
     ; rdi -> blowfish state (modified)
