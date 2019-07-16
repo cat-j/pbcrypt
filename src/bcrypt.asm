@@ -7,6 +7,7 @@ extern initstate_asm
 
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
+global f_asm
 ; global bcrypt_encrypt
 
 section .data

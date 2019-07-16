@@ -43,6 +43,11 @@
 
 #include "openbsd.h"
 
+#define F(s, x) ((((s)[        (((x)>>24)&0xFF)]  \
+		 		 + (s)[0x100 + (((x)>>16)&0xFF)]) \
+		 		 ^ (s)[0x200 + (((x)>> 8)&0xFF)]) \
+		 		 + (s)[0x300 + ( (x)     &0xFF)])
+
 void
 Blowfish_initstate(blf_ctx *c)
 {
@@ -320,4 +325,9 @@ Blowfish_initstate(blf_ctx *c)
 	} };
 
 	*c = initstate;
+}
+
+uint32_t f_wrapper(uint32_t x, const blf_ctx *state) {
+	const uint32_t *s = state->S[0];
+	return F(s, x);
 }

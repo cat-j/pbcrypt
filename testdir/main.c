@@ -1,6 +1,7 @@
 #include <assert.h>
 // #include <malloc.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "openbsd.h"
@@ -65,7 +66,44 @@ void test_blowfish_init_state_asm() {
     test_pass("test_blowfish_init_state_asm successful.\n");
 }
 
+void test_F_asm(uint32_t x, const blf_ctx *state) {
+    uint32_t actual = f_asm(x, state);
+    uint32_t expected = f_wrapper(x, state);
+
+    if (actual == expected) {
+        test_pass("test_F_asm successful.\n");
+    } else {
+        test_fail("test_F_asm failed.\n"
+            "Expected: %ld\tActual: %ld\n", expected, actual);
+    }
+}
+
 int main(int argc, char const *argv[]) {
     test_blowfish_init_state_asm();
+
+    blf_ctx *state;
+    posix_memalign((void**) &state, 32, sizeof(blf_ctx));
+    blowfish_init_state_asm(state);
+    
+    test_F_asm(0x00000000, state);
+    test_F_asm(0x11111111, state);
+    test_F_asm(0x22222222, state);
+    test_F_asm(0x33333333, state);
+    test_F_asm(0x44444444, state);
+    test_F_asm(0x55555555, state);
+    test_F_asm(0x66666666, state);
+    test_F_asm(0x77777777, state);
+    test_F_asm(0x88888888, state);
+    test_F_asm(0x99999999, state);
+    test_F_asm(0xffffffff, state);
+    test_F_asm(0x01010101, state);
+    test_F_asm(0xf0f0f0f0, state);
+    test_F_asm(0xdeadbeef, state);
+    test_F_asm(0x12345678, state);
+    test_F_asm(0x20002000, state);
+    test_F_asm(0x00c0ffee, state);
+    
+    free(state);
+
     return 0;
 }
