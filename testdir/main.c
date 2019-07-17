@@ -5,8 +5,34 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "openbsd.h"
+#include "test.h"
 #include "../src/bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
 #include "../src/bcrypt_constants.h"
+
+void do_test(uint32_t actual, uint32_t expected, const char *test_name,
+             const char *args_format, ...)
+{
+    // Construct args string
+    char out[4096];
+    va_list args;
+    va_start(args, args_format);
+    vsnprintf(out, sizeof(out), args_format, args);
+
+    // Print test info: "Running test test_name with arguments args"
+    fprintf(stdout, "\n");
+    fprintf(stdout, "\033[1;35m");
+    fprintf(stdout, "Running test %s with arguments ", test_name);
+    fprintf(stdout, "%s\n", out);
+    fprintf(stdout, "\033[0m");
+
+    // Test
+    if (actual == expected) {
+        test_pass("%s successful.\n", test_name);
+    } else {
+        test_fail("%s failed."
+        "Expected: %08x\tActual: %08x", expected, actual);
+    }
+}
 
 /* Prints success message */
 void test_pass(const char *format, ...) {
@@ -69,28 +95,18 @@ void test_blowfish_init_state_asm() {
 void test_F_asm(uint32_t x, const blf_ctx *state) {
     uint32_t actual = f_asm(x, state);
     uint32_t expected = f_wrapper(x, state);
-
-    if (actual == expected) {
-        test_pass("test_F_asm successful.\n");
-    } else {
-        test_fail("test_F_asm failed.\n"
-            "Expected: %ld\tActual: %ld\n", expected, actual);
-    }
+    
+    do_test(actual, expected, "test_F_asm", "%08x, %s", x, "initial_state");
 }
 
 void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
                              uint32_t n)
 {
     uint32_t actual = blowfish_round_asm(xl, xr, state, n);
-    // uint32_t actual = 0;
     uint32_t expected = blfrnd_wrapper(state, xl, xr, n);
 
-    if (actual == expected) {
-        test_pass("test_blowfish_round_asm successful.\n");
-    } else {
-        test_fail("test_blowfish_round_asm failed.\n"
-            "Expected: 0x%08x\tActual: 0x%08x\n", expected, actual);
-    }
+    do_test(actual, expected, "test_blowfish_round_asm",
+        "xl: %08x, xr: %08x, state: %s, n: %ld", xl, xr, "initial_state", n);
 }
 
 int main(int argc, char const *argv[]) {
