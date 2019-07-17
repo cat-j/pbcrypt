@@ -17,7 +17,7 @@ void blowfish_init_state_asm(blf_ctx *state);
 void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 							   const char *key, uint16_t keybytes);
 
-void blowfish_encipher_asm(const blf_ctx *state, uint32_t *xl, uint32_t *xr);
+void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
 uint32_t f_asm(uint32_t x, const blf_ctx *state);
 

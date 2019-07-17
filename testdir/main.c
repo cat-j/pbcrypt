@@ -30,7 +30,7 @@ void do_test(uint32_t actual, uint32_t expected, const char *test_name,
         test_pass("%s successful.\n", test_name);
     } else {
         test_fail("%s failed.\n"
-        "Expected: %08x\tActual: %08x\n", test_name, expected, actual);
+        "Expected: 0x%08x\tActual: 0x%08x\n", test_name, expected, actual);
     }
 }
 
@@ -109,17 +109,23 @@ void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
         "xl: %08x, xr: %08x, state: %s, n: %ld", xl, xr, "initial_state", n);
 }
 
-void test_blowfish_encipher_asm(const blf_ctx *state, uint32_t xl, uint32_t xr) {
-    uint32_t xl_actual = xl, xr_actual = xr;
-    uint32_t xl_expected = xl, xr_expected = xr;
+void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data) {
+    uint32_t xl_actual = data >> 32, xr_actual = data & 0xffffffff;
+    uint32_t xl_expected = xl_actual, xr_expected = xr_actual;
 
-    blowfish_encipher_asm(state, &xl_actual, &xr_expected);
+    // Make sure we're using different variables with the same values
+    assert(xl_actual == xl_expected);
+    assert(xr_actual == xr_expected);
+    assert(&xl_actual != &xl_expected);
+    assert(&xr_actual != &xr_expected);
+
+    blowfish_encipher_asm(state, &data);
     Blowfish_encipher(state, &xl_expected, &xr_expected);
 
     do_test(xl_actual, xl_expected, "test_blowfish_encipher_asm",
-        "xl: %08x, state: %s", xl, "initial_state");
+        "data: 0x%016lx, state: %s", data, "initial_state");
     do_test(xr_actual, xr_expected, "test_blowfish_encipher_asm",
-        "xr: %08x, state: %s", xr, "initial_state");
+        "data: 0x%016lx, state: %s", data, "initial_state");
 }
 
 int main(int argc, char const *argv[]) {
@@ -153,7 +159,9 @@ int main(int argc, char const *argv[]) {
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
 
-    test_blowfish_encipher_asm(state, 0xdeadbeef, 0x00c0ffee);
+    // printf("%x\n", sizeof(0xdeadbeef00c0ffee));
+    // printf("%016lx\n", 0xdeadbeefdeadbeefLL);
+    test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee);
     
     free(state);
 
