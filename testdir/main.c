@@ -119,6 +119,10 @@ int main(int argc, char const *argv[]) {
     test_F_asm(0x00c0ffee, state);
 
     test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
+    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
+    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
+    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
+    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
     
     free(state);
 
