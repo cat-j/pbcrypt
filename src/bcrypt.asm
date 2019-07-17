@@ -5,8 +5,10 @@ extern free
 ; variables
 extern initstate_asm
 
+; exported functions
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
+global blowfish_encipher_asm
 global f_asm
 global blowfish_round_asm
 ; global bcrypt_encrypt
@@ -80,6 +82,7 @@ section .text
 
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
+
 f_asm:
     ; rdi: data
     ; rsi -> blowfish state
@@ -95,6 +98,7 @@ f_asm:
 ; Intended exclusively for testing Blowfish round
 ; uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, blf_ctx *state,
 ;                             uint32_t n)
+
 blowfish_round_asm:
     ; rdi: left half of data block, Xl
     ; rsi: right half of data block, Xr
@@ -108,6 +112,41 @@ blowfish_round_asm:
     mov  rax, rsi
 
     pop rbp
+    ret
+
+; void blowfish_encipher_asm(blf_ctx *state, uint32_t *xl, uint32_t *xr)
+blowfish_encipher_asm:
+    ; rdi -> blowfish state
+    ; rsi -> xl
+    ; rdx -> xr
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    %define blf_state rdi
+    %define p_array rcx
+    %define x_l r8
+    %define x_r r9
+
+    mov  x_l, [rsi]
+    mov  x_r, [rdx]
+
+    lea  p_array, [blf_state + BLF_CTX_P_OFFSET]
+    xor  x_l, [p_array]
+
+    %assign i 1
+    %rep 8
+        BLOWFISH_ROUND blf_state, p_array, x_l, x_r, i, r10, r11
+        %assign i i+1
+        BLOWFISH_ROUND blf_state, p_array, x_r, x_l, i, r10, r11
+        %assign i i+1
+    %endrep
+
+    xor  x_r, [p_array + 17*P_VALUE_MEMORY_SIZE]
+    mov  [rsi], x_r
+    mov  [rdx], x_l
+
+    pop  rbp
     ret
 
 ; void blowfish_init_state_asm(blf_ctx *state)
