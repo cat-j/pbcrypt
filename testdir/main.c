@@ -29,8 +29,8 @@ void do_test(uint32_t actual, uint32_t expected, const char *test_name,
     if (actual == expected) {
         test_pass("%s successful.\n", test_name);
     } else {
-        test_fail("%s failed."
-        "Expected: %08x\tActual: %08x", expected, actual);
+        test_fail("%s failed.\n"
+        "Expected: %08x\tActual: %08x\n", test_name, expected, actual);
     }
 }
 
@@ -109,6 +109,19 @@ void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
         "xl: %08x, xr: %08x, state: %s, n: %ld", xl, xr, "initial_state", n);
 }
 
+void test_blowfish_encipher_asm(const blf_ctx *state, uint32_t xl, uint32_t xr) {
+    uint32_t xl_actual = xl, xr_actual = xr;
+    uint32_t xl_expected = xl, xr_expected = xr;
+
+    blowfish_encipher_asm(state, &xl_actual, &xr_expected);
+    Blowfish_encipher(state, &xl_expected, &xr_expected);
+
+    do_test(xl_actual, xl_expected, "test_blowfish_encipher_asm",
+        "xl: %08x, state: %s", xl, "initial_state");
+    do_test(xr_actual, xr_expected, "test_blowfish_encipher_asm",
+        "xr: %08x, state: %s", xr, "initial_state");
+}
+
 int main(int argc, char const *argv[]) {
     test_blowfish_init_state_asm();
 
@@ -139,6 +152,8 @@ int main(int argc, char const *argv[]) {
     test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
+
+    test_blowfish_encipher_asm(state, 0xdeadbeef, 0x00c0ffee);
     
     free(state);
 

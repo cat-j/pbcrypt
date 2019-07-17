@@ -6,6 +6,8 @@
 
 void Blowfish_initstate(blf_ctx *c);
 
+void Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr);
+
 uint32_t f_wrapper(uint32_t x, const blf_ctx *state);
 
 uint32_t blfrnd_wrapper(const blf_ctx *state, uint32_t xl, uint32_t xr,
