@@ -37,8 +37,8 @@ section .text
 
 ; Function for Feistel network
 ; %1 -> array of S-boxes
-; %2: right half of data block, x
-; %3: temporary register for shifting x (modified)
+; %2: data
+; %3: temporary register for shifting data (modified)
 ; %4: output (modified)
 %macro F 4
     ; %4 <- S[0][x >> 24] + S[1][x >> 16 & 0xff]
@@ -73,7 +73,7 @@ section .text
 ; %6: temporary register for F (modified)
 ; %7: temporary register for F output (modified)
 %macro BLOWFISH_ROUND 7
-    F %1, %3, %6, %7
+    F %1, %4, %6, %7
     xor %7, [%2 + %5*P_VALUE_MEMORY_SIZE]
     xor %3, %7
 %endmacro
@@ -81,7 +81,7 @@ section .text
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
 f_asm:
-    ; rdi: right half of data block, x
+    ; rdi: data
     ; rsi -> blowfish state
     ; address MUST be 32-bit aligned
     push rbp
