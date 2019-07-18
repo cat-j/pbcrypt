@@ -119,13 +119,18 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data) {
     assert(&xl_actual != &xl_expected);
     assert(&xr_actual != &xr_expected);
 
-    blowfish_encipher_asm(state, &data);
+    uint32_t xl_second_round_actual = blowfish_encipher_asm(state, &data);
     Blowfish_encipher(state, &xl_expected, &xr_expected);
+    printf("Actual: 0x%08x\n", xl_second_round_actual);
+    printf("Expected: 0x%08x\n", xr_expected);
 
-    do_test(xl_actual, xl_expected, "test_blowfish_encipher_asm",
-        "data: 0x%016lx, state: %s", data, "initial_state");
-    do_test(xr_actual, xr_expected, "test_blowfish_encipher_asm",
-        "data: 0x%016lx, state: %s", data, "initial_state");
+    // blowfish_encipher_asm(state, &data);
+    // Blowfish_encipher(state, &xl_expected, &xr_expected);
+
+    // do_test(xl_actual, xl_expected, "test_blowfish_encipher_asm",
+    //     "data: 0x%016lx, state: %s", data, "initial_state");
+    // do_test(xr_actual, xr_expected, "test_blowfish_encipher_asm",
+    //     "data: 0x%016lx, state: %s", data, "initial_state");
 }
 
 int main(int argc, char const *argv[]) {
@@ -154,6 +159,9 @@ int main(int argc, char const *argv[]) {
     test_F_asm(0x00c0ffee, state);
 
     test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4);
     test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
     test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);

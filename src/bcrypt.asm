@@ -74,10 +74,11 @@ section .text
 ; %4: Xl
 ; %5: value read from P-array
 ; %6: temporary register for F output (modified)
+; BLOWFISH_ROUND s, t1, i, j, p[n], t2
 %macro BLOWFISH_ROUND 6
-    F %1, %4, %2, %6
-    xor %6, %5
-    xor %3, %6
+    F %1, %4, %2, %6 ; %6 <- F(%1, %2) = F(s, j)
+    xor %6, %5       ; %6 <- F(s, j) ^ p[n]
+    xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
 %endmacro
 
 ; Intended exclusively for testing Feistel function
@@ -114,7 +115,7 @@ blowfish_round_asm:
     pop rbp
     ret
 
-; void blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
+; uint32_t blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
 
 blowfish_encipher_asm:
     ; rdi -> blowfish state
@@ -136,14 +137,33 @@ blowfish_encipher_asm:
         %define x_l rdx
         %define x_r rcx
         %define blf_state rdi
-        %define p_array rcx
+        %define p_array r8
+        %define tmp1 r9
+        %define tmp2 r10
     
     .do_encipher:
+        ; Read first two P elements
         lea p_array, [blf_state + BLF_CTX_P_OFFSET]
-        xor edx, [p_array]
+        mov tmp1, [p_array] ; tmp1: | P1 | P0 |
+        mov tmp2, tmp1
+        shl tmp1, 32
+        shr tmp1, 32        ; tmp1: | 00 | P0 |
+        shr tmp2, 32        ; tmp2: | 00 | P1 |
 
+        ; Start enciphering
         ; macro parameters:
-        ; BLOWFISH_ROUND(S-boxes, P-array, Xr, Xl, P-array index, temp, temp)
+        ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+        xor x_l, tmp1 ; Xl <- Xl ^ P[0]
+        BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
+
+        lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        mov tmp1, [p_array] ; tmp1: | P3 | P2 |
+        mov tmp2, tmp1
+        shl tmp1, 32
+        shr tmp1, 32        ; tmp1: | 00 | P2 |
+        shr tmp2, 32        ; tmp2: | 00 | P3 |
+        BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+
         ; BLOWFISH_ROUND blf_state, p_array, x_l, x_r, 1, r10, r11
         ; BLOWFISH_ROUND blf_state, p_array, x_r, x_l, 2, r10, r11 ; this is segfaulting
         ; BLOWFISH_ROUND blf_state, p_array, x_l, x_r, 3, r10, r11
@@ -155,6 +175,7 @@ blowfish_encipher_asm:
         ;     BLOWFISH_ROUND blf_state, p_array, x_r, x_l, i, r10, r11 ; this is segfaulting
         ;     %assign i i+1
         ; %endrep
+        mov rax, x_l
 
     pop rbp
     ret
