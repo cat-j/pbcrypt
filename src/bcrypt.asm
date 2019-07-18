@@ -178,10 +178,13 @@ blowfish_encipher_asm:
         
         xor x_r, tmp2
     
+    ; Flipped because of endianness
     .build_output:
-        shl x_l, 32  ; | Xl | 00 |
-        or  x_l, x_r ; | Xl | Xr |
-        mov [rsi], x_l
+        shl x_r, 32  ; | Xr | 00 |
+        shl x_l, 32
+        shr x_l, 32  ; | 00 | Xl |
+        or  x_r, x_l ; | Xr | Xl |
+        mov [rsi], x_r
 
     .end:
         pop rbp

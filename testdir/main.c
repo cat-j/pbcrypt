@@ -121,7 +121,7 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data) {
 
     blowfish_encipher_asm(state, &data);
     Blowfish_encipher(state, &xl_expected, &xr_expected);
-    printf("Actual:   0x%016x\n", data);
+    printf("Actual:   0x%016lx\n", data);
     printf("Expected: 0x%08x%08x\n", xl_expected, xr_expected);
 
     // blowfish_encipher_asm(state, &data);
