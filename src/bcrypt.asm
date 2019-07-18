@@ -81,6 +81,15 @@ section .text
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
 %endmacro
 
+; %1: | l | r |, then | 0 | r |
+; %2: |garbage|, then | 0 | l |
+%macro SPLIT_L_R 2
+    mov %2, %1
+    shl %1, 32
+    shr %1, 32
+    shr %2, 32
+%endmacro
+
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
 
@@ -115,19 +124,14 @@ blowfish_round_asm:
     pop rbp
     ret
 
-; uint32_t blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
+; void blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
 
 blowfish_encipher_asm:
     ; rdi -> blowfish state
-    ; rsi -> xl|xr
+    ; rsi -> | Xl | Xr |
     .build_frame:
         push rbp
         mov  rbp, rsp
-
-    ; xor  x_r, [p_array + 17*P_VALUE_MEMORY_SIZE]
-    ; TODO: fix bug here! Something is getting overwritten and it shouldn't
-    ; mov  [rsi], x_r
-    ; mov  [rdx], x_l ; THIS IS OVERWRITING THE WRONG VARIABLE
 
     .separate_Xl_Xr:
         mov rdx, [rsi]      ; rdx: | Xl | Xr |
@@ -145,10 +149,7 @@ blowfish_encipher_asm:
         ; Read first two P elements
         lea p_array, [blf_state + BLF_CTX_P_OFFSET]
         mov tmp1, [p_array] ; tmp1: | P1 | P0 |
-        mov tmp2, tmp1
-        shl tmp1, 32
-        shr tmp1, 32        ; tmp1: | 00 | P0 |
-        shr tmp2, 32        ; tmp2: | 00 | P1 |
+        SPLIT_L_R tmp1, tmp2
 
         ; Start enciphering
         ; macro parameters:
@@ -157,30 +158,34 @@ blowfish_encipher_asm:
         BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
         sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
 
-    .round_2:
+        ; n is even and ranges 2 to 14
+        ; n+1 is odd and ranges 3 to 15
+        %rep 7
+            lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+            mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
+            SPLIT_L_R tmp1, tmp2
+            BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+            sub blf_state, S_BOX_MEMORY_SIZE*3
+            BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
+            sub blf_state, S_BOX_MEMORY_SIZE*3
+        %endrep
+
+        ; Load P16 and P17 and perform remaining operations
         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-        mov tmp1, [p_array] ; tmp1: | P3 | P2 |
-        mov tmp2, tmp1
-        shl tmp1, 32
-        shr tmp1, 32        ; tmp1: | 00 | P2 |
-        shr tmp2, 32        ; tmp2: | 00 | P3 |
+        mov tmp1, [p_array]
+        SPLIT_L_R tmp1, tmp2
         BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+        
+        xor x_r, tmp2
+    
+    .build_output:
+        shl x_l, 32  ; | Xl | 00 |
+        or  x_l, x_r ; | Xl | Xr |
+        mov [rsi], x_l
 
-        ; BLOWFISH_ROUND blf_state, p_array, x_l, x_r, 1, r10, r11
-        ; BLOWFISH_ROUND blf_state, p_array, x_r, x_l, 2, r10, r11 ; this is segfaulting
-        ; BLOWFISH_ROUND blf_state, p_array, x_l, x_r, 3, r10, r11
-        ; BLOWFISH_ROUND blf_state, p_array, x_r, x_l, 4, r10, r11 ; this is segfaulting
-        ; %assign i 1
-        ; %rep 8
-        ;     BLOWFISH_ROUND blf_state, p_array, x_l, x_r, i, r10, r11
-        ;     %assign i i+1
-        ;     BLOWFISH_ROUND blf_state, p_array, x_r, x_l, i, r10, r11 ; this is segfaulting
-        ;     %assign i i+1
-        ; %endrep
-        mov rax, x_l
-
-    pop rbp
-    ret
+    .end:
+        pop rbp
+        ret
 
 ; void blowfish_init_state_asm(blf_ctx *state)
 
