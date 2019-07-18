@@ -15,7 +15,8 @@ typedef struct BlowfishContext {
 void blowfish_init_state_asm(blf_ctx *state);
 
 void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
-							   const char *key, uint16_t keybytes);
+                               uint16_t saltbytes,
+                               const char *key, uint16_t keybytes);
 
 void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 

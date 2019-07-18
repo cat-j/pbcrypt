@@ -4,11 +4,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "openbsd.h"
 #include "test.h"
 #include "../src/bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
 #include "../src/bcrypt_constants.h"
 
+// TODO: replace "initial_state" with a parameter
 // TODO: refactor these two functions
 // void do_test(uint32_t actual, uint32_t expected, const char *test_name,
 //              const char *args_format, ...)
@@ -149,12 +151,37 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data) {
         "data: 0x%016lx, state: %s", data, "initial_state");
 }
 
+void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
+                                    const char *salt, uint16_t saltbytes,
+                                    const char *key, uint16_t keybytes)
+{
+    blowfish_expand_state_asm(state_actual, salt, saltbytes, key, keybytes);
+    Blowfish_expandstate(state_expected, salt, saltbytes, key, keybytes);
+
+    uint32_t *p_actual = state_actual->P;
+    uint32_t *p_expected = state_expected->P;
+    uint32_t current_actual, current_expected;
+
+    for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
+        current_actual = p_actual[i];
+        current_expected = p_expected[i];
+        do_test(current_actual, current_expected, "test_blowfish_expand_state_asm",
+            "salt: %s, key: %s, index: %ld",
+            salt, key, i);
+    }
+}
+
 int main(int argc, char const *argv[]) {
     test_blowfish_init_state_asm();
 
     blf_ctx *state;
+    blf_ctx *state_expected;
+
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
+
     blowfish_init_state_asm(state);
+    blowfish_init_state_asm(state_expected);
     
     test_F_asm(0x00000000, state);
     test_F_asm(0x11111111, state);
@@ -183,11 +210,21 @@ int main(int argc, char const *argv[]) {
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
     test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
 
-    // printf("%x\n", sizeof(0xdeadbeef00c0ffee));
-    // printf("%016lx\n", 0xdeadbeefdeadbeefLL);
     test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee);
+    test_blowfish_encipher_asm(state, 0xdeadbeefdeadbeef);
+    test_blowfish_encipher_asm(state, 0x00c0ffee00c0ffee);
+    test_blowfish_encipher_asm(state, 0xffffffffffffffff);
+    test_blowfish_encipher_asm(state, 0x0123456789abcdef);
+
+    char salt[] = "opabinia";
+    char key[] = "anomalocaris";
+    uint16_t saltbytes = strlen(salt) << 3;
+    uint16_t keybytes = strlen(key) << 3;
+    test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
+        key, keybytes);
     
     free(state);
+    free(state_expected);
 
     return 0;
 }

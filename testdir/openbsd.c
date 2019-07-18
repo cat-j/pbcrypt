@@ -50,6 +50,8 @@
 
 #define BLFRND(s,p,i,j,n) (i ^= F(s,j) ^ (p)[n])
 
+#define BLF_N	16			/* Number of Subkeys */
+
 void
 Blowfish_initstate(blf_ctx *c)
 {
@@ -374,4 +376,68 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 
 	*xl = Xr ^ p[17];
 	*xr = Xl;
+}
+
+uint32_t
+Blowfish_stream2word(const uint8_t *data, uint16_t databytes,
+    uint16_t *current)
+{
+	uint8_t i;
+	uint16_t j;
+	uint32_t temp;
+
+	temp = 0x00000000;
+	j = *current;
+
+	for (i = 0; i < 4; i++, j++) {
+		if (j >= databytes)
+			j = 0;
+		temp = (temp << 8) | data[j];
+	}
+
+	*current = j;
+	return temp;
+}
+
+void
+Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
+    const uint8_t *key, uint16_t keybytes)
+{
+	uint16_t i;
+	uint16_t j;
+	uint16_t k;
+	uint32_t temp;
+	uint32_t datal;
+	uint32_t datar;
+
+	j = 0;
+	for (i = 0; i < BLF_N + 2; i++) {
+		/* Extract 4 int8 to 1 int32 from keystream */
+		temp = Blowfish_stream2word(key, keybytes, &j);
+		c->P[i] = c->P[i] ^ temp;
+	}
+
+	j = 0;
+	datal = 0x00000000;
+	datar = 0x00000000;
+	for (i = 0; i < BLF_N + 2; i += 2) {
+		datal ^= Blowfish_stream2word(data, databytes, &j);
+		datar ^= Blowfish_stream2word(data, databytes, &j);
+		Blowfish_encipher(c, &datal, &datar);
+
+		c->P[i] = datal;
+		c->P[i + 1] = datar;
+	}
+
+	for (i = 0; i < 4; i++) {
+		for (k = 0; k < 256; k += 2) {
+			datal ^= Blowfish_stream2word(data, databytes, &j);
+			datar ^= Blowfish_stream2word(data, databytes, &j);
+			Blowfish_encipher(c, &datal, &datar);
+
+			c->S[i][k] = datal;
+			c->S[i][k + 1] = datar;
+		}
+	}
+
 }

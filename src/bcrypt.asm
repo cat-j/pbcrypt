@@ -225,14 +225,16 @@ blowfish_init_state_asm:
         pop rbp
         ret
 
-; void blowfish_expand_state_asm(blf_ctx* state, const char* salt,
-;                                const char* key, uint16_t keybytes)
+; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
+;                                uint16_t saltbytes,
+;                                const char *key, uint16_t keybytes)
 
 blowfish_expand_state_asm:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
-    ; rdx -> 4 to 56 byte key
-    ; rcx:   key length in bytes
+    ; rdx:   salt length in bytes
+    ; rcx -> 4 to 56 byte key
+    ; r8:    key length in bytes
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -243,10 +245,10 @@ blowfish_expand_state_asm:
     %define key_data_lower r9b
     %define ctx_data r10
 
-    %define key_idx r8
+    %define key_idx rbx
     %define p_idx r11
 
-    %define key_ptr rdx
+    %define key_ptr rcx
     %define ctx_ptr rdi
     
     %define key_data_ctr r12
@@ -254,44 +256,48 @@ blowfish_expand_state_asm:
 
     ; initialise regs
     ; rdi+4096 -> P-array
-    ; rdx      -> key
+    ; rcx      -> key
     ; r8:  key index
     ; r9:  8 key bytes
     ; r10: 8 XOR'd P-array bytes
     ; initialise indices and key data at 0
-    xor r8, r8
-    xor r11, r11
-    xor r9, r9 ; because a^0 = a
+    .start:
+        xor key_idx, key_idx
+        xor p_idx, p_idx
+        xor key_data, key_data ; because a^0 = a
 
     .xor_p_array_loop:
-        mov ctx_data, [ctx_ptr + BLF_CTX_P_OFFSET + p_idx] ; read two P elements
+        ; Read two P-elements per iteration
+        ; MIND THE ENDIANNESS: this is | P2k+1 |  P2k  |
+        mov ctx_data, [ctx_ptr + BLF_CTX_P_OFFSET + p_idx*P_VALUE_MEMORY_SIZE]
         xor key_data_ctr, key_data_ctr
 
+        ; Read 8 key bytes in order to XOR them with P elements
         .read_key_data:
             cmp key_idx, key_len
             jl  .continue
             xor key_idx, key_idx ; wrap around key w/o modulus
             .continue:
             shl key_data, 8 ; next byte goes in lowest 8
-            mov key_data_lower, [key_ptr + key_idx]
+            mov key_data_lower, [key_ptr + key_idx] ; THIS IS SEGFAULTING BECAUSE IT CAN'T ACCESS RDX
             inc key_idx
             inc key_data_ctr
             cmp key_data_ctr, 8
             jl  .read_key_data
         
         xor ctx_data, key_data
-        mov [ctx_ptr + BLF_CTX_P_OFFSET + p_idx], ctx_data
+        mov [ctx_ptr + BLF_CTX_P_OFFSET + p_idx], ctx_data ; overwrite P elements
         add p_idx, 2 ; p-array is dword-indexed
         cmp p_idx, 18
         jl  .xor_p_array_loop
     
-    .encrypt_p_array:
-        %define datal ymm0
-        %define datar ymm1
+    ; .encrypt_p_array:
+    ;     %define datal ymm0
+    ;     %define datar ymm1
 
-        vpxor ymm0, ymm0
-        vpxor ymm1, ymm1
-        vbroadcastf128 ymm15, [rsi] ; ymm15 = |salt|salt|
+    ;     vpxor ymm0, ymm0
+    ;     vpxor ymm1, ymm1
+    ;     vbroadcastf128 ymm15, [rsi] ; ymm15 = |salt|salt|
 
     .end:
         pop rbx
