@@ -383,5 +383,6 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 	// *xr = Xl;
 
 	// ALL OF THIS ISN'T REAL
+	// Xl = F(s, Xr);
 	*xr = Xl;
 }

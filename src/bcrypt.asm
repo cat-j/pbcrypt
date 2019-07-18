@@ -70,13 +70,13 @@ section .text
 
 ; %1 -> array of S-boxes
 ; %2: temporary register for F (modified)
-; %3: Xr, output (modified)
-; %4: Xl
+; %3: data half
+; %4: other data half
 ; %5: value read from P-array
 ; %6: temporary register for F output (modified)
 ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
 %macro BLOWFISH_ROUND 6
-    F %1, %4, %2, %6 ; %6 <- F(%1, %2) = F(s, j)
+    F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
 %endmacro
@@ -155,7 +155,9 @@ blowfish_encipher_asm:
         ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
         xor x_l, tmp1 ; Xl <- Xl ^ P[0]
         BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
+        sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
 
+    .round_2:
         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
         mov tmp1, [p_array] ; tmp1: | P3 | P2 |
         mov tmp2, tmp1

@@ -119,9 +119,9 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data) {
     assert(&xl_actual != &xl_expected);
     assert(&xr_actual != &xr_expected);
 
-    uint32_t xl_second_round_actual = blowfish_encipher_asm(state, &data);
+    uint32_t xr_second_round_actual = blowfish_encipher_asm(state, &data);
     Blowfish_encipher(state, &xl_expected, &xr_expected);
-    printf("Actual: 0x%08x\n", xl_second_round_actual);
+    printf("Actual:   0x%08x\n", xr_second_round_actual);
     printf("Expected: 0x%08x\n", xr_expected);
 
     // blowfish_encipher_asm(state, &data);
@@ -140,32 +140,32 @@ int main(int argc, char const *argv[]) {
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     blowfish_init_state_asm(state);
     
-    test_F_asm(0x00000000, state);
-    test_F_asm(0x11111111, state);
-    test_F_asm(0x22222222, state);
-    test_F_asm(0x33333333, state);
-    test_F_asm(0x44444444, state);
-    test_F_asm(0x55555555, state);
-    test_F_asm(0x66666666, state);
-    test_F_asm(0x77777777, state);
-    test_F_asm(0x88888888, state);
-    test_F_asm(0x99999999, state);
-    test_F_asm(0xffffffff, state);
-    test_F_asm(0x01010101, state);
-    test_F_asm(0xf0f0f0f0, state);
-    test_F_asm(0xdeadbeef, state);
-    test_F_asm(0x12345678, state);
-    test_F_asm(0x20002000, state);
-    test_F_asm(0x00c0ffee, state);
+    // test_F_asm(0x00000000, state);
+    // test_F_asm(0x11111111, state);
+    // test_F_asm(0x22222222, state);
+    // test_F_asm(0x33333333, state);
+    // test_F_asm(0x44444444, state);
+    // test_F_asm(0x55555555, state);
+    // test_F_asm(0x66666666, state);
+    // test_F_asm(0x77777777, state);
+    // test_F_asm(0x88888888, state);
+    // test_F_asm(0x99999999, state);
+    // test_F_asm(0xffffffff, state);
+    // test_F_asm(0x01010101, state);
+    // test_F_asm(0xf0f0f0f0, state);
+    // test_F_asm(0xdeadbeef, state);
+    // test_F_asm(0x12345678, state);
+    // test_F_asm(0x20002000, state);
+    // test_F_asm(0x00c0ffee, state);
 
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4);
-    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
-    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
-    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
-    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4);
+    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
+    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
+    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
+    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
 
     // printf("%x\n", sizeof(0xdeadbeef00c0ffee));
     // printf("%016lx\n", 0xdeadbeefdeadbeefLL);
