@@ -58,7 +58,7 @@ void do_test(uint64_t actual, uint64_t expected, const char *test_name,
         test_pass("%s successful.\n", test_name);
     } else {
         test_fail("%s failed.\n"
-        "Expected: 0x%08x\tActual: 0x%08x\n", test_name, expected, actual);
+        "Expected: 0x%016lx\tActual: 0x%016lx\n", test_name, expected, actual);
     }
 }
 
@@ -125,6 +125,12 @@ void test_F_asm(uint32_t x, const blf_ctx *state) {
     uint32_t expected = f_wrapper(x, state);
     
     do_test(actual, expected, "test_F_asm", "%08x, %s", x, "initial_state");
+}
+
+void test_reverse_bytes(uint64_t data, uint64_t expected) {
+    uint64_t actual = reverse_bytes(data);
+
+    do_test(actual, expected, "test_reverse_bytes", "data: 0x%016lx", data);
 }
 
 void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
@@ -220,6 +226,8 @@ int main(int argc, char const *argv[]) {
     char key[] = "anomalocaris";
     uint16_t saltbytes = strlen(salt);
     uint16_t keybytes = strlen(key);
+
+    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
         key, keybytes);
