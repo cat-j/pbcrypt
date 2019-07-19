@@ -156,7 +156,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
                                     const char *key, uint16_t keybytes)
 {
     blowfish_expand_state_asm(state_actual, salt, saltbytes, key, keybytes);
-    Blowfish_expandstate(state_expected, salt, saltbytes, key, keybytes);
+    Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes, (uint8_t *) key, keybytes);
 
     uint32_t *p_actual = state_actual->P;
     uint32_t *p_expected = state_expected->P;
@@ -172,7 +172,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
 }
 
 int main(int argc, char const *argv[]) {
-    test_blowfish_init_state_asm();
+    // test_blowfish_init_state_asm();
 
     blf_ctx *state;
     blf_ctx *state_expected;
@@ -183,40 +183,41 @@ int main(int argc, char const *argv[]) {
     blowfish_init_state_asm(state);
     blowfish_init_state_asm(state_expected);
     
-    test_F_asm(0x00000000, state);
-    test_F_asm(0x11111111, state);
-    test_F_asm(0x22222222, state);
-    test_F_asm(0x33333333, state);
-    test_F_asm(0x44444444, state);
-    test_F_asm(0x55555555, state);
-    test_F_asm(0x66666666, state);
-    test_F_asm(0x77777777, state);
-    test_F_asm(0x88888888, state);
-    test_F_asm(0x99999999, state);
-    test_F_asm(0xffffffff, state);
-    test_F_asm(0x01010101, state);
-    test_F_asm(0xf0f0f0f0, state);
-    test_F_asm(0xdeadbeef, state);
-    test_F_asm(0x12345678, state);
-    test_F_asm(0x20002000, state);
-    test_F_asm(0x00c0ffee, state);
+    // test_F_asm(0x00000000, state);
+    // test_F_asm(0x11111111, state);
+    // test_F_asm(0x22222222, state);
+    // test_F_asm(0x33333333, state);
+    // test_F_asm(0x44444444, state);
+    // test_F_asm(0x55555555, state);
+    // test_F_asm(0x66666666, state);
+    // test_F_asm(0x77777777, state);
+    // test_F_asm(0x88888888, state);
+    // test_F_asm(0x99999999, state);
+    // test_F_asm(0xffffffff, state);
+    // test_F_asm(0x01010101, state);
+    // test_F_asm(0xf0f0f0f0, state);
+    // test_F_asm(0xdeadbeef, state);
+    // test_F_asm(0x12345678, state);
+    // test_F_asm(0x20002000, state);
+    // test_F_asm(0x00c0ffee, state);
 
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3);
-    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4);
-    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
-    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
-    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
-    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3);
+    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4);
+    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1);
+    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2);
+    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1);
+    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2);
 
-    test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee);
-    test_blowfish_encipher_asm(state, 0xdeadbeefdeadbeef);
-    test_blowfish_encipher_asm(state, 0x00c0ffee00c0ffee);
-    test_blowfish_encipher_asm(state, 0xffffffffffffffff);
-    test_blowfish_encipher_asm(state, 0x0123456789abcdef);
+    // test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee);
+    // test_blowfish_encipher_asm(state, 0xdeadbeefdeadbeef);
+    // test_blowfish_encipher_asm(state, 0x00c0ffee00c0ffee);
+    // test_blowfish_encipher_asm(state, 0xffffffffffffffff);
+    // test_blowfish_encipher_asm(state, 0x0123456789abcdef);
 
-    char salt[] = "opabinia";
+    // char salt[] = "opabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabinia"; // 128 bytes long
+    char salt[] = "opabiniaopabiniao";
     char key[] = "anomalocaris";
     uint16_t saltbytes = strlen(salt) << 3;
     uint16_t keybytes = strlen(key) << 3;
