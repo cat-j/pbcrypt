@@ -9,8 +9,10 @@ extern initstate_asm
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
 global blowfish_encipher_asm
+
 global f_asm
 global blowfish_round_asm
+global reverse_bytes
 ; global bcrypt_encrypt
 
 section .data
@@ -96,43 +98,82 @@ section .text
 ; %1: input, then output
 ; %2: temp
 ; %3: temp
-%macro REVERSE_8_BYTES 3
+; %4: lower 32 bits of %2
+%macro REVERSE_8_BYTES 4
     mov %3, %1                 ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
     shl %3, 56                 ; | b0 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
-
+    
     mov %2, %1
-    shl %2, 48                 ; | b2 | b1 | b0 | 00 | 00 | 00 | 00 | 00 |
-    and %2, 0x00ff000000000000 ; | 00 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+    and %2, 0xff00             ; | 00 | 00 | 00 | 00 | 00 | 00 | b1 | 00 |
+    shl %2, 40                 ; | 00 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
     or  %3, %2                 ; | b0 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
 
     mov %2, %1
-    shl %2, 24                 ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
-    and %2, 0x0000ff0000000000 ; | 00 | 00 | b2 | 00 | 00 | 00 | 00 | 00 |
+    and %2, 0xff0000           ; | 00 | 00 | 00 | 00 | 00 | b2 | 00 | 00 |
+    shl %2, 24                 ; | 00 | 00 | b2 | 00 | 00 | 00 | 00 | 00 |
     or  %3, %2                 ; | b0 | b1 | b2 | 00 | 00 | 00 | 00 | 00 |
-
+    
     mov %2, %1
-    shl %2, 8                  ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
-    and %2, 0x000000ff00000000 ; | 00 | 00 | 00 | b3 | 00 | 00 | 00 | 00 |
+    and %4, 0xff000000         ; | 00 | 00 | 00 | 00 | b3 | 00 | 00 | 00 |
+    shl %2, 8                  ; | 00 | 00 | 00 | b3 | 00 | 00 | 00 | 00 |
     or  %3, %2                 ; | b0 | b1 | b2 | b3 | 00 | 00 | 00 | 00 |
 
     mov %2, %1
     shr %2, 8                  ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
-    and %2, 0x00000000ff000000 ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
+    and %4, 0xff000000         ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | 00 | 00 | 00 |
-
+    
     mov %2, %1
     shr %2, 24                 ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
-    and %2, 0x0000000000ff0000 ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
+    and %2, 0xff0000           ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | 00 | 00 |
 
     mov %2, %1
-    shr %2, 48                 ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
-    and %2, 0x000000000000ff00 ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
+    shr %2, 40                 ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
+    and %2, 0xff00             ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | 00 |
 
     shr %1, 56                 ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
     or  %1, %3                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
 %endmacro
+
+; %macro REVERSE_8_BYTES 3
+;     mov %3, %1                 ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+;     shl %3, 56                 ; | b0 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+;     mov %2, %1
+;     shl %2, 48                 ; | b2 | b1 | b0 | 00 | 00 | 00 | 00 | 00 |
+;     and %2, 0x00ff000000000000 ; | 00 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+;     mov %2, %1
+;     shl %2, 24                 ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
+;     and %2, 0x0000ff0000000000 ; | 00 | 00 | b2 | 00 | 00 | 00 | 00 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | b2 | 00 | 00 | 00 | 00 | 00 |
+
+;     mov %2, %1
+;     shl %2, 8                  ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+;     and %2, 0x000000ff00000000 ; | 00 | 00 | 00 | b3 | 00 | 00 | 00 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | b2 | b3 | 00 | 00 | 00 | 00 |
+
+;     mov %2, %1
+;     shr %2, 8                  ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+;     and %2, 0x00000000ff000000 ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | 00 | 00 | 00 |
+
+;     mov %2, %1
+;     shr %2, 24                 ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+;     and %2, 0x0000000000ff0000 ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | 00 | 00 |
+
+;     mov %2, %1
+;     shr %2, 48                 ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
+;     and %2, 0x000000000000ff00 ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
+;     or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | 00 |
+
+;     shr %1, 56                 ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
+;     or  %1, %3                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+; %endmacro
 
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
@@ -164,6 +205,19 @@ blowfish_round_asm:
     mov  r8, [rdx + BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE] ; r8: P-value
     BLOWFISH_ROUND rdx, r9, rsi, rdi, r8, r10
     mov  rax, rsi
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing byte reversal macro
+; uint64_t reverse_bytes(uint64_t data)
+reverse_bytes:
+    ; rdi: data
+    push rbp
+    mov  rbp, rsp
+
+    REVERSE_8_BYTES rdi, rsi, rdx, esi
+    mov rax, rdi
 
     pop rbp
     ret
@@ -297,13 +351,14 @@ blowfish_expand_state_asm:
         %define salt_r r11
         %define tmp1   rbx
         %define tmp2   r12
+        %define tmp1l  ebx
 
         xor data, data        ; 0
         mov salt_l, [rsi]     ; leftmost 64 bits of salt
         mov salt_r, [rsi + 8] ; rightmost 64 bits of salt
 
-        REVERSE_8_BYTES salt_l, tmp1, tmp2
-        REVERSE_8_BYTES salt_r, tmp1, tmp2
+        ; REVERSE_8_BYTES salt_l, tmp1, tmp2
+        ; REVERSE_8_BYTES salt_r, tmp1, tmp2
 
         mov [rdi + BLF_CTX_P_OFFSET], salt_r
         
