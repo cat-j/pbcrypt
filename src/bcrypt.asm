@@ -90,6 +90,50 @@ section .text
     shr %2, 32
 %endmacro
 
+; TODO: see if this is faster with shifts
+; input:  | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+; output: | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+; %1: input, then output
+; %2: temp
+; %3: temp
+%macro REVERSE_8_BYTES 3
+    mov %3, %1                 ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %3, 56                 ; | b0 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shl %2, 48                 ; | b2 | b1 | b0 | 00 | 00 | 00 | 00 | 00 |
+    and %2, 0x00ff000000000000 ; | 00 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2                 ; | b0 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shl %2, 24                 ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
+    and %2, 0x0000ff0000000000 ; | 00 | 00 | b2 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2                 ; | b0 | b1 | b2 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shl %2, 8                  ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+    and %2, 0x000000ff00000000 ; | 00 | 00 | 00 | b3 | 00 | 00 | 00 | 00 |
+    or  %3, %2                 ; | b0 | b1 | b2 | b3 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shr %2, 8                  ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+    and %2, 0x00000000ff000000 ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
+    or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shr %2, 24                 ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %2, 0x0000000000ff0000 ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
+    or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | 00 | 00 |
+
+    mov %2, %1
+    shr %2, 48                 ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
+    and %2, 0x000000000000ff00 ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
+    or  %3, %2                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | 00 |
+
+    shr %1, 56                 ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
+    or  %1, %3                 ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+%endmacro
+
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
 
@@ -238,6 +282,8 @@ blowfish_expand_state_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push rbx
+        push r12
     
     .p_array_key:
         ; key_data: 8 bytes from key
@@ -249,19 +295,35 @@ blowfish_expand_state_asm:
         %define data   r9
         %define salt_l r10
         %define salt_r r11
+        %define tmp1   rbx
+        %define tmp2   r12
 
-        xor data, data       ; 0
-        mov salt_l [rsi]     ; leftmost 64 bits of salt
-        mov salt_r [rsi + 8] ; rightmost 64 bits of salt
+        xor data, data        ; 0
+        mov salt_l, [rsi]     ; leftmost 64 bits of salt
+        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt
+
+        REVERSE_8_BYTES salt_l, tmp1, tmp2
+        REVERSE_8_BYTES salt_r, tmp1, tmp2
+
+        mov [rdi + BLF_CTX_P_OFFSET], salt_r
         
-        %assign i 0
-        %rep 9
-            xor data, salt_l
-        %endrep
+        ; Repeat 16 times
+        ; %assign i 0
+        ; %rep 4
+        ;     xor data, salt_l
+        ;     ; TODO: blowfish_encipher
+        ;     mov [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE*2], data
+        ;     %assign i i+2
+        ;     xor data, salt_r
+        ;     mov [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE*2], data
+        ;     %assign i i+2
+        ; %endrep
 
     .s_boxes_salt:
     
     .end:
+        pop r12
+        pop rbx
         pop rbp
         ret
 

@@ -180,8 +180,8 @@ int main(int argc, char const *argv[]) {
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
 
-    blowfish_init_state_asm(state);
-    blowfish_init_state_asm(state_expected);
+    Blowfish_initstate_dummy(state);
+    Blowfish_initstate_dummy(state_expected);
     
     // test_F_asm(0x00000000, state);
     // test_F_asm(0x11111111, state);
@@ -216,11 +216,11 @@ int main(int argc, char const *argv[]) {
     // test_blowfish_encipher_asm(state, 0xffffffffffffffff);
     // test_blowfish_encipher_asm(state, 0x0123456789abcdef);
 
-    // char salt[] = "opabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabiniaopabinia"; // 128 bytes long
-    char salt[] = "opabiniaopabiniao";
+    char salt[] = "opabiniaopabinia"; // 128 bits long
     char key[] = "anomalocaris";
-    uint16_t saltbytes = strlen(salt) << 3;
-    uint16_t keybytes = strlen(key) << 3;
+    uint16_t saltbytes = strlen(salt);
+    uint16_t keybytes = strlen(key);
+
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
         key, keybytes);
     

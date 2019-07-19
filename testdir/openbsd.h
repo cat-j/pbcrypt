@@ -6,6 +6,8 @@
 
 void Blowfish_initstate(blf_ctx *c);
 
+void Blowfish_initstate_dummy(blf_ctx *c);
+
 void Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
     const uint8_t *key, uint16_t keybytes);
 
