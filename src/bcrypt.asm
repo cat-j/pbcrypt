@@ -321,32 +321,32 @@ blowfish_encipher:
         BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
         sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
         
-        lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-        mov tmp1, [p_array]
-        SPLIT_L_R tmp1, tmp2
-        BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
-        sub blf_state, S_BOX_MEMORY_SIZE*3
+        ; lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        ; mov tmp1, [p_array]
+        ; SPLIT_L_R tmp1, tmp2
+        ; BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
+        ; sub blf_state, S_BOX_MEMORY_SIZE*3
         
-        BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
-        sub blf_state, S_BOX_MEMORY_SIZE*3
+        ; BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
+        ; sub blf_state, S_BOX_MEMORY_SIZE*3
 
         ; n is even and ranges 2 to 14
         ; n+1 is odd and ranges 3 to 15
-        ; %rep 7
-        ;     lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-        ;     mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
-        ;     SPLIT_L_R tmp1, tmp2
-        ;     BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
-        ;     sub blf_state, S_BOX_MEMORY_SIZE*3
-        ;     BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
-        ;     sub blf_state, S_BOX_MEMORY_SIZE*3
-        ; %endrep
+        %rep 7
+            lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+            mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
+            SPLIT_L_R tmp1, tmp2
+            BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
+            sub blf_state, S_BOX_MEMORY_SIZE*3
+            BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
+            sub blf_state, S_BOX_MEMORY_SIZE*3
+        %endrep
 
         ; ; Load P16 and P17 and perform remaining operations
         ; lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
         ; mov tmp1, [p_array]
         ; SPLIT_L_R tmp1, tmp2
-        ; BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+        ; BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
         
         ; xor x_r, tmp2
     
