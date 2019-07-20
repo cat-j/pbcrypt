@@ -342,20 +342,22 @@ blowfish_encipher:
             sub blf_state, S_BOX_MEMORY_SIZE*3
         %endrep
 
-        ; ; Load P16 and P17 and perform remaining operations
-        ; lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-        ; mov tmp1, [p_array]
-        ; SPLIT_L_R tmp1, tmp2
+        ; Load P16 and P17 and perform remaining operations
+        lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        mov tmp1, [p_array]
+        SPLIT_L_R tmp1, tmp2
         ; BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
         
-        ; xor x_r, tmp2
+        xor x_r, tmp2
     
     ; Flipped because of endianness
+    ; TODO: arrange differently instead of rotating
     .build_output:
         shl x_r, 32  ; | Xr | 00 |
         shl x_l, 32
         shr x_l, 32  ; | 00 | Xl |
         or  x_r, x_l ; | Xr | Xl |
+        rol x_r, 32
         mov r13, x_r
 
     .end:

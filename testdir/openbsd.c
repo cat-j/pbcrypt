@@ -653,11 +653,11 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 	// printf("xl: 0x%08x\n", Xl);
 	// printf("xr: 0x%08x\n", Xr);
 
-	// *xl = Xr ^ p[17];
-	// *xr = Xl;
+	*xl = Xr ^ p[17];
+	*xr = Xl;
 
-	*xl = Xl;
-	*xr = Xr;
+	// *xl = Xl;
+	// *xr = Xr;
 }
 
 uint32_t
