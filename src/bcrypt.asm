@@ -322,9 +322,13 @@ blowfish_encipher:
         sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
         
         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        mov tmp1, [p_array]
         SPLIT_L_R tmp1, tmp2
         BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
-        sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
+        sub blf_state, S_BOX_MEMORY_SIZE*3
+        
+        BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
+        sub blf_state, S_BOX_MEMORY_SIZE*3
 
         ; n is even and ranges 2 to 14
         ; n+1 is odd and ranges 3 to 15

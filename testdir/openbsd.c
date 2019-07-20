@@ -598,7 +598,7 @@ void Blowfish_initstate_dummy(blf_ctx *c) {
 		0xb74e6132, 0xce77e25b, 0x578fdfe3, 0x3ac372e6}
 	},
 	{
-		0xffffffff, 0xffffffff, 0x00000000, 0xffffffff,
+		0xffffffff, 0x11111111, 0xeeeeeeee, 0x00000000,
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
@@ -636,9 +636,9 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 
 	BLFRND(s, p, Xr, Xl, 1);
 	BLFRND(s, p, Xl, Xr, 2);
-	printf("xl: 0x%08x\n", Xl);
-	printf("xr: 0x%08x\n", Xr);
-	// BLFRND(s, p, Xr, Xl, 3);
+	BLFRND(s, p, Xr, Xl, 3);
+	// printf("xl: 0x%08x\n", Xl);
+	// printf("xr: 0x%08x\n", Xr);
 	// BLFRND(s, p, Xl, Xr, 4);
 	// BLFRND(s, p, Xr, Xl, 5);
 	// BLFRND(s, p, Xl, Xr, 6);
