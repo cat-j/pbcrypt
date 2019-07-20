@@ -171,6 +171,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
         current_actual = p_actual[i];
         current_expected = p_expected[i];
+        // printf("0x%08x\t0x%08x\n", current_expected, current_actual);
         do_test(current_actual, current_expected, "test_blowfish_expand_state_asm",
             "salt: %s, key: %s, index: %ld",
             salt, key, i);

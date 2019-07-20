@@ -41,6 +41,7 @@
  * Bruce Schneier.
  */
 
+#include <stdio.h>
 #include "openbsd.h"
 
 #define F(s, x) ((((s)[        (((x)>>24)&0xFF)]  \
@@ -602,7 +603,7 @@ void Blowfish_initstate_dummy(blf_ctx *c) {
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
 		0x00000000, 0x00000000, 0x00000000, 0x00000000,
-		0x00000000, 0x00000000
+		0x00000000, 0xffffffff
 	} };
 
 	*c = initstate_dummy;
@@ -649,15 +650,10 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 	BLFRND(s, p, Xr, Xl, 13);
 	BLFRND(s, p, Xl, Xr, 14);
 	BLFRND(s, p, Xr, Xl, 15);
-	// BLFRND(s, p, Xl, Xr, 16);
-	// printf("xl: 0x%08x\n", Xl);
-	// printf("xr: 0x%08x\n", Xr);
+	BLFRND(s, p, Xl, Xr, 16);
 
 	*xl = Xr ^ p[17];
 	*xr = Xl;
-
-	// *xl = Xl;
-	// *xr = Xr;
 }
 
 uint32_t
