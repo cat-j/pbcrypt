@@ -74,13 +74,14 @@ section .text
 ; %2: temporary register for F (modified)
 ; %3: data half
 ; %4: other data half
-; %5: value read from P-array
+; %5: value read from P-array, p[n]
 ; %6: temporary register for F output (modified)
 ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
 %macro BLOWFISH_ROUND 6
     F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
+    ; mov %3, %6 ; i <- i ^ p[n]
 %endmacro
 
 ; %1: | l | r |, then | 0 | r |
@@ -143,34 +144,34 @@ section .text
 ; %2: temp
 ; %3: temp
 ; %4: lower 32 bits of %2
-%macro REVERSE_DWORDS 4
-    mov %3, %1
-    shr %3, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
-    and %3, 0xff       ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
+; %macro REVERSE_DWORDS 4
+;     mov %3, %1
+;     shr %3, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+;     and %3, 0xff       ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
 
-    mov %2, %1
-    shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
-    and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | 00 |
-    or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | b3 |
+;     mov %2, %1
+;     shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+;     and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | 00 |
+;     or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | b3 |
 
-    mov %2, %1
-    shl %2, 8          ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
-    and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b1 | 00 | 00 |
-    or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | b1 | b2 | b3 |
+;     mov %2, %1
+;     shl %2, 8          ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+;     and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b1 | 00 | 00 |
+;     or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | b1 | b2 | b3 |
 
-    mov %2, %1
-    shl %2, 24         ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
-    and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b0 | 00 | 00 | 00 |
-    or  %3, %2         ; | 00 | 00 | 00 | 00 | b0 | b1 | b2 | b3 |
+;     mov %2, %1
+;     shl %2, 24         ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
+;     and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b0 | 00 | 00 | 00 |
+;     or  %3, %2         ; | 00 | 00 | 00 | 00 | b0 | b1 | b2 | b3 |
 
-    mov %2, %1
-    shr %2, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
-    shl %2, 32         ; | 00 | 00 | 00 | b7 | 00 | 00 | 00 | 00 |
-    or  %3, %2         ; | 00 | 00 | 00 | b7 | b0 | b1 | b2 | b3 |
+;     mov %2, %1
+;     shr %2, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
+;     shl %2, 32         ; | 00 | 00 | 00 | b7 | 00 | 00 | 00 | 00 |
+;     or  %3, %2         ; | 00 | 00 | 00 | b7 | b0 | b1 | b2 | b3 |
 
-    mov %2, %1
-    shr %2, 8
-%endmacro
+;     mov %2, %1
+;     shr %2, 8
+; %endmacro
 
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
@@ -233,12 +234,12 @@ blowfish_encipher_asm:
         mov ecx, edx        ; rcx: | 00 | Xr |
         shr rdx, 32         ; rdx: | 00 | Xl |
 
-        %define x_l rdx
-        %define x_r rcx
+        %define x_l       rdx
+        %define x_r       rcx
         %define blf_state rdi
-        %define p_array r8
-        %define tmp1 r9
-        %define tmp2 r10
+        %define p_array   r8
+        %define tmp1      r9
+        %define tmp2      r10
     
     .do_encipher:
         ; Read first two P elements
@@ -280,6 +281,78 @@ blowfish_encipher_asm:
         shr x_l, 32  ; | 00 | Xl |
         or  x_r, x_l ; | Xr | Xl |
         mov [rsi], x_r
+
+    .end:
+        pop rbp
+        ret
+
+; TODO: rename this
+; WARNING: THIS DOES NOT FOLLOW CDECL
+; MUST NOT TOUCH R10
+blowfish_encipher:
+    ; rdi -> blowfish state
+    ; r13:   | Xl | Xr |
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .separate_Xl_Xr:
+        mov rdx, r13 ; rdx: | Xl | Xr |
+        mov ecx, edx ; rcx: | 00 | Xr |
+        shr rdx, 32  ; rdx: | 00 | Xl |
+
+        %define x_l       rdx
+        %define x_r       rcx
+        %define blf_state rdi
+        %define p_array   r8
+        %define tmp1      r9
+        %define tmp2      r11
+    
+    .do_encipher:
+        ; Read first two P elements
+        lea p_array, [blf_state + BLF_CTX_P_OFFSET]
+        mov tmp1, [p_array]  ; tmp1: | P1 | P0 |
+        SPLIT_L_R tmp1, tmp2 ; tmp1: | 00 | P0 |  tmp2: | 00 | P1 |
+
+        ; Start enciphering
+        ; macro parameters:
+        ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+        xor x_l, tmp1 ; Xl <- Xl ^ P[0]
+        BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
+        sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
+        
+        lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        SPLIT_L_R tmp1, tmp2
+        BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
+        sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
+
+        ; n is even and ranges 2 to 14
+        ; n+1 is odd and ranges 3 to 15
+        ; %rep 7
+        ;     lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        ;     mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
+        ;     SPLIT_L_R tmp1, tmp2
+        ;     BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+        ;     sub blf_state, S_BOX_MEMORY_SIZE*3
+        ;     BLOWFISH_ROUND blf_state, r11, x_r, x_l, tmp2, rax
+        ;     sub blf_state, S_BOX_MEMORY_SIZE*3
+        ; %endrep
+
+        ; ; Load P16 and P17 and perform remaining operations
+        ; lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+        ; mov tmp1, [p_array]
+        ; SPLIT_L_R tmp1, tmp2
+        ; BLOWFISH_ROUND blf_state, r11, x_l, x_r, tmp1, rax
+        
+        ; xor x_r, tmp2
+    
+    ; Flipped because of endianness
+    .build_output:
+        shl x_r, 32  ; | Xr | 00 |
+        shl x_l, 32
+        shr x_l, 32  ; | 00 | Xl |
+        or  x_r, x_l ; | Xr | Xl |
+        mov r13, x_r
 
     .end:
         pop rbp
@@ -335,6 +408,8 @@ blowfish_expand_state_asm:
         mov  rbp, rsp
         push rbx
         push r12
+        push r13
+        push r14
     
     .p_array_key:
         ; key_data: 8 bytes from key
@@ -343,23 +418,28 @@ blowfish_expand_state_asm:
         %define key_data_ctr r10
 
     .p_array_salt:
-        %define data   r9
+        %define data   r12
         %define salt_l r10
-        %define salt_r r11
+        %define salt_r r14
         %define tmp1   rbx
-        %define tmp2   r12
+        %define tmp2   r9
         %define tmp1l  ebx
+        %define encphr r13
 
         xor data, data        ; 0
-        mov salt_l, [rsi]     ; leftmost 64 bits of salt
-        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt
+        mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
+        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt = Xl | Xr
 
         REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
         REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
-        rol salt_l, 32
-        rol salt_r, 32
 
-        mov [rdi + BLF_CTX_P_OFFSET], salt_r
+        ; rol  salt_l, 32
+        ; rol  salt_r, 32
+        mov  encphr, salt_l
+        call blowfish_encipher
+
+    .blowfish_encipher_done:
+        mov [rdi + BLF_CTX_P_OFFSET], encphr
         
         ; Repeat 16 times
         ; %assign i 0
@@ -376,6 +456,8 @@ blowfish_expand_state_asm:
     .s_boxes_salt:
     
     .end:
+        pop r14
+        pop r13
         pop r12
         pop rbx
         pop rbp

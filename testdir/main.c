@@ -58,7 +58,7 @@ void do_test(uint64_t actual, uint64_t expected, const char *test_name,
         test_pass("%s successful.\n", test_name);
     } else {
         test_fail("%s failed.\n"
-        "Expected: 0x%016lx\tActual: 0x%016lx\n", test_name, expected, actual);
+        "Expected: 0x%08x\tActual: 0x%08x\n", test_name, expected, actual);
     }
 }
 
@@ -222,7 +222,7 @@ int main(int argc, char const *argv[]) {
     // test_blowfish_encipher_asm(state, 0xffffffffffffffff);
     // test_blowfish_encipher_asm(state, 0x0123456789abcdef);
 
-    char salt[] = "opabiniaopabinia"; // 128 bits long
+    char salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
     uint16_t saltbytes = strlen(salt);
     uint16_t keybytes = strlen(key);
