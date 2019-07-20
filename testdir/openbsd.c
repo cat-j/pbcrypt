@@ -710,7 +710,7 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 		datar ^= Blowfish_stream2word(data, databytes, &j);
 		printf("datal: 0x%08x\n", datal);
 		printf("datar: 0x%08x\n", datar);
-		Blowfish_encipher(c, &datal, &datar);
+		// Blowfish_encipher(c, &datal, &datar);
 
 		c->P[i] = datal;
 		c->P[i + 1] = datar;
