@@ -417,13 +417,13 @@ blowfish_expand_state_asm:
         %define key_data_ctr r10
 
     .p_array_salt:
-        %define data   r12
+        %define data   r13
         %define salt_l r10
         %define salt_r r14
         %define tmp1   rbx
         %define tmp2   r9
         %define tmp1l  ebx
-        %define encphr r13
+        ; %define encphr r13
 
         xor data, data        ; 0
         mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
@@ -434,11 +434,21 @@ blowfish_expand_state_asm:
 
         ; rol  salt_l, 32
         ; rol  salt_r, 32
-        mov  encphr, salt_l
+        xor  data, salt_l
         call blowfish_encipher
+        mov [rdi + BLF_CTX_P_OFFSET], data
 
-    .blowfish_encipher_done:
-        mov [rdi + BLF_CTX_P_OFFSET], encphr
+    .second:
+        rol  data, 32
+        xor  data, salt_r
+        call blowfish_encipher
+        mov  [rdi + BLF_CTX_P_OFFSET + 2*P_VALUE_MEMORY_SIZE], data
+    
+    .third:
+        ; rol  data, 32
+        ; xor  data, salt_l
+        ; call blowfish_encipher
+        ; mov  [rdi + BLF_CTX_P_OFFSET + 3*P_VALUE_MEMORY_SIZE], data
         
         ; Repeat 16 times
         ; %assign i 0
