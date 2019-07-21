@@ -303,15 +303,12 @@ blowfish_encipher:
         sub blf_state, S_BOX_MEMORY_SIZE*3
         
         xor x_r, tmp2
-    
-    ; Flipped because of endianness
-    ; TODO: arrange differently instead of rotating
+
     .build_output:
-        shl x_r, 32  ; | Xr | 00 |
-        shl x_l, 32
-        shr x_l, 32  ; | 00 | Xl |
-        or  x_r, x_l ; | Xr | Xl |
-        rol x_r, 32
+        shl x_l, 32  ; | Xl | 00 |
+        shl x_r, 32
+        shr x_r, 32  ; | 00 | Xr |
+        or  x_r, x_l ; | Xl | Xr |
         mov r13, x_r
 
     .end:
