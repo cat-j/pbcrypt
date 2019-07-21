@@ -135,6 +135,14 @@ section .text
     or  %1, %3         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
 %endmacro
 
+; %1: key_data
+; %2: key_data_ctr
+; %3: key_ptr
+; %4: key_len
+; %5: data
+; %macro EXTRACT_KEY_BYTES 5
+; %endmacro
+
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
 
@@ -370,8 +378,39 @@ blowfish_expand_state_asm:
     .p_array_key:
         ; key_data: 8 bytes from key
         ; key_data_ctr: byte index
-        %define key_data r9
+        %define key_data     r9
+        %define key_data_l   r9b
         %define key_data_ctr r10
+        %define key_ptr      rcx
+        %define key_len      r8
+        %define loop_ctr     r12
+        %define data         r13
+
+        ; Initialise registers
+        xor key_data_ctr, key_data_ctr
+        xor data, data
+        xor loop_ctr, loop_ctr
+
+        ; Extract 8 bytes from key
+        .key_loop:
+            cmp loop_ctr, 8
+            je  .end_key_loop
+
+            .extract_key_bytes:
+                cmp key_data_ctr, key_len
+                jl  .continue_extract
+                xor key_data_ctr, key_data_ctr ; reset counter
+
+            .continue_extract:
+                mov key_data_l, [key_ptr + key_data_ctr]
+                shl data, 8
+                or  data, key_data
+
+                inc key_data_ctr
+                inc loop_ctr
+                jmp .key_loop
+    
+    .end_key_loop:
 
     .p_array_salt:
         %define data   r13
