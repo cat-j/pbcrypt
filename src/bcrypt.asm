@@ -432,51 +432,26 @@ blowfish_expand_state_asm:
         REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
         REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
 
-        ; rol  salt_l, 32
-        ; rol  salt_r, 32
-        ; xor  data, salt_l
-        ; call blowfish_encipher
-        ; mov [rdi + BLF_CTX_P_OFFSET], data
+        ; Write to P[0], ... , P[15]
+        %assign i 0
+        %rep 4
+            xor  data, salt_l
+            call blowfish_encipher
+            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
 
-    ; Write to P[0], ... , P[15]
-    %assign i 0
-    %rep 4
+            xor  data, salt_r
+            call blowfish_encipher
+            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
+
+        ; Write to P[16] and P[17]
         xor  data, salt_l
         call blowfish_encipher
-        mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-        rol  data, 32
-        %assign i i+2
-
-        xor  data, salt_r
-        call blowfish_encipher
-        mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-        rol  data, 32
-        %assign i i+2
-    %endrep
-
-    ; .second:
-    ;     rol  data, 32
-    ;     xor  data, salt_r
-    ;     call blowfish_encipher
-    ;     mov  [rdi + BLF_CTX_P_OFFSET + 2*P_VALUE_MEMORY_SIZE], data
-    
-    ; .third:
-    ;     rol  data, 32
-    ;     xor  data, salt_l
-    ;     call blowfish_encipher
-    ;     mov  [rdi + BLF_CTX_P_OFFSET + 4*P_VALUE_MEMORY_SIZE], data
-        
-        ; Repeat 16 times
-        ; %assign i 0
-        ; %rep 4
-        ;     xor data, salt_l
-        ;     ; TODO: blowfish_encipher
-        ;     mov [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE*2], data
-        ;     %assign i i+2
-        ;     xor data, salt_r
-        ;     mov [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE*2], data
-        ;     %assign i i+2
-        ; %endrep
+        mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
 
     .s_boxes_salt:
     

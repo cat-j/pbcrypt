@@ -704,7 +704,7 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 	j = 0;
 	datal = 0x00000000;
 	datar = 0x00000000;
-	for (i = 0; i < BLF_N; i += 2) {
+	for (i = 0; i < BLF_N + 2; i += 2) {
 		datal ^= Blowfish_stream2word(data, databytes, &j);
 		datar ^= Blowfish_stream2word(data, databytes, &j);
 		Blowfish_encipher(c, &datal, &datar);
