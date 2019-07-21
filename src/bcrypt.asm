@@ -23,16 +23,12 @@ section .data
 %define S_ELEMENT_MEMORY_SIZE 4
 ; how many 1-byte memory slots one S-box takes up
 %define S_BOX_MEMORY_SIZE 1024
-; number of elements in P-array
-; %define P_ARRAY_LENGTH 18
 ; encryption rounds
 %define ROUNDS 16
 ; YMM register size in bytes
 %define YMM_SIZE 32
 ; P-array byte offset within context struct
 %define BLF_CTX_P_OFFSET 4096
-
-%define SALT_BYTES 16
 
 section .text
 
@@ -138,41 +134,6 @@ section .text
     or  %1, %3         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
 %endmacro
 
-; input:  | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
-; output: | b4 | b5 | b6 | b7 | b0 | b1 | b2 | b3 |
-; %1: input, then output
-; %2: temp
-; %3: temp
-; %4: lower 32 bits of %2
-; %macro REVERSE_DWORDS 4
-;     mov %3, %1
-;     shr %3, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
-;     and %3, 0xff       ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
-
-;     mov %2, %1
-;     shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
-;     and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | 00 |
-;     or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | b3 |
-
-;     mov %2, %1
-;     shl %2, 8          ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
-;     and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b1 | 00 | 00 |
-;     or  %3, %2         ; | 00 | 00 | 00 | 00 | 00 | b1 | b2 | b3 |
-
-;     mov %2, %1
-;     shl %2, 24         ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
-;     and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b0 | 00 | 00 | 00 |
-;     or  %3, %2         ; | 00 | 00 | 00 | 00 | b0 | b1 | b2 | b3 |
-
-;     mov %2, %1
-;     shr %2, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
-;     shl %2, 32         ; | 00 | 00 | 00 | b7 | 00 | 00 | 00 | 00 |
-;     or  %3, %2         ; | 00 | 00 | 00 | b7 | b0 | b1 | b2 | b3 |
-
-;     mov %2, %1
-;     shr %2, 8
-; %endmacro
-
 ; Intended exclusively for testing Feistel function
 ; uint32_t f_asm(uint32_t x, blf_ctx *state)
 
@@ -209,6 +170,7 @@ blowfish_round_asm:
 
 ; Intended exclusively for testing byte reversal macro
 ; uint64_t reverse_bytes(uint64_t data)
+
 reverse_bytes:
     ; rdi: data
     push rbp
@@ -333,7 +295,6 @@ blowfish_encipher:
             sub blf_state, S_BOX_MEMORY_SIZE*3
         %endrep
 
-    .last_two:
         ; Load P16 and P17 and perform remaining operations
         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
         mov tmp1, [p_array] ; tmp1: | P17 | P16 |
