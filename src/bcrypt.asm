@@ -423,7 +423,6 @@ blowfish_expand_state_asm:
         %define tmp1   rbx
         %define tmp2   r9
         %define tmp1l  ebx
-        ; %define encphr r13
 
         xor data, data        ; 0
         mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
@@ -452,8 +451,25 @@ blowfish_expand_state_asm:
         xor  data, salt_l
         call blowfish_encipher
         mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
+        rol  data, 32
 
     .s_boxes_salt:
+        ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
+        ; Two accesses per repetition -> 256 repetitions
+        %assign i 0
+        %rep 256
+            xor  data, salt_r
+            call blowfish_encipher
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+
+            xor  data, salt_l
+            call blowfish_encipher
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
     
     .end:
         pop r14

@@ -632,8 +632,8 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 
 	Xl = *xl;
 	Xr = *xr;
-	printf("xl: 0x%08x\n", Xl);
-	printf("xr: 0x%08x\n", Xr);
+	// printf("xl: 0x%08x\n", Xl);
+	// printf("xr: 0x%08x\n", Xr);
 
 	Xl ^= p[0];
 
@@ -657,8 +657,8 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
 	*xl = Xr ^ p[17];
 	*xr = Xl;
 
-	printf("xl: 0x%08x\n", Xr ^ p[17]);
-	printf("xr: 0x%08x\n", Xl);
+	// printf("xl: 0x%08x\n", Xr ^ p[17]);
+	// printf("xr: 0x%08x\n", Xl);
 }
 
 uint32_t
@@ -689,7 +689,7 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 	// printf("RUNNING BLOWFISH_EXPANDSTATE YEAH BITCH\n");
 	uint16_t i;
 	uint16_t j;
-	// uint16_t k;
+	uint16_t k;
 	// uint32_t temp;
 	uint32_t datal;
 	uint32_t datar;
@@ -713,26 +713,15 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 		c->P[i + 1] = datar;
 	}
 
-	// for (i = 0; i < 6; i += 2) {
-	// 	datal ^= Blowfish_stream2word(data, databytes, &j);
-	// 	datar ^= Blowfish_stream2word(data, databytes, &j);
-	// 	Blowfish_encipher(c, &datal, &datar);
-	// 	// printf("datal: 0x%08x\n", datal);
-	// 	// printf("datar: 0x%08x\n", datar);
+	for (i = 0; i < 4; i++) {
+		for (k = 0; k < 256; k += 2) {
+			datal ^= Blowfish_stream2word(data, databytes, &j);
+			datar ^= Blowfish_stream2word(data, databytes, &j);
+			Blowfish_encipher(c, &datal, &datar);
 
-	// 	c->P[i] = datal;
-	// 	c->P[i + 1] = datar;
-	// }
-
-	// for (i = 0; i < 4; i++) {
-	// 	for (k = 0; k < 256; k += 2) {
-	// 		datal ^= Blowfish_stream2word(data, databytes, &j);
-	// 		datar ^= Blowfish_stream2word(data, databytes, &j);
-	// 		Blowfish_encipher(c, &datal, &datar);
-
-	// 		c->S[i][k] = datal;
-	// 		c->S[i][k + 1] = datar;
-	// 	}
-	// }
+			c->S[i][k] = datal;
+			c->S[i][k + 1] = datar;
+		}
+	}
 
 }

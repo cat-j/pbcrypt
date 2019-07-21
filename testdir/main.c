@@ -176,6 +176,16 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
             "salt: %s, key: %s, index: %ld",
             salt, key, i);
     }
+
+    for (size_t i = 0; i < 4; ++i) {
+        for (size_t j = 0; j < S_BOX_LENGTH; ++j) {
+            current_actual = state_actual->S[i][j];
+            current_expected = state_expected->S[i][j];
+            do_test(current_actual, current_expected, "test_blowfish_expand_state_asm",
+                "salt: %s, key: %s, box: %ld, index: %ld",
+                salt, key, i, j);
+        }
+    }
 }
 
 int main(int argc, char const *argv[]) {
@@ -187,8 +197,8 @@ int main(int argc, char const *argv[]) {
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
 
-    Blowfish_initstate_dummy(state);
-    Blowfish_initstate_dummy(state_expected);
+    Blowfish_initstate(state);
+    Blowfish_initstate(state_expected);
     
     // test_F_asm(0x00000000, state);
     // test_F_asm(0x11111111, state);
