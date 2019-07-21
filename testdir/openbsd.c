@@ -704,25 +704,25 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 	j = 0;
 	datal = 0x00000000;
 	datar = 0x00000000;
-	// for (i = 0; i < BLF_N + 2; i += 2) {
-	// 	datal ^= Blowfish_stream2word(data, databytes, &j);
-	// 	datar ^= Blowfish_stream2word(data, databytes, &j);
-	// 	Blowfish_encipher(c, &datal, &datar);
-
-	// 	c->P[i] = datal;
-	// 	c->P[i + 1] = datar;
-	// }
-
-	for (i = 0; i < 6; i += 2) {
+	for (i = 0; i < BLF_N; i += 2) {
 		datal ^= Blowfish_stream2word(data, databytes, &j);
 		datar ^= Blowfish_stream2word(data, databytes, &j);
 		Blowfish_encipher(c, &datal, &datar);
-		// printf("datal: 0x%08x\n", datal);
-		// printf("datar: 0x%08x\n", datar);
 
 		c->P[i] = datal;
 		c->P[i + 1] = datar;
 	}
+
+	// for (i = 0; i < 6; i += 2) {
+	// 	datal ^= Blowfish_stream2word(data, databytes, &j);
+	// 	datar ^= Blowfish_stream2word(data, databytes, &j);
+	// 	Blowfish_encipher(c, &datal, &datar);
+	// 	// printf("datal: 0x%08x\n", datal);
+	// 	// printf("datar: 0x%08x\n", datar);
+
+	// 	c->P[i] = datal;
+	// 	c->P[i + 1] = datar;
+	// }
 
 	// for (i = 0; i < 4; i++) {
 	// 	for (k = 0; k < 256; k += 2) {

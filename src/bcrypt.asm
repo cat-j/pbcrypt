@@ -434,21 +434,37 @@ blowfish_expand_state_asm:
 
         ; rol  salt_l, 32
         ; rol  salt_r, 32
-        xor  data, salt_l
-        call blowfish_encipher
-        mov [rdi + BLF_CTX_P_OFFSET], data
-
-    .second:
-        rol  data, 32
-        xor  data, salt_r
-        call blowfish_encipher
-        mov  [rdi + BLF_CTX_P_OFFSET + 2*P_VALUE_MEMORY_SIZE], data
-    
-    .third:
-        ; rol  data, 32
         ; xor  data, salt_l
         ; call blowfish_encipher
-        ; mov  [rdi + BLF_CTX_P_OFFSET + 3*P_VALUE_MEMORY_SIZE], data
+        ; mov [rdi + BLF_CTX_P_OFFSET], data
+
+    ; Write to P[0], ... , P[15]
+    %assign i 0
+    %rep 4
+        xor  data, salt_l
+        call blowfish_encipher
+        mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+        rol  data, 32
+        %assign i i+2
+
+        xor  data, salt_r
+        call blowfish_encipher
+        mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+        rol  data, 32
+        %assign i i+2
+    %endrep
+
+    ; .second:
+    ;     rol  data, 32
+    ;     xor  data, salt_r
+    ;     call blowfish_encipher
+    ;     mov  [rdi + BLF_CTX_P_OFFSET + 2*P_VALUE_MEMORY_SIZE], data
+    
+    ; .third:
+    ;     rol  data, 32
+    ;     xor  data, salt_l
+    ;     call blowfish_encipher
+    ;     mov  [rdi + BLF_CTX_P_OFFSET + 4*P_VALUE_MEMORY_SIZE], data
         
         ; Repeat 16 times
         ; %assign i 0
