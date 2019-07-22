@@ -417,8 +417,12 @@ blowfish_expand_state_asm:
         push r14
     
     .p_array_key:
-        ; key_data: 8 bytes from key
+        ; key_data: a byte from the key
+        ; key_data_l: lower 8 bits of key_data
         ; key_data_ctr: byte index
+        ; key_ptr: pointer to key
+        ; key_len: key length in bytes
+        ; data: all bytes read from the key, wrapping
         %define key_data     r9
         %define key_data_l   r9b
         %define key_data_ctr r10
@@ -428,6 +432,7 @@ blowfish_expand_state_asm:
         %define data         r13
 
         ; Initialise registers
+        xor key_data, key_data
         xor key_data_ctr, key_data_ctr
         xor data, data
         xor loop_ctr, loop_ctr
@@ -512,7 +517,69 @@ blowfish_expand_0_state_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push r12
+        push r13
+    
+    .p_array_key:
+        ; key_data: a byte from the key
+        ; key_data_l: lower 8 bits of key_data
+        ; key_data_ctr: byte index
+        ; key_ptr: pointer to key
+        ; key_len: key length in bytes
+        ; data: all bytes read from the key, wrapping
+        %define key_data     r9
+        %define key_data_l   r9b
+        %define key_data_ctr r10
+        %define key_ptr      rsi
+        %define key_len      rdx
+        %define loop_ctr     r12
+        %define data         r13
+    
+        ; Initialise registers
+        xor key_data, key_data
+        xor key_data_ctr, key_data_ctr
+        xor data, data
+        xor loop_ctr, loop_ctr
+
+        ; XOR_WITH_KEY key_data, key_data_l, key_data_ctr, \
+        ;         key_ptr, key_len, loop_ctr, data, 0
+
+        %assign j 0
+        %rep 9
+            XOR_WITH_KEY key_data, key_data_l, key_data_ctr, \
+                key_ptr, key_len, loop_ctr, data, j
+            %assign j j+2
+        %endrep
+    
+    .p_array_0s:
+        %define data   r13
+        %define tmp1   rcx
+        %define tmp2   r9
+        %define tmp1l  ecx
+
+        xor data, data ; 0
+
+        %assign i 0
+        %rep 9
+            call blowfish_encipher_register
+            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
+    
+    .s_boxes_data:
+        ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
+        %assign i 0
+        %rep 512
+            call blowfish_encipher_register
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
+
     .end:
+        pop r13
+        pop r12
         pop rbp
         ret
 
