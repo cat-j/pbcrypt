@@ -11,7 +11,6 @@ global blowfish_expand_state_asm
 global blowfish_expand_0_state_asm
 global blowfish_encipher_asm
 global blowfish_encrypt_asm
-; global bcrypt_encrypt
 
 ; exported functions for testing macros
 global f_asm
@@ -600,10 +599,12 @@ blowfish_encrypt_asm:
         mov ctext, rsi
 
         %assign i 0
-        %rep BCRYPT_WORDS / 3
+        %rep BCRYPT_WORDS / 2
             mov  data, [ctext + i*8]
+            rol  data, 32
             call blowfish_encipher_register
             mov  [ctext + i*8], data
+            %assign i i+1
         %endrep
 
     .end:
