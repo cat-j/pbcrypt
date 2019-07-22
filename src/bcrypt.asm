@@ -10,6 +10,7 @@ global blowfish_init_state_asm
 global blowfish_expand_state_asm
 global blowfish_expand_0_state_asm
 global blowfish_encipher_asm
+global blowfish_encrypt_asm
 ; global bcrypt_encrypt
 
 ; exported functions for testing macros
@@ -32,6 +33,7 @@ section .data
 %define YMM_SIZE 32
 ; P-array byte offset within context struct
 %define BLF_CTX_P_OFFSET 4096
+%define BCRYPT_WORDS 6
 
 
 section .text
@@ -507,7 +509,7 @@ blowfish_expand_state_asm:
         pop rbp
         ret
 
-; void blowfish_expand_0_state_asm(blf_ctx *state, const uint8_t *key,
+; void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
 ; 								 uint16_t keybytes)
 
 blowfish_expand_0_state_asm:
@@ -540,9 +542,6 @@ blowfish_expand_0_state_asm:
         xor key_data_ctr, key_data_ctr
         xor data, data
         xor loop_ctr, loop_ctr
-
-        ; XOR_WITH_KEY key_data, key_data_l, key_data_ctr, \
-        ;         key_ptr, key_len, loop_ctr, data, 0
 
         %assign j 0
         %rep 9
@@ -580,6 +579,36 @@ blowfish_expand_0_state_asm:
     .end:
         pop r13
         pop r12
+        pop rbp
+        ret
+
+; void blowfish_encrypt_asm(blf_ctx *state, uint64_t *data)
+
+blowfish_encrypt_asm:
+    ; rdi -> state
+    ; rsi -> 24-byte ciphertext
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+        push rbx
+        push r13
+
+    .do_encrypt:
+        %define data  r13
+        %define ctext rbx
+
+        mov ctext, rsi
+
+        %assign i 0
+        %rep BCRYPT_WORDS / 3
+            mov  data, [ctext + i*8]
+            call blowfish_encipher_register
+            mov  [ctext + i*8], data
+        %endrep
+
+    .end:
+        pop r13
+        pop rbx
         pop rbp
         ret
 

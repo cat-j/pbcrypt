@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#define S_BOX_LENGTH 256
+#define S_BOX_LENGTH   256
 #define P_ARRAY_LENGTH 18
+#define BCRYPT_WORDS   6
 
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
@@ -21,11 +22,12 @@ void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
                                uint16_t saltbytes,
                                const char *key, uint16_t keybytes);
 
-void blowfish_expand_0_state_asm(blf_ctx *state, const uint8_t *key,
+void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
 								 uint64_t keybytes);
 
 void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
+void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
 /* Testing functions */
 

@@ -56,8 +56,7 @@
 #define BLF_N	16			/* Number of Subkeys */
 
 void
-Blowfish_initstate(blf_ctx *c)
-{
+Blowfish_initstate(blf_ctx *c) {
 	/* P-box and S-box tables initialized with digits of Pi */
 
 	static const blf_ctx initstate =
@@ -623,8 +622,7 @@ uint32_t blfrnd_wrapper(const blf_ctx *state, uint32_t xl, uint32_t xr,
 }
 
 void
-Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr)
-{
+Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
 	uint32_t Xl;
 	uint32_t Xr;
 	const uint32_t *s = c->S[0];
@@ -759,5 +757,16 @@ Blowfish_expand0state(blf_ctx *c, const uint8_t *key, uint16_t keybytes)
 			c->S[i][k] = datal;
 			c->S[i][k + 1] = datar;
 		}
+	}
+}
+
+void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks) {
+	uint32_t *d;
+	uint16_t i;
+
+	d = data;
+	for (i = 0; i < blocks; i++) {
+		Blowfish_encipher(c, d, d + 1);
+		d += 2;
 	}
 }

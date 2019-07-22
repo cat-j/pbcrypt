@@ -71,29 +71,10 @@ void test_blowfish_init_state_asm() {
     Blowfish_initstate(expected);
     blowfish_init_state_asm(actual);
 
-    for (size_t i = 0; i < 4; ++i) {
-        for (size_t j = 0; j < S_BOX_LENGTH; ++j) {
-            if (expected->S[i][j] != actual->S[i][j]) {
-                free(expected);
-                free(actual);
-                test_fail("%s failed.\nS-box: %ld\tElement: %ld\n",
-                    test_name, i, j);
-            }
-        }
-    }
-
-    for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
-        if (expected->P[i] != actual->P[i]) {
-            free(expected);
-            free(actual);
-            test_fail("%s failed.\nP-array element: %ld\n",
-                test_name, i);
-        }
-    }
+    compare_states(actual, expected, test_name);
 
     free(expected);
     free(actual);
-    test_pass("test_blowfish_init_state_asm successful.\n");
 }
 
 void test_F_asm(uint32_t x, const blf_ctx *state, const char *state_name) {
@@ -157,8 +138,8 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
         current_expected = p_expected[i];
         if (current_actual != current_expected) {
             test_fail("States in test %s differ. "
-                "P-element: %d, expected value: 0x%08x, actual value: %08x\n",
-                test_name, i, current_actual, current_expected);
+                "P-element: %d, expected value: 0x%08x, actual value: 0x%08x\n",
+                test_name, i, current_expected, current_actual);
         }
     }
 
@@ -169,9 +150,31 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
             if (current_actual != current_expected) {
                 test_fail("States in test %s differ. "
                     "S-box: %d, element: %d, "
-                    "expected value: 0x%08x, actual value: %08x\n",
-                    test_name, i, j, current_actual, current_expected);
+                    "expected value: 0x%08x, actual value: 0x%08x\n",
+                    test_name, i, j, current_expected, current_actual);
             }
+        }
+    }
+
+    test_pass("%s passed.\n", test_name);
+}
+
+void compare_ciphertexts(const char *actual, const char *expected,
+                         const char *test_name)
+{
+    uint32_t *dwords_actual = (uint32_t *) actual;
+    uint32_t *dwords_expected = (uint32_t *) expected;
+    uint32_t current_actual, current_expected;
+    size_t len = strlen(actual) >> 2;
+
+    for (size_t i = 0; i < len; ++i) {
+        current_actual = dwords_actual[i];
+        current_expected = dwords_expected[i];
+
+        if (current_actual != current_expected) {
+            test_fail("Ciphertexts in test %s differ. "
+                "Index: %d, expected value: 0x%08x, actual value: 0x%08x\n",
+                test_name, i, current_expected, current_actual);
         }
     }
 
@@ -205,6 +208,24 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
     Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
 
     compare_states(state_actual, state_expected, test_name);
+}
+
+void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
+                               char *data_expected, const char *state_name)
+{
+    // Make sure both functions receive the same input
+    assert(strlen(data_actual) == strlen(data_expected));
+    for (size_t i = 0; i < strlen(data_actual); ++i) {
+        assert(data_actual[i] == data_expected[i]);
+    }
+    
+    char test_name[] = "test_blowfish_encrypt_asm";
+    test_start(test_name, "state: %s, data: %s", state_name, data_actual);
+
+    blowfish_encrypt_asm(state, (uint64_t *) data_actual);
+    blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
+
+    compare_ciphertexts(data_actual, data_expected, test_name);
 }
 
 int main(int argc, char const *argv[]) {
@@ -264,6 +285,11 @@ int main(int argc, char const *argv[]) {
 
     test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
         "expanded_state");
+
+    char data_actual[] = "OrpheanBeholderScryDoubt";
+    char data_expected[] = "OrpheanBeholderScryDoubt";
+
+    test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
     
     free(state);
     free(state_expected);
