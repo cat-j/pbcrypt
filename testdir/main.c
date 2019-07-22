@@ -187,6 +187,33 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     }
 }
 
+void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
+                                      const char *key, uint16_t keybytes)
+{
+    blowfish_expand_0_state_asm(state_actual, key, keybytes);
+    Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
+
+    uint32_t *p_actual = state_actual->P;
+    uint32_t *p_expected = state_expected->P;
+    uint32_t current_actual, current_expected;
+
+    for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
+        current_actual = p_actual[i];
+        current_expected = p_expected[i];
+        do_test(current_actual, current_expected, "test_blowfish_expand_0_state_asm",
+            "key: %s, index: %ld", key, i);
+    }
+
+    for (size_t i = 0; i < 4; ++i) {
+        for (size_t j = 0; j < S_BOX_LENGTH; ++j) {
+            current_actual = state_actual->S[i][j];
+            current_expected = state_expected->S[i][j];
+            do_test(current_actual, current_expected, "test_blowfish_expand_0_state_asm",
+                "key: %s, box: %ld, index: %ld", key, i, j);
+        }
+    }
+}
+
 int main(int argc, char const *argv[]) {
     // test_blowfish_init_state_asm();
 
@@ -241,6 +268,8 @@ int main(int argc, char const *argv[]) {
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
         key, keybytes);
+
+    test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes);
     
     free(state);
     free(state_expected);

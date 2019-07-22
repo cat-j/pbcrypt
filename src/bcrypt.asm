@@ -8,6 +8,7 @@ extern initstate_asm
 ; exported functions for bcrypt implementation
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
+global blowfish_expand_0_state_asm
 global blowfish_encipher_asm
 ; global bcrypt_encrypt
 
@@ -498,6 +499,20 @@ blowfish_expand_state_asm:
         pop r13
         pop r12
         pop rbx
+        pop rbp
+        ret
+
+; void blowfish_expand_0_state_asm(blf_ctx *state, const uint8_t *key,
+; 								 uint16_t keybytes)
+
+blowfish_expand_0_state_asm:
+    ; rdi -> state
+    ; rsi -> key
+    ; rdx:   key length in bytes
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+    .end:
         pop rbp
         ret
 
