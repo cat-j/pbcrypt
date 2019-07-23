@@ -228,6 +228,16 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
     compare_ciphertexts(data_actual, data_expected, test_name);
 }
 
+void test_copy_ctext_asm(char *data_actual, char *data_expected) {
+    char test_name[] = "test_copy_ctext_asm";
+    test_start(test_name, "ciphertext: %s", initial_ctext);
+
+    copy_ctext_asm((uint64_t *) data_actual);
+    copy_ctext_openbsd((uint32_t *) data_expected);
+
+    compare_ciphertexts(data_actual, data_expected, "test_copy_ctext_asm");
+}
+
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
     test_F_asm(0x00000000, state, state_name);
     test_F_asm(0x11111111, state, state_name);
@@ -296,9 +306,10 @@ int main(int argc, char const *argv[]) {
     test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
         "expanded_state");
 
-    char data_actual[] = "OrpheanBeholderScryDoubt";
-    char data_expected[] = "OrpheanBeholderScryDoubt";
+    char data_actual[24];
+    char data_expected[24];
 
+    test_copy_ctext_asm(data_actual, data_expected);
     test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
     
     free(state);

@@ -4,6 +4,7 @@ extern free
 
 ; variables
 extern initstate_asm
+extern initial_ctext
 
 ; exported functions for bcrypt implementation
 global blowfish_init_state_asm
@@ -16,6 +17,7 @@ global blowfish_encrypt_asm
 global f_asm
 global blowfish_round_asm
 global reverse_bytes
+global copy_ctext_asm
 
 
 section .data
@@ -32,6 +34,7 @@ section .data
 %define YMM_SIZE 32
 ; P-array byte offset within context struct
 %define BLF_CTX_P_OFFSET 4096
+; length of bcrypt hash in 32-bit words
 %define BCRYPT_WORDS 6
 
 
@@ -143,7 +146,6 @@ section .text
     or  %1, %3         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
 %endmacro
 
-
 ; %1: key_data
 ; %2: key_data_l
 ; %3: key_data_ctr
@@ -176,6 +178,18 @@ section .text
         xor [rdi + BLF_CTX_P_OFFSET + %8*P_VALUE_MEMORY_SIZE], %7
         xor %6, %6
 %endmacro
+
+; %1 -> ciphertext buffer
+; %2: temporary register
+%macro COPY_CTEXT 2
+    %assign j 0
+    %rep BCRYPT_WORDS / 2
+        mov %2, [initial_ctext]
+        mov [%1 + j*8], %2
+        %assign j j+1
+    %endrep
+%endmacro
+
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;; MACRO WRAPPERS ;;;;;;
@@ -228,6 +242,20 @@ reverse_bytes:
 
     pop rbp
     ret
+
+; Intended exclusively for testing ciphertext copying macro
+; void copy_ctext_asm(uint64_t *data)
+
+copy_ctext_asm:
+    ; rdi -> ciphertext
+    push rbp
+    mov  rbp, rsp
+
+    COPY_CTEXT rdi, rdx
+
+    pop rbp
+    ret
+
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;

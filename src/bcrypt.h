@@ -29,6 +29,7 @@ void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
 void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
+
 /* Testing functions */
 
 uint32_t f_asm(uint32_t x, const blf_ctx *state);
@@ -37,5 +38,7 @@ uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
                             uint32_t n);
 
 uint64_t reverse_bytes(uint64_t data);
+
+void copy_ctext_asm(uint64_t *data);
 
 #endif
