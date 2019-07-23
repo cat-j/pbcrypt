@@ -228,6 +228,45 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
     compare_ciphertexts(data_actual, data_expected, test_name);
 }
 
+void test_F_asm_all(blf_ctx *state, const char *state_name) {
+    test_F_asm(0x00000000, state, state_name);
+    test_F_asm(0x11111111, state, state_name);
+    test_F_asm(0x22222222, state, state_name);
+    test_F_asm(0x33333333, state, state_name);
+    test_F_asm(0x44444444, state, state_name);
+    test_F_asm(0x55555555, state, state_name);
+    test_F_asm(0x66666666, state, state_name);
+    test_F_asm(0x77777777, state, state_name);
+    test_F_asm(0x88888888, state, state_name);
+    test_F_asm(0x99999999, state, state_name);
+    test_F_asm(0xffffffff, state, state_name);
+    test_F_asm(0x01010101, state, state_name);
+    test_F_asm(0xf0f0f0f0, state, state_name);
+    test_F_asm(0xdeadbeef, state, state_name);
+    test_F_asm(0x12345678, state, state_name);
+    test_F_asm(0x20002000, state, state_name);
+    test_F_asm(0x00c0ffee, state, state_name);
+}
+
+void test_blowfish_round_all(blf_ctx *state, const char *state_name) {
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1, state_name);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2, state_name);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3, state_name);
+    test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4, state_name);
+    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1, state_name);
+    test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2, state_name);
+    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1, state_name);
+    test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2, state_name);
+}
+
+void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
+    test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee, state_name);
+    test_blowfish_encipher_asm(state, 0xdeadbeefdeadbeef, state_name);
+    test_blowfish_encipher_asm(state, 0x00c0ffee00c0ffee, state_name);
+    test_blowfish_encipher_asm(state, 0xffffffffffffffff, state_name);
+    test_blowfish_encipher_asm(state, 0x0123456789abcdef, state_name);
+}
+
 int main(int argc, char const *argv[]) {
     test_blowfish_init_state_asm();
 
@@ -237,42 +276,13 @@ int main(int argc, char const *argv[]) {
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
 
+    test_F_asm_all(state, "initial_state");
+    test_blowfish_round_all(state, "initial_state");
+    test_blowfish_encipher_asm_all(state, "initial_state");
+
     Blowfish_initstate(state);
     Blowfish_initstate(state_expected);
     
-    // test_F_asm(0x00000000, state, "initial_state");
-    // test_F_asm(0x11111111, state, "initial_state");
-    // test_F_asm(0x22222222, state, "initial_state");
-    // test_F_asm(0x33333333, state, "initial_state");
-    // test_F_asm(0x44444444, state, "initial_state");
-    // test_F_asm(0x55555555, state, "initial_state");
-    // test_F_asm(0x66666666, state, "initial_state");
-    // test_F_asm(0x77777777, state, "initial_state");
-    // test_F_asm(0x88888888, state, "initial_state");
-    // test_F_asm(0x99999999, state, "initial_state");
-    // test_F_asm(0xffffffff, state, "initial_state");
-    // test_F_asm(0x01010101, state, "initial_state");
-    // test_F_asm(0xf0f0f0f0, state, "initial_state");
-    // test_F_asm(0xdeadbeef, state, "initial_state");
-    // test_F_asm(0x12345678, state, "initial_state");
-    // test_F_asm(0x20002000, state, "initial_state");
-    // test_F_asm(0x00c0ffee, state, "initial_state");
-
-    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 1, "initial_state");
-    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 2, "initial_state");
-    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 3, "initial_state");
-    // test_blowfish_round_asm(0xdeadbeef, 0x00c0ffee, state, 4, "initial_state");
-    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 1, "initial_state");
-    // test_blowfish_round_asm(0xffffffff, 0xffffffff, state, 2, "initial_state");
-    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 1, "initial_state");
-    // test_blowfish_round_asm(0xffffffff, 0x00000000, state, 2, "initial_state");
-
-    // test_blowfish_encipher_asm(state, 0xdeadbeef00c0ffee, "initial_state");
-    // test_blowfish_encipher_asm(state, 0xdeadbeefdeadbeef, "initial_state");
-    // test_blowfish_encipher_asm(state, 0x00c0ffee00c0ffee, "initial_state");
-    // test_blowfish_encipher_asm(state, 0xffffffffffffffff, "initial_state");
-    // test_blowfish_encipher_asm(state, 0x0123456789abcdef, "initial_state");
-
     char salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
     uint16_t saltbytes = strlen(salt);
