@@ -185,10 +185,11 @@ section .text
 ; %3: temporary register
 ; %4: temporary register
 ; %5: lower 32 bits of %3
-%macro COPY_CTEXT 5
+; %6 -> 24-byte ciphertext to be copied
+%macro COPY_CTEXT 6
     %assign j 0
     %rep BCRYPT_WORDS / 2
-        mov %2, [initial_ctext + j*8]
+        mov %2, [%6 + j*8]
         REVERSE_8_BYTES %2, %3, %4, %5
         rol %2, 32
         mov [%1 + j*8], %2
@@ -250,14 +251,15 @@ reverse_bytes:
     ret
 
 ; Intended exclusively for testing ciphertext copying macro
-; void copy_ctext_asm(uint64_t *data)
+; void copy_ctext_asm(uint64_t *data, char *ctext)
 
 copy_ctext_asm:
-    ; rdi -> ciphertext
+    ; rdi -> destination ciphertext
+    ; rsi -> source ciphertext
     push rbp
     mov  rbp, rsp
 
-    COPY_CTEXT rdi, rdx, rcx, r8, ecx
+    COPY_CTEXT rdi, rdx, rcx, r8, ecx, rsi
 
     pop rbp
     ret
