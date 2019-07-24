@@ -234,6 +234,22 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
     compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
 }
 
+void test_blowfish_encrypt_asm_rounds(const blf_ctx *state, char *data_actual,
+                                      char *data_expected, uint16_t rounds,
+                                      const char *state_name)
+{
+    char test_name[] = "test_blowfish_encrypt_asm_rounds";
+    test_start(test_name, "state: %s, data: %s, rounds: %d", state_name,
+        data_actual, rounds);
+
+    for (size_t i = 0; i < rounds; ++i) {
+        blowfish_encrypt_asm(state, (uint64_t *) data_actual);
+        blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
+    }
+
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
+}
+
 void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
     char test_name[] = "test_copy_ctext_asm";
     test_start(test_name, "ciphertext: %s", ctext);
@@ -330,7 +346,8 @@ int main(int argc, char const *argv[]) {
 
     test_copy_ctext_asm(data_actual, data_expected, initial_ctext);
     
-    test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
+    test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
+        "expanded_0_state");
 
     test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
