@@ -1,4 +1,5 @@
 CC=gcc
+CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
@@ -11,7 +12,7 @@ TEST_DIR=testdir/
 vpath %.o ./build/
 
 test: $(TEST_DIR)main.c bcrypt.o $(TEST_DIR)openbsd.c
-	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
+	$(CC) $(CFLAGS_NO_WARNINGS) $^ -o $(BUILD_DIR)$@
 	./build/test
 
 bcrypt: $(SRC_DIR)main.c bcrypt.o
