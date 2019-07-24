@@ -10,6 +10,7 @@ extern initial_ctext
 global blowfish_init_state_asm
 global blowfish_expand_state_asm
 global blowfish_expand_0_state_asm
+global blowfish_expand_0_state_salt_asm
 global blowfish_encipher_asm
 global blowfish_encrypt_asm
 
@@ -582,7 +583,7 @@ blowfish_expand_0_state_asm:
             %assign j j+2
         %endrep
     
-    .p_array_0s:
+    .p_array_data:
         %define data   r13
         %define tmp1   rcx
         %define tmp2   r9
@@ -611,6 +612,85 @@ blowfish_expand_0_state_asm:
     .end:
         pop r13
         pop r12
+        pop rbp
+        ret
+
+; void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt)
+
+blowfish_expand_0_state_salt_asm:
+    ; rdi -> state
+    ; rsi -> salt
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+        push rbx
+        push r13
+        push r14
+        sub  rbp, 8
+
+    ; Bespoke variant of blowfish_expand_0_state_asm for optimised
+    ; encryption with salt. No expensive key reading needed, as salt
+    ; is always 128 bytes and each half can be kept in one register.
+
+    .p_array_salt:
+        %define data   r13
+        %define salt_l r10
+        %define salt_r r14
+        %define tmp1   rbx
+        %define tmp2   r9
+        %define tmp1l  ebx
+
+        xor data, data        ; 0
+        mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
+        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt = Xl | Xr
+
+        REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
+        REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
+        rol salt_l, 32
+        rol salt_r, 32
+
+        %assign i 0
+        %rep 4
+            xor [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], salt_l
+            %assign i i+2
+
+            xor [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], salt_r
+            %assign i i+2
+        %endrep
+
+        xor [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], salt_l
+    
+    .p_array_data:
+        %define data   r13
+        %define tmp1   rcx
+        %define tmp2   r9
+        %define tmp1l  ecx
+
+        xor data, data ; 0
+
+        %assign i 0
+        %rep 9
+            call blowfish_encipher_register
+            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
+    
+    .s_boxes_data:
+        ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
+        %assign i 0
+        %rep 512
+            call blowfish_encipher_register
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
+    
+    .end:
+        add rbp, 8
+        pop r14
+        pop r13
+        pop rbx
         pop rbp
         ret
 

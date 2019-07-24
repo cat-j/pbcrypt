@@ -210,6 +210,18 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
     compare_states(state_actual, state_expected, test_name);
 }
 
+void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state_expected,
+                                      const char *salt, const char *state_name)
+{
+    char test_name[] = "test_blowfish_expand_0_state_salt_asm";
+    test_start(test_name, "state: %s, salt: %s", state_name, salt);
+
+    blowfish_expand_0_state_salt_asm(state_actual, salt);
+    Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, 16);
+
+    compare_states(state_actual, state_expected, test_name);
+}
+
 void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
                                char *data_expected, const char *state_name)
 {
@@ -291,44 +303,47 @@ void test_bcrypt_core() {
 }
 
 int main(int argc, char const *argv[]) {
-    // test_blowfish_init_state_asm();
+    test_blowfish_init_state_asm();
 
-    // blf_ctx *state;
-    // blf_ctx *state_expected;
+    blf_ctx *state;
+    blf_ctx *state_expected;
 
-    // posix_memalign((void**) &state, 32, sizeof(blf_ctx));
-    // posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
 
-    // test_F_asm_all(state, "initial_state");
-    // test_blowfish_round_all(state, "initial_state");
-    // test_blowfish_encipher_asm_all(state, "initial_state");
+    test_F_asm_all(state, "initial_state");
+    test_blowfish_round_all(state, "initial_state");
+    test_blowfish_encipher_asm_all(state, "initial_state");
 
-    // Blowfish_initstate(state);
-    // Blowfish_initstate(state_expected);
+    Blowfish_initstate(state);
+    Blowfish_initstate(state_expected);
     
-    // char salt[] = "opabiniaOPABINIA"; // 128 bits long
-    // char key[] = "anomalocaris";
-    // uint16_t saltbytes = strlen(salt);
-    // uint16_t keybytes = strlen(key);
+    char salt[] = "opabiniaOPABINIA"; // 128 bits long
+    char key[] = "anomalocaris";
+    uint16_t saltbytes = strlen(salt);
+    uint16_t keybytes = strlen(key);
 
-    // test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
+    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
-    // test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
-    //     key, keybytes, "initial_state");
+    test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
+        key, keybytes, "initial_state");
 
-    // test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
-    //     "expanded_state");
-
-    // char data_actual[24];
-    // char data_expected[24];
-
-    // test_copy_ctext_asm(data_actual, data_expected);
-    // test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
-
-    test_bcrypt_core();
+    test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
+        "expanded_state");
     
-    // free(state);
-    // free(state_expected);
+    test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
+        "key_expanded_state");
+
+    char data_actual[24];
+    char data_expected[24];
+
+    test_copy_ctext_asm(data_actual, data_expected);
+    test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
+
+    // test_bcrypt_core();
+    
+    free(state);
+    free(state_expected);
 
     return 0;
 }
