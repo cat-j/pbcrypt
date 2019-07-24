@@ -851,13 +851,6 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     //     goto inval;
     salt_len = BCRYPT_MAXSALT;
     strncpy(csalt, salt, strlen(salt));
-    // for (size_t i = 0; i < 17; ++i) {
-    //     ((char *) csalt)[i] = ((char *) salt)[i];
-    // }
-    printf("salt: %s\n", salt);
-    printf("csalt: %s\n", csalt);
-    printf("%d\n", strlen(salt));
-    printf("%d\n", strlen(csalt));
 
     /* Setting up S-Boxes and Subkeys */
     Blowfish_initstate(&state);
@@ -874,19 +867,18 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     for (i = 0; i < BCRYPT_WORDS; i++)
         cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
     
-    printf("ciphertext: %s\n", ciphertext);
+    printf("ctext: %s\n", ciphertext);
     printf("cdata: %s\n", cdata);
-    // for (size_t l = 0; l < 28; ++l) {
-    //     printf("%c", ((char *) cdata)[l]);
-    // }
-    // printf("\n");
 
     /* Now do the encryption */
-    // for (k = 0; k < 64; k++)
-    //     blf_enc(&state, cdata, BCRYPT_WORDS / 2);
     for (k = 0; k < 64; k++)
-        blf_enc(&state, ciphertext, BCRYPT_WORDS / 2);
-    printf("encrypted ciphertext: %s\n", ciphertext);
+        blf_enc(&state, cdata, BCRYPT_WORDS / 2);
+    // printf("encrypted cdata: %s\n", cdata);
+    printf("data bytes: ");
+    for (size_t i = 0; i < 24; ++i) {
+        printf("%02x", ((uint8_t *) cdata)[i]);
+    }
+    printf("\n");
 
     // printf("%s\n", cdata);
 
@@ -899,6 +891,12 @@ int bcrypt_hashpass(const char *key, const char *salt) {
         cdata[i] = cdata[i] >> 8;
         ciphertext[4 * i + 0] = cdata[i] & 0xff;
     }
+
+    printf("data bytes: ");
+    for (size_t i = 0; i < 24; ++i) {
+        printf("%02x", ((uint8_t *) ciphertext)[i]);
+    }
+    printf("\n");
 
     // printf("%s\n", ciphertext);
 
