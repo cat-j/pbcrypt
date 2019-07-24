@@ -181,10 +181,15 @@ section .text
 
 ; %1 -> ciphertext buffer
 ; %2: temporary register
-%macro COPY_CTEXT 2
+; %3: temporary register
+; %4: temporary register
+; %5: lower 32 bits of %3
+%macro COPY_CTEXT 5
     %assign j 0
     %rep BCRYPT_WORDS / 2
-        mov %2, [initial_ctext]
+        mov %2, [initial_ctext + j*8]
+        REVERSE_8_BYTES %2, %3, %4, %5
+        rol %2, 32
         mov [%1 + j*8], %2
         %assign j j+1
     %endrep
@@ -251,7 +256,7 @@ copy_ctext_asm:
     push rbp
     mov  rbp, rsp
 
-    COPY_CTEXT rdi, rdx
+    COPY_CTEXT rdi, rdx, rcx, r8, ecx
 
     pop rbp
     ret

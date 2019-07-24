@@ -773,7 +773,7 @@ void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks) {
 
 void copy_ctext_openbsd(uint32_t *cdata) {
 	char ciphertext[] = "OrpheanBeholderScryDoubt";
-	uint32_t j = 0;
+	uint16_t j = 0;
 	for (size_t i = 0; i < BCRYPT_WORDS; i++)
 		cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
 }
