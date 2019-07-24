@@ -42,6 +42,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "openbsd.h"
 
 #define F(s, x) ((((s)[        (((x)>>24)&0xFF)]  \
@@ -816,7 +817,7 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     //      * below result in implicit casts to a narrower integer
     //      * type, so cap key_len at the actual maximum supported
     //      * length here to avoid integer wraparound */
-    //     key_len = strlen(key);
+        key_len = strlen(key);
     //     if (key_len > 72)
     //         key_len = 72;
     //     key_len++; /* include the NUL */
@@ -849,6 +850,14 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     // if (decode_base64(csalt, BCRYPT_MAXSALT, salt))
     //     goto inval;
     salt_len = BCRYPT_MAXSALT;
+    strncpy(csalt, salt, strlen(salt));
+    // for (size_t i = 0; i < 17; ++i) {
+    //     ((char *) csalt)[i] = ((char *) salt)[i];
+    // }
+    printf("salt: %s\n", salt);
+    printf("csalt: %s\n", csalt);
+    printf("%d\n", strlen(salt));
+    printf("%d\n", strlen(csalt));
 
     /* Setting up S-Boxes and Subkeys */
     Blowfish_initstate(&state);
@@ -865,8 +874,8 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     for (i = 0; i < BCRYPT_WORDS; i++)
         cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
     
-    printf("%s\n", ciphertext);
-    // printf("%s\n", cdata);
+    printf("ciphertext: %s\n", ciphertext);
+    printf("cdata: %s\n", cdata);
     // for (size_t l = 0; l < 28; ++l) {
     //     printf("%c", ((char *) cdata)[l]);
     // }
@@ -877,7 +886,7 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     //     blf_enc(&state, cdata, BCRYPT_WORDS / 2);
     for (k = 0; k < 64; k++)
         blf_enc(&state, ciphertext, BCRYPT_WORDS / 2);
-    printf("%s\n", ciphertext);
+    printf("encrypted ciphertext: %s\n", ciphertext);
 
     // printf("%s\n", cdata);
 
