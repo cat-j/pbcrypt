@@ -60,21 +60,15 @@ void test_fail(const char *format, ...) {
     exit(EXIT_FAILURE);
 }
 
-void test_blowfish_init_state_asm() {
+void test_blowfish_init_state_asm(blf_ctx *state_actual, blf_ctx *state_expected)
+{
     char test_name[] = "test_blowfish_init_state_asm";
     test_start(test_name, "");
 
-    blf_ctx *expected, *actual;
-    posix_memalign((void**) &expected, 32, sizeof(blf_ctx));
-    posix_memalign((void**) &actual, 32, sizeof(blf_ctx));
+    blowfish_init_state_asm(state_actual);
+    Blowfish_initstate(state_expected);
 
-    Blowfish_initstate(expected);
-    blowfish_init_state_asm(actual);
-
-    compare_states(actual, expected, test_name);
-
-    free(expected);
-    free(actual);
+    compare_states(state_actual, state_expected, test_name);
 }
 
 void test_F_asm(uint32_t x, const blf_ctx *state, const char *state_name) {
@@ -156,7 +150,7 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
         }
     }
 
-    test_pass("%s passed.\n", test_name);
+    test_pass("%s successful.\n", test_name);
 }
 
 void compare_ciphertexts(const char *actual, const char *expected,
@@ -307,20 +301,13 @@ void test_bcrypt_core() {
 }
 
 int main(int argc, char const *argv[]) {
-    test_blowfish_init_state_asm();
+    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
     blf_ctx *state;
     blf_ctx *state_expected;
 
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
-
-    test_F_asm_all(state, "initial_state");
-    test_blowfish_round_all(state, "initial_state");
-    test_blowfish_encipher_asm_all(state, "initial_state");
-
-    Blowfish_initstate(state);
-    Blowfish_initstate(state_expected);
     
     char salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
@@ -333,7 +320,12 @@ int main(int argc, char const *argv[]) {
     char final_data_actual[BCRYPT_WORDS << 2];
     char final_data_expected[BCRYPT_WORDS << 2];
 
-    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
+    test_blowfish_init_state_asm(state, state_expected);
+    
+    test_blowfish_round_all(state, "initial_state");
+    test_blowfish_encipher_asm_all(state, "initial_state");
+    
+    test_F_asm_all(state, "initial_state");
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
         key, keybytes, "initial_state");
