@@ -53,7 +53,6 @@
 #define BLFRND(s,p,i,j,n) (i ^= F(s,j) ^ (p)[n])
 
 #define BLF_N 16              /* Number of Subkeys */
-#define BCRYPT_MAXSALT 16     /* Precomputation is just so nice */
 #define BCRYPT_WORDS 6        /* Ciphertext words */
 #define BCRYPT_MINLOGROUNDS 4 /* we have log2(rounds) in salt */
 
@@ -904,18 +903,18 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     for (i = 0; i < BCRYPT_WORDS; i++)
         cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
     
-    printf("ctext: %s\n", ciphertext);
-    printf("cdata: %s\n", cdata);
+    // printf("ctext: %s\n", ciphertext);
+    // printf("cdata: %s\n", cdata);
 
     /* Now do the encryption */
     for (k = 0; k < 64; k++)
         blf_enc(&state, cdata, BCRYPT_WORDS / 2);
     // printf("encrypted cdata: %s\n", cdata);
-    printf("data bytes: ");
-    for (size_t i = 0; i < 24; ++i) {
-        printf("%02x", ((uint8_t *) cdata)[i]);
-    }
-    printf("\n");
+    // printf("data bytes: ");
+    // for (size_t i = 0; i < 24; ++i) {
+    //     printf("%02x", ((uint8_t *) cdata)[i]);
+    // }
+    // printf("\n");
 
     // printf("%s\n", cdata);
 
@@ -929,11 +928,11 @@ int bcrypt_hashpass(const char *key, const char *salt) {
         ciphertext[4 * i + 0] = cdata[i] & 0xff;
     }
 
-    printf("data bytes: ");
-    for (size_t i = 0; i < 24; ++i) {
-        printf("%02x", ((uint8_t *) ciphertext)[i]);
-    }
-    printf("\n");
+    // printf("data bytes: ");
+    // for (size_t i = 0; i < 24; ++i) {
+    //     printf("%02x", ((uint8_t *) ciphertext)[i]);
+    // }
+    // printf("\n");
 
     // printf("%s\n", ciphertext);
 

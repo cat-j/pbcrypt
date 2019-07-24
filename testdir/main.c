@@ -217,7 +217,7 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
     test_start(test_name, "state: %s, salt: %s", state_name, salt);
 
     blowfish_expand_0_state_salt_asm(state_actual, salt);
-    Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, 16);
+    Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
 
     compare_states(state_actual, state_expected, test_name);
 }
@@ -225,19 +225,13 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
 void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
                                char *data_expected, const char *state_name)
 {
-    // Make sure both functions receive the same input
-    // assert(strlen(data_actual) == strlen(data_expected));
-    // for (size_t i = 0; i < strlen(data_actual); ++i) {
-    //     assert(data_actual[i] == data_expected[i]);
-    // }
-    
     char test_name[] = "test_blowfish_encrypt_asm";
     test_start(test_name, "state: %s, data: %s", state_name, data_actual);
 
     blowfish_encrypt_asm(state, (uint64_t *) data_actual);
     blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
 
-    compare_ciphertexts(data_actual, data_expected, test_name, 24);
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
 }
 
 void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
@@ -247,7 +241,7 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
     copy_ctext_asm((uint64_t *) data_actual, ctext);
     copy_ctext_openbsd((uint32_t *) data_expected, ctext);
 
-    compare_ciphertexts(data_actual, data_expected, "test_copy_ctext_asm", 24);
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
 }
 
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
@@ -317,11 +311,11 @@ int main(int argc, char const *argv[]) {
     uint16_t saltbytes = strlen(salt);
     uint16_t keybytes = strlen(key);
 
-    char data_actual[24];
-    char data_expected[24];
+    char data_actual[BCRYPT_WORDS << 2];
+    char data_expected[BCRYPT_WORDS << 2];
 
-    char final_data_actual[24];
-    char final_data_expected[24];
+    char final_data_actual[BCRYPT_WORDS << 2];
+    char final_data_expected[BCRYPT_WORDS << 2];
 
     test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 

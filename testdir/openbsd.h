@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "../src/bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
 
+#define BCRYPT_MAXSALT 16     /* Precomputation is just so nice */
+
 void Blowfish_initstate(blf_ctx *c);
 
 void Blowfish_initstate_dummy(blf_ctx *c);
