@@ -290,16 +290,10 @@ void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
 }
 
 void test_bcrypt_core() {
-    // blf_ctx *state;
-    // posix_memalign((void**) &state, 32, sizeof(blf_ctx));
-    // blowfish_init_state_asm(state);
-
     char salt[] = "opabiniaOPABINIA";
     char key[] = "anomalocaris";
 
     int result = bcrypt_hashpass(&key, &salt);
-
-    // free(state);
 }
 
 int main(int argc, char const *argv[]) {
