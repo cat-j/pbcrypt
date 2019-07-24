@@ -813,10 +813,11 @@ void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks) {
     }
 }
 
-void copy_ctext_openbsd(uint32_t *cdata, char *ctext) {
+void copy_ctext_openbsd(uint32_t *cdata, const char *ctext) {
     uint16_t j = 0;
     for (size_t i = 0; i < BCRYPT_WORDS; i++)
-        cdata[i] = Blowfish_stream2word(ctext, 4 * BCRYPT_WORDS, &j);
+        cdata[i] = Blowfish_stream2word((const uint8_t *) ctext,
+            4 * BCRYPT_WORDS, &j);
 }
 
 // static int
@@ -827,7 +828,8 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     uint32_t rounds, i, k;
     uint16_t j;
     size_t key_len;
-    uint8_t salt_len, logr, minor;
+    uint8_t salt_len;
+    // uint8_t logr, minor;
     uint8_t ciphertext[4 * BCRYPT_WORDS] = "OrpheanBeholderScryDoubt";
     uint8_t csalt[BCRYPT_MAXSALT];
     uint32_t cdata[BCRYPT_WORDS];
@@ -886,7 +888,7 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     // if (decode_base64(csalt, BCRYPT_MAXSALT, salt))
     //     goto inval;
     salt_len = BCRYPT_MAXSALT;
-    strncpy(csalt, salt, strlen(salt));
+    strncpy((char *) csalt, salt, strlen(salt));
 
     /* Setting up S-Boxes and Subkeys */
     Blowfish_initstate(&state);

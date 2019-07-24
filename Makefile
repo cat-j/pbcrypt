@@ -12,7 +12,7 @@ TEST_DIR=testdir/
 vpath %.o ./build/
 
 test: $(TEST_DIR)main.c bcrypt.o $(TEST_DIR)openbsd.c
-	$(CC) $(CFLAGS_NO_WARNINGS) $^ -o $(BUILD_DIR)$@
+	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
 	./build/test
 
 bcrypt: $(SRC_DIR)main.c bcrypt.o

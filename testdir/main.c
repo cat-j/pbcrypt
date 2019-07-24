@@ -244,7 +244,7 @@ void test_blowfish_encrypt_asm_rounds(const blf_ctx *state, char *data_actual,
     compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
 }
 
-void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
+void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *ctext) {
     char test_name[] = "test_copy_ctext_asm";
     test_start(test_name, "ciphertext: %s", ctext);
 
@@ -294,10 +294,10 @@ void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
 }
 
 void test_bcrypt_core() {
-    char salt[] = "opabiniaOPABINIA";
     char key[] = "anomalocaris";
+    char salt[] = "opabiniaOPABINIA";
 
-    int result = bcrypt_hashpass(&key, &salt);
+    bcrypt_hashpass((const char *) &key, (const char *) &salt);
 }
 
 int main(int argc, char const *argv[]) {
@@ -336,7 +336,7 @@ int main(int argc, char const *argv[]) {
     test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
         "key_expanded_state");
 
-    test_copy_ctext_asm(data_actual, data_expected, initial_ctext);
+    test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
     
     test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
         "expanded_0_state");

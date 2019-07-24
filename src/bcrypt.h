@@ -41,6 +41,6 @@ uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
 
 uint64_t reverse_bytes(uint64_t data);
 
-void copy_ctext_asm(uint64_t *data, char *ctext);
+void copy_ctext_asm(uint64_t *data, const char *ctext);
 
 #endif
