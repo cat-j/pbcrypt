@@ -27,7 +27,7 @@ uint32_t f_wrapper(uint32_t x, const blf_ctx *state);
 uint32_t blfrnd_wrapper(const blf_ctx *state, uint32_t xl, uint32_t xr,
                         uint32_t n);
 
-void copy_ctext_openbsd(uint32_t *cdata);
+void copy_ctext_openbsd(uint32_t *cdata, char *ctext);
 
 // static int
 // bcrypt_hashpass(const char *key, const char *salt, char *encrypted,

@@ -160,12 +160,12 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
 }
 
 void compare_ciphertexts(const char *actual, const char *expected,
-                         const char *test_name)
+                         const char *test_name, size_t ctext_bytes)
 {
     uint32_t *dwords_actual = (uint32_t *) actual;
     uint32_t *dwords_expected = (uint32_t *) expected;
     uint32_t current_actual, current_expected;
-    size_t len = strlen(actual) >> 2;
+    size_t len = ctext_bytes >> 2;
 
     for (size_t i = 0; i < len; ++i) {
         current_actual = dwords_actual[i];
@@ -226,10 +226,10 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
                                char *data_expected, const char *state_name)
 {
     // Make sure both functions receive the same input
-    assert(strlen(data_actual) == strlen(data_expected));
-    for (size_t i = 0; i < strlen(data_actual); ++i) {
-        assert(data_actual[i] == data_expected[i]);
-    }
+    // assert(strlen(data_actual) == strlen(data_expected));
+    // for (size_t i = 0; i < strlen(data_actual); ++i) {
+    //     assert(data_actual[i] == data_expected[i]);
+    // }
     
     char test_name[] = "test_blowfish_encrypt_asm";
     test_start(test_name, "state: %s, data: %s", state_name, data_actual);
@@ -237,7 +237,7 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
     blowfish_encrypt_asm(state, (uint64_t *) data_actual);
     blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
 
-    compare_ciphertexts(data_actual, data_expected, test_name);
+    compare_ciphertexts(data_actual, data_expected, test_name, 24);
 }
 
 void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
@@ -245,9 +245,9 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, char *ctext) {
     test_start(test_name, "ciphertext: %s", ctext);
 
     copy_ctext_asm((uint64_t *) data_actual, ctext);
-    copy_ctext_openbsd((uint32_t *) data_expected);
+    copy_ctext_openbsd((uint32_t *) data_expected, ctext);
 
-    compare_ciphertexts(data_actual, data_expected, "test_copy_ctext_asm");
+    compare_ciphertexts(data_actual, data_expected, "test_copy_ctext_asm", 24);
 }
 
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
@@ -320,6 +320,9 @@ int main(int argc, char const *argv[]) {
     char data_actual[24];
     char data_expected[24];
 
+    char final_data_actual[24];
+    char final_data_expected[24];
+
     test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
@@ -334,6 +337,8 @@ int main(int argc, char const *argv[]) {
     test_copy_ctext_asm(data_actual, data_expected, initial_ctext);
     
     test_blowfish_encrypt_asm(state, data_actual, data_expected, "expanded_0_state");
+
+    test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
     // test_bcrypt_core();
     
