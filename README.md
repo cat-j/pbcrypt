@@ -9,7 +9,7 @@ is done with SIMD for several passwords at once.
 
 ## Details
 
-Limited in scope to bcrypt version `$2b`.
+Limited in scope to bcrypt version `$2b$`.
 
 ## How to build
 
