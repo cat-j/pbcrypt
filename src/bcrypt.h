@@ -43,4 +43,9 @@ uint64_t reverse_bytes(uint64_t data);
 
 void copy_ctext_asm(uint64_t *data, const char *ctext);
 
+
+/* Utilities */
+
+void b64_decode(char *dst, char *src);
+
 #endif
