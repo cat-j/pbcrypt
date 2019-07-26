@@ -46,6 +46,8 @@ void copy_ctext_asm(uint64_t *data, const char *ctext);
 
 /* Utilities */
 
-void b64_decode(char *dst, char *src);
+void b64_encode(char *dst, char *src, uint64_t srcbytes);
+
+void b64_decode(char *dst, char *src, uint64_t srcbytes);
 
 #endif
