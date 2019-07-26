@@ -254,6 +254,29 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *cte
     compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
 }
 
+void test_b64_encode(char *dst_actual, char *dst_expected, char *src,
+                     uint64_t srcbytes)
+{
+    char test_name[] = "test_b64_encode";
+    test_start(test_name, "src: %s", src);
+
+    b64_encode(dst_actual, src, srcbytes);
+
+    char actual, expected;
+    for (size_t i = 0; i < srcbytes; ++i) {
+        actual = dst_actual[i];
+        expected = dst_expected[i];
+
+        if (actual != expected) {
+            test_fail("Encoded texts in test %s differ. "
+                "Index: %d, expected value: %c, actual value: %c\n",
+                test_name, i, expected, actual);
+        }
+    }
+
+    test_pass("%s successful.\n", test_name);
+}
+
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
     test_F_asm(0x00000000, state, state_name);
     test_F_asm(0x11111111, state, state_name);
@@ -293,6 +316,17 @@ void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
     test_blowfish_encipher_asm(state, 0x0123456789abcdef, state_name);
 }
 
+void test_b64_encode_all() {
+    char *dst_actual = malloc(12);
+    test_b64_encode(dst_actual, "b3BhYmluaWE=", "opabinia", 8);
+    test_b64_encode(dst_actual, "d2l3YXhpYQ==", "wiwaxia", 7);
+    free(dst_actual);
+
+    dst_actual = malloc(16);
+    test_b64_encode(dst_actual, "YW5vbWFsb2Nhcmlz", "anomalocaris", 12);
+    free(dst_actual);
+}
+
 void test_bcrypt_core() {
     char key[] = "anomalocaris";
     char salt[] = "opabiniaOPABINIA";
@@ -324,7 +358,6 @@ int main(int argc, char const *argv[]) {
     
     test_blowfish_round_all(state, "initial_state");
     test_blowfish_encipher_asm_all(state, "initial_state");
-    
     test_F_asm_all(state, "initial_state");
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
