@@ -1,5 +1,7 @@
 #include "bcrypt.h"
 
+#define ENCODING_TABLE_LENGTH 64
+
 char b64_encode_chart[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                            'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
                            'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
@@ -8,8 +10,6 @@ char b64_encode_chart[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                            'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
                            'w', 'x', 'y', 'z', '0', '1', '2', '3',
                            '4', '5', '6', '7', '8', '9', '+', '/'};
-
-char b64_decode_chart[];
 
 void b64_encode(char *dst, char *src, uint64_t srcbytes) {
     uint8_t data, sextet, next_highest_bits;
@@ -21,7 +21,7 @@ void b64_encode(char *dst, char *src, uint64_t srcbytes) {
         switch (i % 3) {
             case 0:
                 sextet = data >> 2;
-                next_highest_bits = (data & 3) << 4;
+                next_highest_bits = (data & 0x3) << 4;
                 break;
             
             case 1:
@@ -48,4 +48,51 @@ void b64_encode(char *dst, char *src, uint64_t srcbytes) {
     }
 }
 
-void b64_decode(char *dst, char *src, uint64_t srcbytes) {}
+
+// TODO: add check for padding
+
+void b64_decode(char *dst, char *src, uint64_t srcbytes) {
+    char current_byte;
+    unsigned char data;
+    uint64_t j = 0;
+
+    for (uint64_t i = 0; i < srcbytes; ++i) {
+        current_byte = get_index(src[i]);
+
+        switch(i%4) {
+            case 0:
+                data = current_byte << 2;
+                break;
+            
+            case 1:
+                data |= (current_byte >> 4) & 0x3;
+                dst[j++] = data;
+                data = current_byte << 4;
+                break;
+            
+            case 2:
+                data |= (current_byte >> 2) & 0xF;
+                dst[j++] = data;
+                data = current_byte << 6;
+                break;
+            
+            case 3:
+                data |= current_byte;
+                dst[j++] = data;
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
+
+char get_index(char encoded_char) {
+    for (int i = 0; i < ENCODING_TABLE_LENGTH; ++i) {
+        if (b64_encode_chart[i] == encoded_char)
+            return i;
+    }
+    // Not found
+    return -1;
+}
