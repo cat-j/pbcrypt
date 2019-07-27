@@ -89,10 +89,17 @@ void b64_decode(char *dst, char *src, uint64_t srcbytes) {
 
 
 char get_index(char encoded_char) {
-    for (int i = 0; i < ENCODING_TABLE_LENGTH; ++i) {
-        if (b64_encode_chart[i] == encoded_char)
-            return i;
+    if (encoded_char >= 'A' && encoded_char <= 'Z') {
+        return encoded_char - 'A';
+    } else if (encoded_char >= 'a' && encoded_char <= 'z') {
+        return encoded_char - 'a' + 26;
+    } else if (encoded_char >= '0' && encoded_char <= '9') {
+        return encoded_char - '0' + 52;
+    } else if (encoded_char == '+') {
+        return 62;
+    } else if (encoded_char == '/') {
+        return 63;
+    } else {
+        return -1;
     }
-    // Not found
-    return -1;
 }
