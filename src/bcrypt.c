@@ -48,15 +48,22 @@ void b64_encode(char *dst, char *src, uint64_t srcbytes) {
     }
 }
 
-
-// TODO: add check for padding
-
 void b64_decode(char *dst, char *src, uint64_t srcbytes) {
     char current_byte;
     unsigned char data;
-    uint64_t j = 0;
+    uint64_t j = 0, padding = 0, length = srcbytes;
 
-    for (uint64_t i = 0; i < srcbytes; ++i) {
+    if (src[srcbytes-1] == '=') {
+        padding++;
+        
+        if (src[srcbytes-2] == '=') {
+            padding++;
+        }
+    }
+
+    length -= padding;
+
+    for (uint64_t i = 0; i < length; ++i) {
         current_byte = get_index(src[i]);
 
         switch(i%4) {
