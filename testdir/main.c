@@ -172,8 +172,27 @@ void compare_ciphertexts(const char *actual, const char *expected,
         }
     }
 
-    test_pass("%s passed.\n", test_name);
+    test_pass("%s successful.\n", test_name);
 }
+
+void compare_strings(const char *actual, const char *expected,
+                     const char *test_name, size_t length)
+{
+    char current_actual, current_expected;
+    for (size_t i = 0; i < length; ++i) {
+        current_actual = actual[i];
+        current_expected = expected[i];
+
+        if (current_actual != current_expected) {
+            test_fail("Strings in test %s differ. "
+                "Index: %d, expected value: %c, actual value: %c\n",
+                test_name, i, current_expected, current_actual);
+        }
+    }
+
+    test_pass("%s successful.\n", test_name);
+}
+
 
 void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
                                     const char *salt, uint16_t saltbytes,
@@ -255,26 +274,25 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *cte
 }
 
 void test_b64_encode(char *dst_actual, char *dst_expected, char *src,
-                     uint64_t srcbytes)
+                     uint64_t srcbytes, uint64_t dstbytes)
 {
     char test_name[] = "test_b64_encode";
     test_start(test_name, "src: %s", src);
 
     b64_encode(dst_actual, src, srcbytes);
 
-    char actual, expected;
-    for (size_t i = 0; i < srcbytes; ++i) {
-        actual = dst_actual[i];
-        expected = dst_expected[i];
+    compare_strings(dst_actual, dst_expected, test_name, dstbytes);
+}
 
-        if (actual != expected) {
-            test_fail("Encoded texts in test %s differ. "
-                "Index: %d, expected value: %c, actual value: %c\n",
-                test_name, i, expected, actual);
-        }
-    }
+void test_b64_decode(char *dst_actual, char *dst_expected, char *src,
+                     uint64_t srcbytes, uint64_t dstbytes)
+{
+    char test_name[] = "test_b64_decode";
+    test_start(test_name, "src: %s", src);
 
-    test_pass("%s successful.\n", test_name);
+    b64_decode(dst_actual, src, srcbytes);
+
+    compare_strings(dst_actual, dst_expected, test_name, dstbytes);
 }
 
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
@@ -318,12 +336,26 @@ void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
 
 void test_b64_encode_all() {
     char *dst_actual = malloc(12);
-    test_b64_encode(dst_actual, "b3BhYmluaWE=", "opabinia", 8);
-    test_b64_encode(dst_actual, "d2l3YXhpYQ==", "wiwaxia", 7);
+    test_b64_encode(dst_actual, "b3BhYmluaWE=", "opabinia", 8, 12);
+    test_b64_encode(dst_actual, "d2l3YXhpYQ==", "wiwaxia", 7, 12);
     free(dst_actual);
 
     dst_actual = malloc(16);
-    test_b64_encode(dst_actual, "YW5vbWFsb2Nhcmlz", "anomalocaris", 12);
+    test_b64_encode(dst_actual, "YW5vbWFsb2Nhcmlz", "anomalocaris", 12, 16);
+    free(dst_actual);
+}
+
+void test_b64_decode_all() {
+    char *dst_actual = malloc(8);
+    test_b64_decode(dst_actual, "opabinia", "b3BhYmluaWE=", 12, 8);
+    free(dst_actual);
+
+    dst_actual = malloc(7);
+    test_b64_decode(dst_actual, "wiwaxia", "d2l3YXhpYQ==", 12, 7);
+    free(dst_actual);
+
+    dst_actual = malloc(12);
+    test_b64_decode(dst_actual, "anomalocaris", "YW5vbWFsb2Nhcmlz", 16, 12);
     free(dst_actual);
 }
 
@@ -336,6 +368,9 @@ void test_bcrypt_core() {
 
 int main(int argc, char const *argv[]) {
     test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
+
+    test_b64_encode_all();
+    test_b64_decode_all();
 
     blf_ctx *state;
     blf_ctx *state_expected;

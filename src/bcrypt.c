@@ -11,6 +11,23 @@ char b64_encode_chart[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
                            'w', 'x', 'y', 'z', '0', '1', '2', '3',
                            '4', '5', '6', '7', '8', '9', '+', '/'};
 
+
+char get_index(char encoded_char) {
+    if (encoded_char >= 'A' && encoded_char <= 'Z') {
+        return encoded_char - 'A';
+    } else if (encoded_char >= 'a' && encoded_char <= 'z') {
+        return encoded_char - 'a' + 26;
+    } else if (encoded_char >= '0' && encoded_char <= '9') {
+        return encoded_char - '0' + 52;
+    } else if (encoded_char == '+') {
+        return 62;
+    } else if (encoded_char == '/') {
+        return 63;
+    } else {
+        return -1;
+    }
+}
+
 void b64_encode(char *dst, char *src, uint64_t srcbytes) {
     uint8_t data, sextet, next_highest_bits;
     uint64_t remaining_bits = (srcbytes << 3) % 6;
@@ -91,22 +108,5 @@ void b64_decode(char *dst, char *src, uint64_t srcbytes) {
             default:
                 break;
         }
-    }
-}
-
-
-char get_index(char encoded_char) {
-    if (encoded_char >= 'A' && encoded_char <= 'Z') {
-        return encoded_char - 'A';
-    } else if (encoded_char >= 'a' && encoded_char <= 'z') {
-        return encoded_char - 'a' + 26;
-    } else if (encoded_char >= '0' && encoded_char <= '9') {
-        return encoded_char - '0' + 52;
-    } else if (encoded_char == '+') {
-        return 62;
-    } else if (encoded_char == '/') {
-        return 63;
-    } else {
-        return -1;
     }
 }
