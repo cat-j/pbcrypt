@@ -19,7 +19,7 @@ typedef struct BlowfishContext {
 void blowfish_init_state_asm(blf_ctx *state);
 
 void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
-                               uint16_t saltbytes,
+                               uint16_t saltbytes, // TODO: remove this parameter
                                const char *key, uint16_t keybytes);
 
 void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
@@ -30,6 +30,10 @@ void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt);
 void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
 void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
+
+int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
+                        const char *key, uint16_t keybytes,
+                        uint64_t *hash);
 
 
 /* Testing functions */

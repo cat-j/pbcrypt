@@ -13,6 +13,7 @@ global blowfish_expand_0_state_asm
 global blowfish_expand_0_state_salt_asm
 global blowfish_encipher_asm
 global blowfish_encrypt_asm
+global bcrypt_hashpass_asm
 
 ; exported functions for testing macros
 global f_asm
@@ -428,13 +429,14 @@ blowfish_init_state_asm:
         vmovdqa [rdi + BLF_CTX_P_OFFSET], ymm0
         vmovdqa ymm0, [initstate_asm + BLF_CTX_P_OFFSET + 32]
         vmovdqa [rdi + BLF_CTX_P_OFFSET + 32], ymm0
-        mov     rdx, [initstate_asm + BLF_CTX_P_OFFSET + 64] ; last bytes
-        mov     [rdi + BLF_CTX_P_OFFSET + 64], rdx
+        mov     rax, [initstate_asm + BLF_CTX_P_OFFSET + 64] ; last bytes
+        mov     [rdi + BLF_CTX_P_OFFSET + 64], rax
 
     .end:
         pop rbp
         ret
 
+; TODO: remove saltbytes
 ; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 ;                                uint16_t saltbytes,
 ;                                const char *key, uint16_t keybytes)
@@ -727,3 +729,66 @@ blowfish_encrypt_asm:
         pop rbx
         pop rbp
         ret
+
+; int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
+;                         const char *key, uint16_t keybytes,
+;                         uint64_t *hash, uint64_t rounds);
+
+bcrypt_hashpass_asm:
+    ; rdi -> state
+    ; rsi -> 128-bit salt
+    ; rdx -> hash (modified)
+    ; rcx -> key
+    ; r8:    key length in bytes
+    ; r9:    rounds
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .key_setup:
+        mov  r12, r9
+        
+        call blowfish_init_state_asm
+
+        call blowfish_expand_state_asm
+
+        mov  rbx, rsi
+        mov  r12, rdx
+        mov  rsi, rcx
+        mov  rdx, r8
+        call blowfish_expand_0_state_asm
+
+        mov  rsi, rbx
+        call blowfish_expand_0_state_salt_asm
+    
+    .end:
+        pop rbp
+        ret
+
+; /* Setting up S-Boxes and Subkeys */
+; Blowfish_initstate(&state);
+; Blowfish_expandstate(rdi &state, rsi csalt, rdx salt_len,
+;     rcx (u_int8_t *) key, r8 key_len);
+; for (k = 0; k < rounds; k++) {
+; 	Blowfish_expand0state(&state, (u_int8_t *) key, key_len);
+; 	Blowfish_expand0state(&state, csalt, salt_len);
+; }
+
+; /* This can be precomputed later */
+; j = 0;
+; for (i = 0; i < BCRYPT_WORDS; i++)
+; 	cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
+
+; /* Now do the encryption */
+; for (k = 0; k < 64; k++)
+; 	blf_enc(&state, cdata, BCRYPT_WORDS / 2);
+
+; for (i = 0; i < BCRYPT_WORDS; i++) {
+; 	ciphertext[4 * i + 3] = cdata[i] & 0xff;
+; 	cdata[i] = cdata[i] >> 8;
+; 	ciphertext[4 * i + 2] = cdata[i] & 0xff;
+; 	cdata[i] = cdata[i] >> 8;
+; 	ciphertext[4 * i + 1] = cdata[i] & 0xff;
+; 	cdata[i] = cdata[i] >> 8;
+; 	ciphertext[4 * i + 0] = cdata[i] & 0xff;
+; }
