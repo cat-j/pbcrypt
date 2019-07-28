@@ -570,13 +570,13 @@ blowfish_expand_0_state_asm:
     
     .p_array_key:
         ; key_data: a byte from the key
-        ; key_data_l: lower 8 bits of key_data
+        ; key_data_low: lower 8 bits of key_data
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
         %define key_data     r9
-        %define key_data_l   r9b
+        %define key_data_low r9b
         %define key_data_ctr r10
         %define key_ptr      rsi
         %define key_len      rdx
@@ -591,7 +591,7 @@ blowfish_expand_0_state_asm:
 
         %assign j 0
         %rep 9
-            XOR_WITH_KEY key_data, key_data_l, key_data_ctr, \
+            XOR_WITH_KEY key_data, key_data_low, key_data_ctr, \
                 key_ptr, key_len, loop_ctr, data, j
             %assign j j+2
         %endrep
@@ -753,28 +753,44 @@ bcrypt_hashpass_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push rbx
         push r12
+        push r13
+        push r14
+        push r15
         sub  rbp, 8
 
     .key_setup:
-        mov  r12, r9
+        ; Save these values because blowfish_expand_state_asm would modify them
+        ; rbx -> salt
+        ; r12 -> hash
+        ; r13 -> key
+        ; r14:   key length in bytes
+        ; r15:   rounds
+        mov rbx, rsi
+        mov r12, rdx
+        mov r13, rcx
+        mov r14, r8
+        mov r15, r9
 
         call blowfish_init_state_asm
 
         call blowfish_expand_state_asm
 
-        ; mov  rbx, rsi
-        ; mov  r12, rdx
-        ; mov  rsi, rcx
-        ; mov  rdx, r8
-        ; call blowfish_expand_0_state_asm
+        mov  rsi, r13
+        mov  rdx, r14
+        call blowfish_expand_0_state_asm
 
-        ; mov  rsi, rbx
-        ; call blowfish_expand_0_state_salt_asm
+        mov  rsi, rbx
+        call blowfish_expand_0_state_salt_asm
     
     .end:
         add rbp, 8
-        pop rbp
+        pop r15
+        pop r14
+        pop r13
+        pop r12
+        pop rbx
         pop rbp
         ret
 
