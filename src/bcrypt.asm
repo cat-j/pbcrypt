@@ -343,6 +343,8 @@ blowfish_encipher_register:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push r8
+        sub  rbp, 8
 
     .separate_xl_xr:
         mov rdx, r13 ; rdx: | Xl | Xr |
@@ -398,6 +400,8 @@ blowfish_encipher_register:
         mov r13, x_r
 
     .end:
+        add rbp, 8
+        pop r8
         pop rbp
         ret
 
@@ -781,8 +785,43 @@ bcrypt_hashpass_asm:
         mov  rdx, r14
         call blowfish_expand_0_state_asm
 
-        mov  rsi, rbx
-        call blowfish_expand_0_state_salt_asm
+        .expand_0_state:
+            %define salt_ptr  rbx
+            %define hash_ptr  r12
+            %define key_ptr   r13
+            %define key_len   r14
+            %define rounds    r15
+            %define round_ctr r8
+
+            xor round_ctr, round_ctr
+            
+            .round_loop:
+                cmp  round_ctr, rounds
+                je   .encrypt
+
+                mov  rsi, key_ptr
+                mov  rdx, key_len
+                call blowfish_expand_0_state_asm
+
+                mov  rsi, salt_ptr
+                call blowfish_expand_0_state_salt_asm
+
+                inc  round_ctr
+                jmp  .round_loop
+
+    .encrypt:
+        ; %1 -> ciphertext buffer
+        ; %2: temporary register
+        ; %3: temporary register
+        ; %4: temporary register
+        ; %5: lower 32 bits of %3
+        ; %6 -> 24-byte ciphertext to be copied
+        COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
+        mov rsi, hash_ptr
+
+        %rep 64
+            call blowfish_encrypt_asm
+        %endrep
     
     .end:
         add rbp, 8
