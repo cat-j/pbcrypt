@@ -823,9 +823,11 @@ void copy_ctext_openbsd(uint32_t *cdata, const char *ctext) {
 // static int
 // bcrypt_hashpass(const char *key, const char *salt, char *encrypted,
 //     size_t encryptedlen)
-int bcrypt_hashpass(const char *key, const char *salt) {
+int bcrypt_hashpass(const char *key, const char *salt, uint64_t rounds,
+                    uint8_t *hash)
+{
     blf_ctx state;
-    uint32_t rounds, i, k;
+    uint32_t i, k;
     uint16_t j;
     size_t key_len;
     uint8_t salt_len;
@@ -834,59 +836,8 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     uint8_t csalt[BCRYPT_MAXSALT];
     uint32_t cdata[BCRYPT_WORDS];
 
-    // if (encryptedlen < BCRYPT_HASHSPACE)
-    //     goto inval;
+    key_len = strlen(key);
 
-    // /* Check and discard "$" identifier */
-    // if (salt[0] != '$')
-    //     goto inval;
-    // salt += 1;
-
-    // if (salt[0] != BCRYPT_VERSION)
-    //     goto inval;
-
-    // /* Check for minor versions */
-    // switch ((minor = salt[1])) {
-    // case 'a':
-    //     key_len = (uint8_t)(strlen(key) + 1);
-    //     break;
-    // case 'b':
-    //     /* strlen() returns a size_t, but the function calls
-    //      * below result in implicit casts to a narrower integer
-    //      * type, so cap key_len at the actual maximum supported
-    //      * length here to avoid integer wraparound */
-        key_len = strlen(key);
-    //     if (key_len > 72)
-    //         key_len = 72;
-    //     key_len++; /* include the NUL */
-    //     break;
-    // default:
-    //      goto inval;
-    // }
-    // if (salt[2] != '$')
-    //     goto inval;
-    // /* Discard version + "$" identifier */
-    // salt += 3;
-
-    // /* Check and parse num rounds */
-    // if (!isdigit((unsigned char)salt[0]) ||
-    //     !isdigit((unsigned char)salt[1]) || salt[2] != '$')
-    //     goto inval;
-    // logr = (salt[1] - '0') + ((salt[0] - '0') * 10);
-    // if (logr < BCRYPT_MINLOGROUNDS || logr > 31)
-    //     goto inval;
-    // /* Computer power doesn't increase linearly, 2^x should be fine */
-    // rounds = 1U << logr;
-
-    // /* Discard num rounds + "$" identifier */
-    // salt += 3;
-
-    // if (strlen(salt) * 3 / 4 < BCRYPT_MAXSALT)
-    //     goto inval;
-
-    // /* We dont want the base64 salt but the raw data */
-    // if (decode_base64(csalt, BCRYPT_MAXSALT, salt))
-    //     goto inval;
     salt_len = BCRYPT_MAXSALT;
     strncpy((char *) csalt, salt, strlen(salt));
 
@@ -894,7 +845,7 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     Blowfish_initstate(&state);
     Blowfish_expandstate(&state, csalt, salt_len,
         (uint8_t *) key, key_len);
-    rounds = 64;
+
     for (k = 0; k < rounds; k++) {
         Blowfish_expand0state(&state, (uint8_t *) key, key_len);
         Blowfish_expand0state(&state, csalt, salt_len);
@@ -904,39 +855,20 @@ int bcrypt_hashpass(const char *key, const char *salt) {
     j = 0;
     for (i = 0; i < BCRYPT_WORDS; i++)
         cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
-    
-    // printf("ctext: %s\n", ciphertext);
-    // printf("cdata: %s\n", cdata);
 
     /* Now do the encryption */
     for (k = 0; k < 64; k++)
         blf_enc(&state, cdata, BCRYPT_WORDS / 2);
-    // printf("encrypted cdata: %s\n", cdata);
-    // printf("data bytes: ");
-    // for (size_t i = 0; i < 24; ++i) {
-    //     printf("%02x", ((uint8_t *) cdata)[i]);
-    // }
-    // printf("\n");
-
-    // printf("%s\n", cdata);
 
     for (i = 0; i < BCRYPT_WORDS; i++) {
-        ciphertext[4 * i + 3] = cdata[i] & 0xff;
+        hash[4 * i + 3] = cdata[i] & 0xff;
         cdata[i] = cdata[i] >> 8;
-        ciphertext[4 * i + 2] = cdata[i] & 0xff;
+        hash[4 * i + 2] = cdata[i] & 0xff;
         cdata[i] = cdata[i] >> 8;
-        ciphertext[4 * i + 1] = cdata[i] & 0xff;
+        hash[4 * i + 1] = cdata[i] & 0xff;
         cdata[i] = cdata[i] >> 8;
-        ciphertext[4 * i + 0] = cdata[i] & 0xff;
+        hash[4 * i + 0] = cdata[i] & 0xff;
     }
-
-    // printf("data bytes: ");
-    // for (size_t i = 0; i < 24; ++i) {
-    //     printf("%02x", ((uint8_t *) ciphertext)[i]);
-    // }
-    // printf("\n");
-
-    // printf("%s\n", ciphertext);
 
     // snprintf(encrypted, 8, "$2%c$%2.2u$", minor, logr);
     // encode_base64(encrypted + 7, csalt, BCRYPT_MAXSALT);

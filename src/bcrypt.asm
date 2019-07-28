@@ -732,7 +732,7 @@ blowfish_encrypt_asm:
 
 ; int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
 ;                         const char *key, uint16_t keybytes,
-;                         uint64_t *hash, uint64_t rounds);
+;                         uint8_t *hash, uint64_t rounds);
 
 bcrypt_hashpass_asm:
     ; rdi -> state
@@ -747,7 +747,7 @@ bcrypt_hashpass_asm:
 
     .key_setup:
         mov  r12, r9
-        
+
         call blowfish_init_state_asm
 
         call blowfish_expand_state_asm

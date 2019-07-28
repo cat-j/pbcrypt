@@ -33,7 +33,7 @@ void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
 int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
                         const char *key, uint16_t keybytes,
-                        uint64_t *hash);
+                        uint8_t *hash, uint64_t rounds);
 
 
 /* Testing functions */

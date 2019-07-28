@@ -34,6 +34,7 @@ void copy_ctext_openbsd(uint32_t *cdata, const char *ctext);
 // static int
 // bcrypt_hashpass(const char *key, const char *salt, char *encrypted,
 //     size_t encryptedlen);
-int bcrypt_hashpass(const char *key, const char *salt);
+int bcrypt_hashpass(const char *key, const char *salt, uint64_t rounds,
+                    uint8_t *hash);
 
 #endif

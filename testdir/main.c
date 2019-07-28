@@ -359,11 +359,38 @@ void test_b64_decode_all() {
     free(dst_actual);
 }
 
-void test_bcrypt_core() {
-    char key[] = "anomalocaris";
-    char salt[] = "opabiniaOPABINIA";
+void test_bcrypt_hashpass_asm(blf_ctx *state_actual, const char *salt,
+                              uint8_t *hash_actual, uint8_t *hash_expected,
+                              const char *key, uint64_t keybytes,
+                              uint64_t rounds)
+{
+    char test_name[] = "test_bcrypt_core";
+    test_start(test_name, "salt: %s, key: %s, rounds: %ld", salt, key, rounds);
 
-    bcrypt_hashpass((const char *) &key, (const char *) &salt);
+    bcrypt_hashpass_asm(state_actual, salt, key, keybytes, hash_actual, rounds);
+    bcrypt_hashpass(key, salt, rounds, hash_expected);
+
+    compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_WORDS << 2);
+}
+
+void test_bcrypt_hashpass() {
+    blf_ctx *state_actual;
+
+    posix_memalign((void**) &state_actual, 32, sizeof(blf_ctx));
+
+    char salt[] = "opabiniaOPABINIA"; // 128 bits long
+    char key[] = "anomalocaris";
+    uint64_t keybytes = strlen(key);
+
+    uint8_t hash_actual[BCRYPT_WORDS << 2];
+    uint8_t hash_expected[BCRYPT_WORDS << 2];
+
+    uint64_t rounds = 2;
+
+    test_bcrypt_hashpass_asm(state_actual, salt, hash_actual, hash_expected,
+                             key, keybytes, rounds);
+
+    free(state_actual);
 }
 
 int main(int argc, char const *argv[]) {
@@ -411,7 +438,7 @@ int main(int argc, char const *argv[]) {
 
     test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
-    // test_bcrypt_core();
+    test_bcrypt_hashpass();
     
     free(state);
     free(state_expected);
