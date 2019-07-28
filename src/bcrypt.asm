@@ -149,7 +149,7 @@ section .text
 %endmacro
 
 ; %1: key_data
-; %2: key_data_l
+; %2: key_data_low
 ; %3: key_data_ctr
 ; %4: key_ptr
 ; %5: key_len
@@ -167,7 +167,7 @@ section .text
             xor %3, %3 ; reset counter
 
         .continue_extract_%8:
-            mov %2, [%4 + %3]
+            mov %2, [%4 + %3] ; key_data_low, [key_ptr + key_data_ctr]
             shl %7, 8
             or  %7, %1
 
@@ -457,13 +457,13 @@ blowfish_expand_state_asm:
     
     .p_array_key:
         ; key_data: a byte from the key
-        ; key_data_l: lower 8 bits of key_data
+        ; key_data_low: lower 8 bits of key_data
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
         %define key_data     r9
-        %define key_data_l   r9b
+        %define key_data_low r9b
         %define key_data_ctr r10
         %define key_ptr      rcx
         %define key_len      r8
@@ -476,9 +476,18 @@ blowfish_expand_state_asm:
         xor data, data
         xor loop_ctr, loop_ctr
 
+        ; XOR_WITH_KEY params:
+        ; %1: key_data
+        ; %2: key_data_low
+        ; %3: key_data_ctr
+        ; %4: key_ptr
+        ; %5: key_len
+        ; %6: loop_ctr
+        ; %7: data
+        ; %8: iteration number
         %assign j 0
         %rep 9
-            XOR_WITH_KEY key_data, key_data_l, key_data_ctr, \
+            XOR_WITH_KEY key_data, key_data_low, key_data_ctr, \
                 key_ptr, key_len, loop_ctr, data, j
             %assign j j+2
         %endrep
@@ -731,8 +740,8 @@ blowfish_encrypt_asm:
         ret
 
 ; int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
-;                         const char *key, uint16_t keybytes,
-;                         uint8_t *hash, uint64_t rounds);
+;                         uint8_t *hash, const char *key,
+;                         uint16_t keybytes, uint64_t rounds)
 
 bcrypt_hashpass_asm:
     ; rdi -> state
@@ -744,6 +753,8 @@ bcrypt_hashpass_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push r12
+        sub  rbp, 8
 
     .key_setup:
         mov  r12, r9
@@ -752,16 +763,18 @@ bcrypt_hashpass_asm:
 
         call blowfish_expand_state_asm
 
-        mov  rbx, rsi
-        mov  r12, rdx
-        mov  rsi, rcx
-        mov  rdx, r8
-        call blowfish_expand_0_state_asm
+        ; mov  rbx, rsi
+        ; mov  r12, rdx
+        ; mov  rsi, rcx
+        ; mov  rdx, r8
+        ; call blowfish_expand_0_state_asm
 
-        mov  rsi, rbx
-        call blowfish_expand_0_state_salt_asm
+        ; mov  rsi, rbx
+        ; call blowfish_expand_0_state_salt_asm
     
     .end:
+        add rbp, 8
+        pop rbp
         pop rbp
         ret
 
