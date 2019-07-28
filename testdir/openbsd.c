@@ -823,10 +823,9 @@ void copy_ctext_openbsd(uint32_t *cdata, const char *ctext) {
 // static int
 // bcrypt_hashpass(const char *key, const char *salt, char *encrypted,
 //     size_t encryptedlen)
-int bcrypt_hashpass(const char *key, const char *salt, uint64_t rounds,
-                    uint8_t *hash)
+int bcrypt_hashpass(blf_ctx *state, const char *key, const char *salt,
+                    uint64_t rounds, uint8_t *hash)
 {
-    blf_ctx state;
     uint32_t i, k;
     uint16_t j;
     size_t key_len;
@@ -842,13 +841,13 @@ int bcrypt_hashpass(const char *key, const char *salt, uint64_t rounds,
     strncpy((char *) csalt, salt, strlen(salt));
 
     /* Setting up S-Boxes and Subkeys */
-    Blowfish_initstate(&state);
-    Blowfish_expandstate(&state, csalt, salt_len,
+    Blowfish_initstate(state);
+    Blowfish_expandstate(state, csalt, salt_len,
         (uint8_t *) key, key_len);
 
     for (k = 0; k < rounds; k++) {
-        Blowfish_expand0state(&state, (uint8_t *) key, key_len);
-        Blowfish_expand0state(&state, csalt, salt_len);
+        Blowfish_expand0state(state, (uint8_t *) key, key_len);
+        Blowfish_expand0state(state, csalt, salt_len);
     }
 
     /* This can be precomputed later */
@@ -858,7 +857,7 @@ int bcrypt_hashpass(const char *key, const char *salt, uint64_t rounds,
 
     /* Now do the encryption */
     for (k = 0; k < 64; k++)
-        blf_enc(&state, cdata, BCRYPT_WORDS / 2);
+        blf_enc(state, cdata, BCRYPT_WORDS / 2);
 
     for (i = 0; i < BCRYPT_WORDS; i++) {
         hash[4 * i + 3] = cdata[i] & 0xff;

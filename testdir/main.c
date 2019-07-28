@@ -150,8 +150,10 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
         }
     }
 
-    test_pass("%s successful.\n", test_name);
+    test_pass("Success: states in %s are equal.\n", test_name);
 }
+
+// TODO: look into refactoring the following two functions
 
 void compare_ciphertexts(const char *actual, const char *expected,
                          const char *test_name, size_t ctext_bytes)
@@ -190,7 +192,7 @@ void compare_strings(const char *actual, const char *expected,
         }
     }
 
-    test_pass("%s successful.\n", test_name);
+    test_pass("Success: strings in %s are equal.\n", test_name);
 }
 
 
@@ -359,24 +361,27 @@ void test_b64_decode_all() {
     free(dst_actual);
 }
 
-void test_bcrypt_hashpass_asm(blf_ctx *state_actual, const char *salt,
+void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
                               uint8_t *hash_actual, uint8_t *hash_expected,
                               const char *key, uint64_t keybytes,
-                              uint64_t rounds)
+                              const char *salt, uint64_t rounds)
 {
     char test_name[] = "test_bcrypt_core";
     test_start(test_name, "salt: %s, key: %s, rounds: %ld", salt, key, rounds);
 
     bcrypt_hashpass_asm(state_actual, salt, hash_actual, key, keybytes, rounds);
-    bcrypt_hashpass(key, salt, rounds, hash_expected);
+    bcrypt_hashpass(state_expected, key, salt, rounds, hash_expected);
 
+    compare_states(state_actual, state_expected, test_name);
     compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_WORDS << 2);
 }
 
 void test_bcrypt_hashpass() {
     blf_ctx *state_actual;
+    blf_ctx *state_expected;
 
     posix_memalign((void**) &state_actual, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
 
     char salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
@@ -387,10 +392,12 @@ void test_bcrypt_hashpass() {
 
     uint64_t rounds = 2;
 
-    test_bcrypt_hashpass_asm(state_actual, salt, hash_actual, hash_expected,
-                             key, keybytes, rounds);
+    test_bcrypt_hashpass_asm(state_actual, state_expected,
+                             hash_actual, hash_expected,
+                             key, keybytes, salt, rounds);
 
     free(state_actual);
+    free(state_expected);
 }
 
 int main(int argc, char const *argv[]) {
