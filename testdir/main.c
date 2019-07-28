@@ -401,54 +401,54 @@ void test_bcrypt_hashpass() {
 }
 
 int main(int argc, char const *argv[]) {
-    // test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
+    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
-    // test_b64_encode_all();
-    // test_b64_decode_all();
+    test_b64_encode_all();
+    test_b64_decode_all();
 
-    // blf_ctx *state;
-    // blf_ctx *state_expected;
+    blf_ctx *state;
+    blf_ctx *state_expected;
 
-    // posix_memalign((void**) &state, 32, sizeof(blf_ctx));
-    // posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state_expected, 32, sizeof(blf_ctx));
     
-    // char salt[] = "opabiniaOPABINIA"; // 128 bits long
-    // char key[] = "anomalocaris";
-    // uint16_t saltbytes = strlen(salt);
-    // uint16_t keybytes = strlen(key);
+    char salt[] = "opabiniaOPABINIA"; // 128 bits long
+    char key[] = "anomalocaris";
+    uint16_t saltbytes = strlen(salt);
+    uint16_t keybytes = strlen(key);
 
-    // char data_actual[BCRYPT_WORDS << 2];
-    // char data_expected[BCRYPT_WORDS << 2];
+    char data_actual[BCRYPT_WORDS << 2];
+    char data_expected[BCRYPT_WORDS << 2];
 
-    // char final_data_actual[BCRYPT_WORDS << 2];
-    // char final_data_expected[BCRYPT_WORDS << 2];
+    char final_data_actual[BCRYPT_WORDS << 2];
+    char final_data_expected[BCRYPT_WORDS << 2];
 
-    // test_blowfish_init_state_asm(state, state_expected);
+    test_blowfish_init_state_asm(state, state_expected);
     
-    // test_blowfish_round_all(state, "initial_state");
-    // test_blowfish_encipher_asm_all(state, "initial_state");
-    // test_F_asm_all(state, "initial_state");
+    test_blowfish_round_all(state, "initial_state");
+    test_blowfish_encipher_asm_all(state, "initial_state");
+    test_F_asm_all(state, "initial_state");
 
-    // test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
-    //     key, keybytes, "initial_state");
+    test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
+        key, keybytes, "initial_state");
 
-    // test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
-    //     "expanded_state");
+    test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
+        "expanded_state");
     
-    // test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
-    //     "key_expanded_state");
+    test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
+        "key_expanded_state");
 
-    // test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
+    test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
     
-    // test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
-    //     "expanded_0_state");
+    test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
+        "expanded_0_state");
 
-    // test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
+    test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
     test_bcrypt_hashpass();
     
-    // free(state);
-    // free(state_expected);
+    free(state);
+    free(state_expected);
 
     return 0;
 }

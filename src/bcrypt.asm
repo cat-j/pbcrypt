@@ -737,9 +737,9 @@ blowfish_encrypt_asm:
         pop rbp
         ret
 
-; int bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
-;                         uint8_t *hash, const char *key,
-;                         uint16_t keybytes, uint64_t rounds)
+; void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
+;                          uint8_t *hash, const char *key,
+;                          uint16_t keybytes, uint64_t rounds)
 
 bcrypt_hashpass_asm:
     ; rdi -> state
