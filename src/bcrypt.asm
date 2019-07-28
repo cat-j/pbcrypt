@@ -817,9 +817,9 @@ bcrypt_hashpass_asm:
         ; %5: lower 32 bits of %3
         ; %6 -> 24-byte ciphertext to be copied
         COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
-        mov rsi, hash_ptr
 
         %rep 64
+            mov  rsi, hash_ptr
             call blowfish_encrypt_asm
         %endrep
     
