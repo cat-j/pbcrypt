@@ -9,8 +9,8 @@
 
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
-	uint32_t S[4][256];	/* S-Boxes */
-	uint32_t P[18];	/* Subkeys */
+    uint32_t S[4][256];    /* S-Boxes */
+    uint32_t P[18];    /* Subkeys */
 } blf_ctx;
 
 
@@ -23,7 +23,7 @@ void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
                                const char *key, uint16_t keybytes);
 
 void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
-								 uint64_t keybytes);
+                                 uint64_t keybytes);
 
 void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt);
 

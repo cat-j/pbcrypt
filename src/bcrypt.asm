@@ -551,7 +551,7 @@ blowfish_expand_state_asm:
         ret
 
 ; void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
-; 								 uint16_t keybytes)
+;                                  uint16_t keybytes)
 
 blowfish_expand_0_state_asm:
     ; rdi -> state
