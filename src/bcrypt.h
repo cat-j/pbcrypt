@@ -7,6 +7,7 @@
 #define P_ARRAY_LENGTH    18
 #define BCRYPT_WORDS      6
 #define BCRYPT_SALT_BYTES 16
+#define BCRYPT_HASH_BYTES 24
 
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {

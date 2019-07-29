@@ -246,7 +246,7 @@ void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
     blowfish_encrypt_asm(state, (uint64_t *) data_actual);
     blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
 
-    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
 void test_blowfish_encrypt_asm_rounds(const blf_ctx *state, char *data_actual,
@@ -262,7 +262,7 @@ void test_blowfish_encrypt_asm_rounds(const blf_ctx *state, char *data_actual,
         blf_enc(state, (uint32_t *) data_expected, BCRYPT_WORDS / 2);
     }
 
-    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
 void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *ctext) {
@@ -272,7 +272,7 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *cte
     copy_ctext_asm((uint64_t *) data_actual, ctext);
     copy_ctext_openbsd((uint32_t *) data_expected, ctext);
 
-    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_WORDS << 2);
+    compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
 void test_F_asm_all(blf_ctx *state, const char *state_name) {
@@ -326,7 +326,7 @@ void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
     bcrypt_hashpass(state_expected, key, salt, rounds, hash_expected);
 
     compare_states(state_actual, state_expected, test_name);
-    compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_WORDS << 2);
+    compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
 void test_bcrypt_hashpass() {
@@ -340,8 +340,8 @@ void test_bcrypt_hashpass() {
     char key[] = "anomalocaris";
     uint64_t keybytes = strlen(key);
 
-    uint8_t hash_actual[BCRYPT_WORDS << 2];
-    uint8_t hash_expected[BCRYPT_WORDS << 2];
+    uint8_t hash_actual[BCRYPT_HASH_BYTES];
+    uint8_t hash_expected[BCRYPT_HASH_BYTES];
 
     uint64_t rounds = 2;
 
@@ -370,8 +370,8 @@ void test_get_record_data(char *record, uint8_t *ciphertext_actual,
         do_test(*rounds_actual, *rounds_expected, test_name);
 
         compare_ciphertexts((char *) ciphertext_actual, (char *) ciphertext_expected,
-                            test_name, BCRYPT_WORDS << 2);
-                            
+                            test_name, BCRYPT_HASH_BYTES);
+
         compare_strings((char *) salt_actual, (char *) salt_expected,
                         test_name, BCRYPT_SALT_BYTES);
     }
@@ -391,11 +391,11 @@ int main(int argc, char const *argv[]) {
     uint16_t saltbytes = strlen(salt);
     uint16_t keybytes = strlen(key);
 
-    char data_actual[BCRYPT_WORDS << 2];
-    char data_expected[BCRYPT_WORDS << 2];
+    char data_actual[BCRYPT_HASH_BYTES];
+    char data_expected[BCRYPT_HASH_BYTES];
 
-    char final_data_actual[BCRYPT_WORDS << 2];
-    char final_data_expected[BCRYPT_WORDS << 2];
+    char final_data_actual[BCRYPT_HASH_BYTES];
+    char final_data_expected[BCRYPT_HASH_BYTES];
 
     test_blowfish_init_state_asm(state, state_expected);
     
