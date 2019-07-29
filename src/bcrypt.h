@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 
-#define S_BOX_LENGTH   256
-#define P_ARRAY_LENGTH 18
-#define BCRYPT_WORDS   6
+#define S_BOX_LENGTH      256
+#define P_ARRAY_LENGTH    18
+#define BCRYPT_WORDS      6
+#define BCRYPT_SALT_BYTES 16
 
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
@@ -34,6 +35,12 @@ void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
                          uint8_t *hash, const char *key,
                          uint16_t keybytes, uint64_t rounds);
+
+
+/* Cracker functions */
+
+int get_ciphertext_and_rounds(char *record, uint8_t *ciphertext,
+                              uint8_t *salt, uint64_t *rounds);
 
 
 /* Macro wrappers for testing */
