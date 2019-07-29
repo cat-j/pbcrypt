@@ -39,8 +39,8 @@ void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
 
 /* Cracker functions */
 
-int get_ciphertext_and_rounds(char *record, uint8_t *ciphertext,
-                              uint8_t *salt, uint64_t *rounds);
+int get_record_data(char *record, uint8_t *ciphertext,
+                    uint8_t *salt, uint64_t *rounds);
 
 
 /* Macro wrappers for testing */

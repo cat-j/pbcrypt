@@ -17,8 +17,8 @@
 #define ERR_ROUNDS 3
 #define ERR_BASE64 4
 
-int get_ciphertext_and_rounds(char *record, uint8_t *ciphertext,
-                              uint8_t *salt, uint64_t *rounds)
+int get_record_data(char *record, uint8_t *ciphertext,
+                    uint8_t *salt, uint64_t *rounds)
 {
     uint8_t log_rounds;
 
