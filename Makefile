@@ -13,11 +13,14 @@ TEST_SOURCES=openbsd.c
 OBJS=bcrypt.o
 
 
-.PHONY: all clean
+.PHONY: all clean build
 
 test: $(TEST_DIR)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
 	./build/test
+
+b64encode: b64encode/main.c base64.c
+	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
 
 bcrypt.o: bcrypt.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@

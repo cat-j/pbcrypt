@@ -110,3 +110,12 @@ int encode_base64(char *b64buffer, const uint8_t *data, size_t len) {
     *bp = '\0';
     return 0;
 }
+
+size_t encoded_len(size_t len) {
+    size_t bits = len << 3;
+    if (bits % 6 == 0) {
+        return bits / 6;
+    } else {
+        return bits / 6 + 1;
+    }
+}
