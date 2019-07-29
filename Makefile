@@ -9,9 +9,14 @@ BUILD_DIR=build/
 SRC_DIR=src/
 TEST_DIR=testdir/
 
+SOURCES=$(SRC_DIR)base64.c
+TEST_SOURCES=$(TEST_DIR)openbsd.c
+OBJS=bcrypt.o
+
+
 vpath %.o ./build/
 
-test: $(TEST_DIR)main.c bcrypt.o $(TEST_DIR)openbsd.c $(SRC_DIR)bcrypt.c
+test: $(TEST_DIR)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
 	./build/test
 

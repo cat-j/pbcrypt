@@ -10,7 +10,7 @@
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
     uint32_t S[4][256];    /* S-Boxes */
-    uint32_t P[18];    /* Subkeys */
+    uint32_t P[18];        /* Subkeys */
 } blf_ctx;
 
 
@@ -36,7 +36,7 @@ void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
                          uint16_t keybytes, uint64_t rounds);
 
 
-/* Testing functions */
+/* Macro wrappers for testing */
 
 uint32_t f_asm(uint32_t x, const blf_ctx *state);
 
@@ -46,12 +46,5 @@ uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
 uint64_t reverse_bytes(uint64_t data);
 
 void copy_ctext_asm(uint64_t *data, const char *ctext);
-
-
-/* Utilities */
-
-void b64_encode(char *dst, char *src, uint64_t srcbytes);
-
-void b64_decode(char *dst, char *src, uint64_t srcbytes);
 
 #endif
