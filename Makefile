@@ -9,7 +9,7 @@ BUILD_DIR=build/
 SRC_DIR=src/
 TEST_DIR=testdir/
 
-SOURCES=$(SRC_DIR)base64.c
+SOURCES=$(SRC_DIR)base64.c $(SRC_DIR)bcrypt.c
 TEST_SOURCES=$(TEST_DIR)openbsd.c
 OBJS=bcrypt.o
 

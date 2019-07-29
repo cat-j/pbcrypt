@@ -40,9 +40,7 @@ static const uint8_t index_64[128] = {
 /*
  * read buflen (after decoding) bytes of data from b64data
  */
-static int
-decode_base64(uint8_t *buffer, size_t len, const char *b64data)
-{
+int decode_base64(uint8_t *buffer, size_t len, const char *b64data) {
     uint8_t *bp = buffer;
     const uint8_t *p = b64data;
     uint8_t c1, c2, c3, c4;
@@ -83,9 +81,7 @@ decode_base64(uint8_t *buffer, size_t len, const char *b64data)
  * Turn len bytes of data into base64 encoded data.
  * This works without = padding.
  */
-static int
-encode_base64(char *b64buffer, const uint8_t *data, size_t len)
-{
+int encode_base64(char *b64buffer, const uint8_t *data, size_t len) {
     uint8_t *bp = b64buffer;
     const uint8_t *p = data;
     uint8_t c1, c2;

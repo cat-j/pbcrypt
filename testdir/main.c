@@ -353,6 +353,30 @@ void test_bcrypt_hashpass() {
     free(state_expected);
 }
 
+void test_get_record_data(char *record, uint8_t *ciphertext_actual,
+                          uint8_t *salt_actual, uint64_t *rounds_actual,
+                          uint8_t *ciphertext_expected, uint8_t *salt_expected,
+                          uint64_t *rounds_expected, int err_expected)
+{
+    char test_name[] = "test_get_record_data";
+    test_start(test_name, "%s", record);
+
+    int err_actual = get_record_data(record, ciphertext_actual, salt_actual,
+                                     rounds_actual);
+
+    do_test(err_actual, err_expected, test_name);
+
+    if (err_actual == 0) {
+        do_test(*rounds_actual, *rounds_expected, test_name);
+
+        compare_ciphertexts((char *) ciphertext_actual, (char *) ciphertext_expected,
+                            test_name, BCRYPT_WORDS << 2);
+                            
+        compare_strings((char *) salt_actual, (char *) salt_expected,
+                        test_name, BCRYPT_SALT_BYTES);
+    }
+}
+
 int main(int argc, char const *argv[]) {
     test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
 
