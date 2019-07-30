@@ -378,7 +378,7 @@ void test_get_record_data(char *record, uint8_t *ciphertext_actual,
 }
 
 void test_get_record_data_all() {
-    char record = "$2b$08$Z1/fWkjsYUDNSCDAQS3HOOWU3tZUDqZ0LfakjxOS3NRSDKRyL/SijR";
+    char record[] = "$2b$08$Z1/fWkjsYUDNSCDAQS3HOOWU3tZUDqZ0LfakjxOS3NRSDKRyL/SijR";
     uint8_t *ciphertext_actual = malloc(BCRYPT_HASH_BYTES);
     uint8_t *salt_actual = malloc(BCRYPT_SALT_BYTES);
     uint64_t *rounds_actual;
