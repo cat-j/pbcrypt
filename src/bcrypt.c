@@ -5,17 +5,17 @@
 #include "base64.h"
 #include "bcrypt.h"
 
-#define BCRYPT_MIN_LOG_ROUNDS 4
-#define BCRYPT_MAX_LOG_ROUNDS 32
+#define BCRYPT_MIN_LOG_ROUNDS    4
+#define BCRYPT_MAX_LOG_ROUNDS    32
 #define BCRYPT_ENCODED_SALT_SIZE 22
 #define BCRYPT_ENCODED_HASH_SIZE 31
-#define BCRYPT_RECORD_SIZE 60
+#define BCRYPT_RECORD_SIZE       60
 
-// TODO: design error format
-#define ERR_RECORD_FORMAT 1
-#define ERR_VERSION 2
-#define ERR_ROUNDS 3
-#define ERR_BASE64 4
+#define ERR_RECORD_LEN    0x10010
+#define ERR_RECORD_FORMAT 0x10020
+#define ERR_VERSION       0x10030
+#define ERR_ROUNDS        0x10040
+#define ERR_BASE64        0x10050
 
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds)
@@ -23,7 +23,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
     uint8_t log_rounds;
 
     if (strlen(record) != BCRYPT_RECORD_SIZE)
-        return ERR_RECORD_FORMAT;
+        return ERR_RECORD_LEN;
 
     if (record[0] != '$' || record[3] != '$')
         return ERR_RECORD_FORMAT;
