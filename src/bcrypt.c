@@ -52,7 +52,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
     record += BCRYPT_ENCODED_SALT_SIZE;
 
     // Decode ciphertext
-    if (decode_base64(ciphertext, BCRYPT_WORDS << 2, record))
+    if (decode_base64(ciphertext, 21, record))
         return ERR_BASE64;
 
     return 0;

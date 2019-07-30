@@ -174,7 +174,7 @@ void compare_ciphertexts(const char *actual, const char *expected,
         }
     }
 
-    test_pass("%s successful.\n", test_name);
+    test_pass("Success: ciphertexts in %s are equal.\n", test_name);
 }
 
 void compare_strings(const char *actual, const char *expected,
@@ -370,7 +370,7 @@ void test_get_record_data(char *record, uint8_t *ciphertext_actual,
         do_test(*rounds_actual, rounds_expected, test_name);
 
         compare_ciphertexts((char *) ciphertext_actual, (char *) ciphertext_expected,
-                            test_name, BCRYPT_HASH_BYTES);
+                            test_name, 21);
 
         compare_strings((char *) salt_actual, (char *) salt_expected,
                         test_name, BCRYPT_SALT_BYTES);
@@ -381,16 +381,16 @@ void test_get_record_data_all() {
     char record[] = "$2b$08$Z1/fWkjsYUDNSCDAQS3HOOWU3tZUDqZ0LfakjxOS3NRSDKRyL/Sij";
     uint8_t *ciphertext_actual = malloc(BCRYPT_HASH_BYTES);
     uint8_t *salt_actual = malloc(BCRYPT_SALT_BYTES);
-    uint64_t *rounds_actual;
+    uint64_t rounds_actual;
 
     char ciphertext_expected[] = "anomalocarisANOMALOCARIS";
     char salt_expected[] = "opabiniaOPABINIA";
     printf("%s\n", &ciphertext_expected);
     printf("%s\n", &record);
-    uint64_t rounds_expected = 8;
+    uint64_t rounds_expected = 1U << 8;
     int err_expected = 0;
 
-    test_get_record_data(&record, ciphertext_actual, salt_actual, rounds_actual,
+    test_get_record_data(&record, ciphertext_actual, salt_actual, &rounds_actual,
                          &ciphertext_expected, &salt_expected, rounds_expected,
                          err_expected);
 }
