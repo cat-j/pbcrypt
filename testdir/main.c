@@ -356,10 +356,10 @@ void test_bcrypt_hashpass() {
 void test_get_record_data(char *record, uint8_t *ciphertext_actual,
                           uint8_t *salt_actual, uint64_t *rounds_actual,
                           uint8_t *ciphertext_expected, uint8_t *salt_expected,
-                          uint64_t *rounds_expected, int err_expected)
+                          uint64_t rounds_expected, int err_expected)
 {
     char test_name[] = "test_get_record_data";
-    test_start(test_name, "%s", record);
+    test_start(test_name, "record: %s", record);
 
     int err_actual = get_record_data(record, ciphertext_actual, salt_actual,
                                      rounds_actual);
@@ -367,7 +367,7 @@ void test_get_record_data(char *record, uint8_t *ciphertext_actual,
     do_test(err_actual, err_expected, test_name);
 
     if (err_actual == 0) {
-        do_test(*rounds_actual, *rounds_expected, test_name);
+        do_test(*rounds_actual, rounds_expected, test_name);
 
         compare_ciphertexts((char *) ciphertext_actual, (char *) ciphertext_expected,
                             test_name, BCRYPT_HASH_BYTES);
@@ -375,6 +375,24 @@ void test_get_record_data(char *record, uint8_t *ciphertext_actual,
         compare_strings((char *) salt_actual, (char *) salt_expected,
                         test_name, BCRYPT_SALT_BYTES);
     }
+}
+
+void test_get_record_data_all() {
+    char record = "$2b$08$Z1/fWkjsYUDNSCDAQS3HOOWU3tZUDqZ0LfakjxOS3NRSDKRyL/SijR";
+    uint8_t *ciphertext_actual = malloc(BCRYPT_HASH_BYTES);
+    uint8_t *salt_actual = malloc(BCRYPT_SALT_BYTES);
+    uint64_t *rounds_actual;
+
+    char ciphertext_expected[] = "anomalocarisANOMALOCARIS";
+    char salt_expected[] = "opabiniaOPABINIA";
+    printf("%s\n", &ciphertext_expected);
+    printf("%s\n", &record);
+    uint64_t rounds_expected = 8;
+    int err_expected = 0;
+
+    test_get_record_data(&record, ciphertext_actual, salt_actual, rounds_actual,
+                         &ciphertext_expected, &salt_expected, rounds_expected,
+                         err_expected);
 }
 
 int main(int argc, char const *argv[]) {
@@ -420,6 +438,8 @@ int main(int argc, char const *argv[]) {
     test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
     test_bcrypt_hashpass();
+
+    test_get_record_data_all();
     
     free(state);
     free(state_expected);

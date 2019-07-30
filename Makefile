@@ -29,7 +29,7 @@ blowfish.o: blowfish.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:
-	mkdir build
+	if [ ! -d "./build" ]; then mkdir build; fi
 
 clean:
 	rm -f *.o
