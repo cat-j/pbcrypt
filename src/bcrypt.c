@@ -17,6 +17,10 @@
 #define ERR_ROUNDS        0x10040
 #define ERR_BASE64        0x10050
 
+int is_valid_version(char c) {
+    return c == 'a' || c == 'b' || c == 'x' || c == 'y';
+}
+
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds)
 {
@@ -29,8 +33,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
         return ERR_RECORD_FORMAT;
     record++;
 
-    // This cracker is only for version $2b$ password records
-    if (record[0] != '2' || record[1] != 'b')
+    if (record[0] != '2' || !is_valid_version(record[1]))
         return ERR_VERSION;
     record += 3;
 
