@@ -1,3 +1,6 @@
+#ifndef _BCRYPT_CONSTANTS_H_
+#define _BCRYPT_CONSTANTS_H_
+
 #include "bcrypt.h"
 
 const blf_ctx initstate_asm =
@@ -272,3 +275,5 @@ const blf_ctx initstate_asm =
     } };
 
 const char initial_ctext[] = "OrpheanBeholderScryDoubt";
+
+#endif
