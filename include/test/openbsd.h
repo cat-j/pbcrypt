@@ -2,7 +2,7 @@
 #define _OPENBSD_H_
 
 #include <stdint.h>
-#include "../src/bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
+#include "bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
 
 #define BCRYPT_MAXSALT 16     /* Precomputation is just so nice */
 

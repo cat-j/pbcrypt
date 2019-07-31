@@ -6,10 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
+#include "bcrypt_constants.h"
 #include "openbsd.h"
 #include "test.h"
-#include "../src/bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
-#include "../src/bcrypt_constants.h"
 
 void do_test(uint64_t actual, uint64_t expected, const char *test_name) {
     if (actual == expected) {

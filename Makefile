@@ -1,29 +1,37 @@
 .POSIX:
+
+# Directory names
+BUILD=build/
+CORE=core/
+INCLUDE=include/
+TEST=test/
+UTILS=utils/
+
+# Command line
 CC=gcc
-CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
+CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
+INC_DIRS=$(CORE) $(TEST) $(UTILS)
+INC_PARAMS=$(foreach d, $(INC_DIRS), -I$(INCLUDE)$d)
 NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
 
-BUILD_DIR=build/
-SRC_DIR=src/
-TEST_DIR=testdir/
 
-SOURCES=base64.c bcrypt.c
-TEST_SOURCES=openbsd.c
+SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c
+TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
 
 
-.PHONY: all clean build
+.PHONY: all clean build test
 
-test: $(TEST_DIR)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
+test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
-b64encode: b64encode/main.c base64.c
-	$(CC) $(CFLAGS) $^ -o $(BUILD_DIR)$@
+b64encode: $(UTILS)main.c $(UTILS)base64.c
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-bcrypt.o: bcrypt.asm build
+bcrypt.o: $(CORE)bcrypt.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:

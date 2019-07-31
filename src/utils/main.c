@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../src/base64.h"
+#include "base64.h"
 
 int main(int argc, char const *argv[]) {
     // size_t len = encoded_len(strlen(argv[1]));
