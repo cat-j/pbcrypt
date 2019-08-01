@@ -5,12 +5,6 @@
 #include "base64.h"
 #include "bcrypt.h"
 
-#define BCRYPT_MIN_LOG_ROUNDS    4
-#define BCRYPT_MAX_LOG_ROUNDS    32
-#define BCRYPT_ENCODED_SALT_SIZE 22
-#define BCRYPT_ENCODED_HASH_SIZE 31
-#define BCRYPT_RECORD_SIZE       60
-
 #define ERR_RECORD_LEN    0x10010
 #define ERR_RECORD_FORMAT 0x10020
 #define ERR_VERSION       0x10030
