@@ -24,6 +24,11 @@ OBJS=bcrypt.o
 
 .PHONY: all clean build test
 
+all: clean cracker
+
+cracker: $(CORE)main.c $(SOURCES) $(OBJS)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
 test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
