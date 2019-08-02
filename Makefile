@@ -22,11 +22,14 @@ TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
 
 
-.PHONY: all clean build test
+.PHONY: all build test
 
-all: clean cracker
+all: clean cracker encrypt
 
-cracker: $(CORE)main.c $(SOURCES) $(OBJS)
+cracker: $(CORE)cracker.c $(SOURCES) $(OBJS)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
