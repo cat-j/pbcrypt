@@ -23,9 +23,6 @@ int main(int argc, char const *argv[]) {
     size_t n_passwords;
     char *end;
 
-    strncpy(record, argv[1], BCRYPT_RECORD_SIZE);
-    strncpy(filename, argv[2], strlen(argv[2]));
-
     switch(argc) {
         case(3):
             n_passwords = DEFAULT_N_PASSWORDS;
@@ -39,6 +36,9 @@ int main(int argc, char const *argv[]) {
             return ERR_ARGS;
             break;
     }
+
+    strncpy(record, argv[1], BCRYPT_RECORD_SIZE);
+    strncpy(filename, argv[2], strlen(argv[2]));
 
     
     // Process record parameters
