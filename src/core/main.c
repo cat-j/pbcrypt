@@ -44,7 +44,7 @@ int main(int argc, char const *argv[]) {
     
     // Process record parameters
     char record_ciphertext[BCRYPT_HASH_BYTES-3];
-    char salt[BCRYPT_SALT_BYTES];
+    char salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
 
     int status = get_record_data(&record, &record_ciphertext, &salt, &rounds);
@@ -54,6 +54,10 @@ int main(int argc, char const *argv[]) {
                 status);
         return status;
     }
+
+    salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
+    printf("Salt: %s\n", &salt);
+    printf("Rounds: %ld\n", rounds);
 
 
     // Read info from wordlist file
@@ -82,7 +86,9 @@ int main(int argc, char const *argv[]) {
 
     
     // Crack passwords
-    char ciphertext = malloc(pass_length+1);
+    char *ciphertext = malloc(pass_length+1);
+    blf_ctx *state = get_aligned_state();
+    char *current_pass;
 
     while (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0) {
         for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
@@ -90,7 +96,10 @@ int main(int argc, char const *argv[]) {
         }
 
         for (size_t j = 0; j < n_passwords; ++j) {
-            // bcrypt_hashpass_asm()
+            current_pass = &current_batch[j*pass_length + 1];
+            blowfish_init_state_asm(state);
+            bcrypt_hashpass_asm(state, salt, ciphertext, current_pass,
+                                pass_length+1, rounds);
             // compare result to decoded hash
             // return password if it matches
         }
@@ -98,6 +107,7 @@ int main(int argc, char const *argv[]) {
 
 
     // Finish
+    free(state);
     fclose(wl_stream);
     free(current_batch);
     

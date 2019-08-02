@@ -43,11 +43,16 @@ void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
                          uint8_t *hash, const char *key,
                          uint16_t keybytes, uint64_t rounds);
 
+int bcrypt(const char *salt, uint8_t *hash, const char *key,
+           uint16_t keybytes, uint64_t rounds);
+
 
 /* Cracker functions */
 
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
+
+blf_ctx *get_aligned_state();
 
 
 /* Macro wrappers for testing */
