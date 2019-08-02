@@ -5,8 +5,6 @@
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
 
-#define _GNU_SOURCE
-
 #define DEFAULT_N_PASSWORDS 1024
 
 #define ERR_ARGS      0x20010
@@ -36,7 +34,8 @@ int main(int argc, char const *argv[]) {
             n_passwords = strtoul(argv[3], &end, 10);
             break;
         default:
-            fprintf(stderr, "Usage: cracker <RECORD> <PATH_TO_WORDLIST> <N_PASSWORDS>\n");
+            fprintf(stderr,
+                "Usage: cracker <RECORD> <PATH_TO_WORDLIST> <N_PASSWORDS>\n");
             return ERR_ARGS;
             break;
     }
@@ -85,28 +84,51 @@ int main(int argc, char const *argv[]) {
     current_batch = malloc(batch_size);
 
     
-    // Crack passwords
+    // Crack password
     char *ciphertext = malloc(pass_length+1);
     blf_ctx *state = get_aligned_state();
-    char *current_pass;
+    char *current_pass, *matching_pass;
+    int found = 0;
+    int match;
 
-    while (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0) {
+    // Read several passwords into buffer and hash them
+    while (!found &&
+           (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
+    {
+        // Null-terminate each password
         for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
-            current_batch[i] = 0; // null-terminate each password
+            current_batch[i] = 0;
         }
 
+        // Hash passwords currently in the buffer to see if any of them matches
         for (size_t j = 0; j < n_passwords; ++j) {
             current_pass = &current_batch[j*pass_length + 1];
+
             blowfish_init_state_asm(state);
             bcrypt_hashpass_asm(state, salt, ciphertext, current_pass,
                                 pass_length+1, rounds);
-            // compare result to decoded hash
-            // return password if it matches
+            
+            if (hash_match(ciphertext, record_ciphertext)) {
+                // Cracked the password!
+                found = 1;
+                matching_pass = malloc(pass_length+1);
+                strncpy(matching_pass, current_pass, pass_length);
+                break;
+            }
         }
+    }
+
+    if (!found) {
+        printf("No matches found in %s.\n", filename);
+    } else {
+        printf("Found plaintext password %s with matching hash.\n",
+               matching_pass);
+        free(matching_pass);
     }
 
 
     // Finish
+    free(ciphertext);
     free(state);
     fclose(wl_stream);
     free(current_batch);
