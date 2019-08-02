@@ -49,5 +49,4 @@ clean:
 
 vpath %.o build
 vpath %.c src
-vpath %.c testdir
 vpath %.asm src
