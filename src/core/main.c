@@ -59,6 +59,7 @@ int main(int argc, char const *argv[]) {
     // Read info from wordlist file
     size_t pass_length, batch_size, bytes_read;
     char *current_batch;
+    char flush_newline;
     FILE *wl_stream = fopen(filename, "rb");
 
     if (!wl_stream) {
@@ -67,6 +68,7 @@ int main(int argc, char const *argv[]) {
     }
 
     status = fscanf(wl_stream, "%ld", &pass_length);
+    fread(&flush_newline, 1, 1, wl_stream);
 
     if (status < 1) {
         fprintf(stderr, "Error: unable to process password length.\n");
@@ -80,13 +82,24 @@ int main(int argc, char const *argv[]) {
 
     
     // Crack passwords
+    char ciphertext = malloc(pass_length+1);
+
     while (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0) {
-        // printf("Read %ld bytes.\n", bytes_read);
-        printf("%s\n", current_batch);
-        for (size_t i = 1; i < n_passwords+1; ++i) {
-            printf("0x%0x\n", current_batch[i*pass_length]);
+        for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
+            current_batch[i] = 0; // null-terminate each password
+        }
+
+        for (size_t j = 0; j < n_passwords; ++j) {
+            // bcrypt_hashpass_asm()
+            // compare result to decoded hash
+            // return password if it matches
         }
     }
+
+
+    // Finish
+    fclose(wl_stream);
+    free(current_batch);
     
     
     return 0;
