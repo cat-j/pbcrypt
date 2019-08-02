@@ -5,10 +5,19 @@
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
 
+#define _GNU_SOURCE
+
 #define DEFAULT_N_PASSWORDS 1024
 
-#define ERR_ARGS 0x20010
+#define ERR_ARGS      0x20010
+#define ERR_OPEN_FILE 0x20020
+#define ERR_FILE_DATA 0x20030
 
+/*
+ * Main password cracker function.
+ * Wordlist passwords must be the same length and newline-separated,
+ * and the first line of the file should be the password length.
+ */
 int main(int argc, char const *argv[]) {
     // Process arguments
     char record[BCRYPT_RECORD_SIZE+1];
@@ -47,8 +56,37 @@ int main(int argc, char const *argv[]) {
     }
 
 
-    // Read wordlist file
-    FILE *wl_stream;
+    // Read info from wordlist file
+    size_t pass_length, batch_size, bytes_read;
+    char *current_batch;
+    FILE *wl_stream = fopen(filename, "rb");
+
+    if (!wl_stream) {
+        fprintf(stderr, "Error: unable to open file %s.\n", filename);
+        return ERR_OPEN_FILE;
+    }
+
+    status = fscanf(wl_stream, "%ld", &pass_length);
+
+    if (status < 1) {
+        fprintf(stderr, "Error: unable to process password length.\n");
+        return ERR_FILE_DATA;
+    }
+
+    printf("Password length: %ld\n", pass_length);
+
+    batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
+    current_batch = malloc(batch_size);
+
+    
+    // Crack passwords
+    while (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0) {
+        // printf("Read %ld bytes.\n", bytes_read);
+        printf("%s\n", current_batch);
+        for (size_t i = 1; i < n_passwords+1; ++i) {
+            printf("0x%0x\n", current_batch[i*pass_length]);
+        }
+    }
     
     
     return 0;
