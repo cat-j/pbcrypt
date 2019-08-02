@@ -7,3 +7,4 @@ des.asm
 blowfish/
 KeccakTools/
 build/
+test_wordlist
