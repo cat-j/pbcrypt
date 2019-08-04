@@ -442,15 +442,13 @@ blowfish_init_state_asm:
 
 ; TODO: remove saltbytes
 ; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
-;                                uint16_t saltbytes,
 ;                                const char *key, uint16_t keybytes)
 
 blowfish_expand_state_asm:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
-    ; rdx:   salt length in bytes
-    ; rcx -> 4 to 56 byte key
-    ; r8:    key length in bytes
+    ; rdx -> 4 to 56 byte key
+    ; rcx:    key length in bytes
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -469,8 +467,8 @@ blowfish_expand_state_asm:
         %define key_data     r9
         %define key_data_low r9b
         %define key_data_ctr r10
-        %define key_ptr      rcx
-        %define key_len      r8
+        %define key_ptr      rdx
+        %define key_len      rcx
         %define loop_ctr     r12
         %define data         r13
 
