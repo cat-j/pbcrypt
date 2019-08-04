@@ -736,15 +736,15 @@ blowfish_encrypt_asm:
         ret
 
 ; void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
-;                          uint8_t *hash, const char *key,
-;                          uint16_t keybytes, uint64_t rounds)
+;                          const char *key, uint16_t keybytes,
+;                          uint8_t *hash, uint64_t rounds)
 
 bcrypt_hashpass_asm:
     ; rdi -> state
     ; rsi -> 128-bit salt
-    ; rdx -> hash (modified)
-    ; rcx -> key
-    ; r8:    key length in bytes
+    ; rdx -> key
+    ; rcx:   key length in bytes
+    ; r8 ->  hash (modified)
     ; r9:    rounds
     .build_frame:
         push rbp
@@ -764,9 +764,9 @@ bcrypt_hashpass_asm:
         ; r14:   key length in bytes
         ; r15:   rounds
         mov rbx, rsi
-        mov r12, rdx
-        mov r13, rcx
-        mov r14, r8
+        mov r12, r8
+        mov r13, rdx
+        mov r14, rcx
         mov r15, r9
 
         call blowfish_init_state_asm

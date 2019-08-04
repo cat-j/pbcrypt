@@ -39,8 +39,8 @@ void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
 void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
-                         uint8_t *hash, const char *key,
-                         uint16_t keybytes, uint64_t rounds);
+                         const char *key, uint16_t keybytes,
+                         uint8_t *hash, uint64_t rounds);
 
 int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds);

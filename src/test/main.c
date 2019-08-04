@@ -320,10 +320,10 @@ void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
                               const char *key, uint64_t keybytes,
                               const char *salt, uint64_t rounds)
 {
-    char test_name[] = "test_bcrypt_core";
+    char test_name[] = "test_bcrypt_hashpass_asm";
     test_start(test_name, "salt: %s, key: %s, rounds: %ld", salt, key, rounds);
 
-    bcrypt_hashpass_asm(state_actual, salt, hash_actual, key, keybytes, rounds);
+    bcrypt_hashpass_asm(state_actual, salt, key, keybytes, hash_actual, rounds);
     bcrypt_hashpass(state_expected, key, salt, rounds, hash_expected);
 
     compare_states(state_actual, state_expected, test_name);
@@ -344,7 +344,7 @@ void test_bcrypt_hashpass() {
     uint8_t hash_actual[BCRYPT_HASH_BYTES];
     uint8_t hash_expected[BCRYPT_HASH_BYTES];
 
-    uint64_t rounds = 2;
+    uint64_t rounds = 8;
 
     test_bcrypt_hashpass_asm(state_actual, state_expected,
                              hash_actual, hash_expected,
