@@ -4,6 +4,7 @@
 
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
+#include "print.h"
 
 #define DEFAULT_N_PASSWORDS 1024
 
@@ -58,7 +59,8 @@ int main(int argc, char const *argv[]) {
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
     printf("Salt: %s\n", (char *) &salt);
     printf("Rounds: %ld\n", rounds);
-    printf("Ciphertext to crack: %s\n", (char *) &record_ciphertext);
+    printf("Ciphertext to crack: ");
+    print_hex((uint8_t *) &record_ciphertext, BCRYPT_HASH_BYTES-3);
 
 
     // Read info from wordlist file
@@ -103,11 +105,10 @@ int main(int argc, char const *argv[]) {
 
         // Hash passwords currently in the buffer to see if any of them matches
         for (size_t j = 0; j < n_passwords; ++j) {
-            current_pass = &current_batch[j*pass_length + 1];
+            current_pass = &current_batch[j*(pass_length+1)];
 
             blowfish_init_state_asm(state);
             bcrypt_hashpass_asm(state, salt, current_pass, pass_length, hash, rounds);
-            printf("%s\n", (char *) hash);
             
             if (hash_match(hash, record_ciphertext)) {
                 // Cracked the password!
@@ -122,7 +123,7 @@ int main(int argc, char const *argv[]) {
     if (!found) {
         printf("No matches found in %s.\n", filename);
     } else {
-        printf("Found plaintext password %s with matching hash.\n",
+        printf("Found plaintext password \033[1;35m%s\033[0m with matching hash.\n",
                matching_pass);
         free(matching_pass);
     }
