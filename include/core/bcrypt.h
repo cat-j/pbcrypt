@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+/* ========== Constants ========== */
+
 #define BCRYPT_MIN_LOG_ROUNDS    4
 #define BCRYPT_MAX_LOG_ROUNDS    32
 #define BCRYPT_ENCODED_SALT_SIZE 22
@@ -22,35 +24,77 @@ typedef struct BlowfishContext {
 } blf_ctx;
 
 
-/* bcrypt functions */
+/* ========== bcrypt functions ========== */
 
+/* For key schedule.
+ * Initialise state to hexadecimal digits of pi.
+ */
 void blowfish_init_state_asm(blf_ctx *state);
 
+/* For key schedule.
+ * Encrypt state boxes and P-array with key and salt.
+ */
 void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
                                const char *key, uint16_t keybytes);
 
+/* For key schedule.
+ * Encrypt state boxes and P-array with key and 0s.
+ */
 void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
                                  uint64_t keybytes);
 
+/* For key schedule.
+ * Encrypt state boxes and P-array with salt and 0s.
+ * Optimised for working with 128-bit data,
+ * i.e. each half is loaded once into a 64-bit register
+ * and no further memory accesses are needed for salt data.
+ */
 void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt);
 
+/*
+ * Encrypt data with P-array values.
+ * This is not actually used inside other ASM bcrypt/blowfish functions;
+ * instead, they call an optimised function in which data is already
+ * stored in a register. It's not exported, as it doesn't follow cdecl.
+ */
 void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
+/*
+ * Encrypt data by enciphering each of its 64-bit blocks.
+ * Calls an optimised, non-exported, non-C-compliant variant
+ * of blowfish_encipher_asm.
+ */
 void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
+/*
+ * Hash password (key) and store result in hash.
+ * Variable rounds corresponds to actual number of rounds,
+ * not log.
+ */
 void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
                          const char *key, uint16_t keybytes,
                          uint8_t *hash, uint64_t rounds);
 
+/*
+ * Wrapper for bcrypt_hashpass_asm that also initialises state.
+ */
 int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds);
 
+/*
+ *
+ */
 char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
              uint64_t rounds);
 
 
-/* Cracker functions */
+/* ========== Cracker functions ========== */
 
+/*
+ * Parse a bcrypt password record as it would be stored
+ * in a shadow password file, e.g.
+ * "$2b$08$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV".
+ */
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
 
@@ -59,7 +103,7 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2);
 blf_ctx *get_aligned_state();
 
 
-/* Macro wrappers for testing */
+/* ========== Macro wrappers for testing ========== */
 
 uint32_t f_asm(uint32_t x, const blf_ctx *state);
 
