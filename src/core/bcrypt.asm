@@ -440,7 +440,6 @@ blowfish_init_state_asm:
         pop rbp
         ret
 
-; TODO: remove saltbytes
 ; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 ;                                const char *key, uint16_t keybytes)
 
