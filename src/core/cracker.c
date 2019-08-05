@@ -19,9 +19,12 @@
  * Main password cracker function.
  * Wordlist passwords must be the same length and newline-separated,
  * and the first line of the file should be the password length.
+ * If MEASURE_TIME is set, it will also measure the total
+ * execution time until a matching password is found.
  */
 int main(int argc, char const *argv[]) {
-    // Process arguments
+    /////// Process arguments ///////
+
     char record[BCRYPT_RECORD_SIZE+1];
     char filename[256];
     size_t n_passwords;
@@ -45,7 +48,8 @@ int main(int argc, char const *argv[]) {
     strncpy(filename, argv[2], strlen(argv[2]));
 
     
-    // Process record parameters
+    /////// Process record parameters ///////
+    
     uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
     char salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
@@ -69,7 +73,7 @@ int main(int argc, char const *argv[]) {
     // Read info from wordlist file
     size_t pass_length, batch_size, bytes_read;
     char *current_batch;
-    char flush_newline;
+    char flush_newline; // skip first newline for cleaner loops
     FILE *wl_stream = fopen(filename, "rb");
 
     if (!wl_stream) {
@@ -91,8 +95,9 @@ int main(int argc, char const *argv[]) {
     current_batch = malloc(batch_size);
 
     
-    // Crack password
-    uint8_t *hash = malloc(BCRYPT_HASH_BYTES+1);
+    /////// Crack password ///////
+
+    uint8_t hash[BCRYPT_HASH_BYTES+1];
     blf_ctx *state = get_aligned_state();
     char *current_pass, *matching_pass;
     int found = 0;
@@ -120,7 +125,8 @@ int main(int argc, char const *argv[]) {
             #endif
 
             blowfish_init_state_asm(state);
-            bcrypt_hashpass_asm(state, salt, current_pass, pass_length, hash, rounds);
+            bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
+                (uint8_t *) &hash, rounds);
             
             #ifdef MEASURE_TIME
                 end_time = clock();
@@ -151,11 +157,11 @@ int main(int argc, char const *argv[]) {
     #endif
 
 
-    // Finish
-    free(hash);
+    /////// Finish ///////
+
     free(state);
-    fclose(wl_stream);
     free(current_batch);
+    fclose(wl_stream);
     
     
     return 0;
