@@ -42,7 +42,7 @@ static const uint8_t index_64[128] = {
  */
 int decode_base64(uint8_t *buffer, size_t len, const char *b64data) {
     uint8_t *bp = buffer;
-    const uint8_t *p = b64data;
+    const uint8_t *p = (uint8_t *) b64data;
     uint8_t c1, c2, c3, c4;
 
     while (bp < buffer + len) {
@@ -82,7 +82,7 @@ int decode_base64(uint8_t *buffer, size_t len, const char *b64data) {
  * This works without = padding.
  */
 int encode_base64(char *b64buffer, const uint8_t *data, size_t len) {
-    uint8_t *bp = b64buffer;
+    uint8_t *bp = (uint8_t *) b64buffer;
     const uint8_t *p = data;
     uint8_t c1, c2;
 

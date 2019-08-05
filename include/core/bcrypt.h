@@ -54,7 +54,7 @@ char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
 
-int hash_match(const char *hash1, const char *hash2);
+int hash_match(const uint8_t *hash1, const uint8_t *hash2);
 
 blf_ctx *get_aligned_state();
 

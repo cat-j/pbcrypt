@@ -42,11 +42,12 @@ int main(int argc, char const *argv[]) {
 
     
     // Process record parameters
-    char record_ciphertext[BCRYPT_HASH_BYTES-3];
+    uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
     char salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
 
-    int status = get_record_data(&record, &record_ciphertext, &salt, &rounds);
+    int status = get_record_data((char *) &record, (uint8_t *) &record_ciphertext,
+        (uint8_t *) &salt, &rounds);
     if (status) {
         // Error processing record
         fprintf(stderr, "Error: get_record_data returned status %x.\n",
@@ -55,8 +56,9 @@ int main(int argc, char const *argv[]) {
     }
 
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
-    printf("Salt: %s\n", &salt);
+    printf("Salt: %s\n", (char *) &salt);
     printf("Rounds: %ld\n", rounds);
+    printf("Ciphertext to crack: %s\n", (char *) &record_ciphertext);
 
 
     // Read info from wordlist file
@@ -70,7 +72,7 @@ int main(int argc, char const *argv[]) {
         return ERR_OPEN_FILE;
     }
 
-    status = fscanf(wl_stream, "%ld", &pass_length);
+    status = fscanf(wl_stream, "%lu", &pass_length);
     fread(&flush_newline, 1, 1, wl_stream);
 
     if (status < 1) {
@@ -85,11 +87,10 @@ int main(int argc, char const *argv[]) {
 
     
     // Crack password
-    char *ciphertext = malloc(pass_length+1);
+    uint8_t *hash = malloc(BCRYPT_HASH_BYTES+1);
     blf_ctx *state = get_aligned_state();
     char *current_pass, *matching_pass;
     int found = 0;
-    int match;
 
     // Read several passwords into buffer and hash them
     while (!found &&
@@ -105,10 +106,10 @@ int main(int argc, char const *argv[]) {
             current_pass = &current_batch[j*pass_length + 1];
 
             blowfish_init_state_asm(state);
-            bcrypt_hashpass_asm(state, salt, ciphertext, current_pass,
-                                pass_length+1, rounds);
+            bcrypt_hashpass_asm(state, salt, current_pass, pass_length, hash, rounds);
+            printf("%s\n", (char *) hash);
             
-            if (hash_match(ciphertext, record_ciphertext)) {
+            if (hash_match(hash, record_ciphertext)) {
                 // Cracked the password!
                 found = 1;
                 matching_pass = malloc(pass_length+1);
@@ -128,7 +129,7 @@ int main(int argc, char const *argv[]) {
 
 
     // Finish
-    free(ciphertext);
+    free(hash);
     free(state);
     fclose(wl_stream);
     free(current_batch);
