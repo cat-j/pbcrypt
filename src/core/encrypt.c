@@ -17,19 +17,21 @@ int main(int argc, char const *argv[]) {
     uint8_t log_rounds;
     size_t length = strlen(argv[1]);
 
-    strncpy(&password, argv[1], length);
+    strncpy((char *) &password, argv[1], length);
     password[length] = 0;
 
-    strncpy(&salt, argv[2], BCRYPT_SALT_BYTES);
+    strncpy((char *) &salt, argv[2], BCRYPT_SALT_BYTES);
     salt[BCRYPT_SALT_BYTES] = 0;
     
     log_rounds = atoi(argv[3]);
     rounds = 1U << log_rounds;
 
-    printf("%s\n", password);
-    printf("%d\n", rounds);
+    printf("Password: %s\n", password);
+    printf("Rounds: %lu\n", rounds);
+    printf("Length: %lu\n", length);
 
-    char *encrypted = bcrypt(&salt, &password, length, rounds);
+    char *encrypted = bcrypt((char *) &salt, (char *) &password,
+        length, rounds);
     if (encrypted) {
         printf("%s\n", encrypted);
         free(encrypted);
