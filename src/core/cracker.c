@@ -1,12 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
 #include "print.h"
 
 #define DEFAULT_N_PASSWORDS 1024
+
+#define MEASURE_TIME 1 // TODO: make this an environment variable
 
 #define ERR_ARGS      0x20010
 #define ERR_OPEN_FILE 0x20020
@@ -59,7 +62,7 @@ int main(int argc, char const *argv[]) {
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
     printf("Salt: %s\n", (char *) &salt);
     printf("Rounds: %ld\n", rounds);
-    printf("Ciphertext to crack: ");
+    printf("Hash to crack: ");
     print_hex((uint8_t *) &record_ciphertext, BCRYPT_HASH_BYTES-3);
 
 
@@ -93,6 +96,11 @@ int main(int argc, char const *argv[]) {
     blf_ctx *state = get_aligned_state();
     char *current_pass, *matching_pass;
     int found = 0;
+    
+    #ifdef MEASURE_TIME
+        uint64_t total_time = 0;
+        uint64_t start_time, end_time;
+    #endif
 
     // Read several passwords into buffer and hash them
     while (!found &&
@@ -107,9 +115,18 @@ int main(int argc, char const *argv[]) {
         for (size_t j = 0; j < n_passwords; ++j) {
             current_pass = &current_batch[j*(pass_length+1)];
 
+            #ifdef MEASURE_TIME
+                start_time = clock();
+            #endif
+
             blowfish_init_state_asm(state);
             bcrypt_hashpass_asm(state, salt, current_pass, pass_length, hash, rounds);
             
+            #ifdef MEASURE_TIME
+                end_time = clock();
+                total_time += end_time - start_time;
+            #endif
+
             if (hash_match(hash, record_ciphertext)) {
                 // Cracked the password!
                 found = 1;
@@ -127,6 +144,11 @@ int main(int argc, char const *argv[]) {
                matching_pass);
         free(matching_pass);
     }
+
+    #ifdef MEASURE_TIME
+        double seconds = (double) total_time / CLOCKS_PER_SEC;
+        printf("Time elapsed: %f seconds.\n", seconds);
+    #endif
 
 
     // Finish
