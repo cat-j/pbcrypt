@@ -20,6 +20,7 @@ NASMFLAGS=-f elf64 -g -F DWARF
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
 TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
+OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
 
 
 .PHONY: all build test
@@ -29,6 +30,9 @@ all: clean cracker encrypt
 cracker: $(CORE)cracker.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
+cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(OBJS_NO_UNROLLING)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
@@ -36,10 +40,17 @@ test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
+test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-no-unrolling
+
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 bcrypt.o: $(CORE)bcrypt.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-no-unrolling.o: $(CORE)bcrypt-no-unrolling.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:
