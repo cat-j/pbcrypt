@@ -15,6 +15,8 @@
 #define ERR_OPEN_FILE 0x20020
 #define ERR_FILE_DATA 0x20030
 
+// ./build/cracker-no-unrolling \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./test_wordlist
+
 /*
  * Main password cracker function.
  * Wordlist passwords must be the same length and newline-separated,
@@ -103,8 +105,10 @@ int main(int argc, char const *argv[]) {
     int found = 0;
     
     #ifdef MEASURE_TIME
-        uint64_t total_time = 0;
+        uint64_t total_time_hashing = 0;
         uint64_t start_time, end_time;
+        uint64_t total_start_time, total_end_time;
+        total_start_time = clock();
     #endif
 
     // Read several passwords into buffer and hash them
@@ -130,7 +134,7 @@ int main(int argc, char const *argv[]) {
             
             #ifdef MEASURE_TIME
                 end_time = clock();
-                total_time += end_time - start_time;
+                total_time_hashing += end_time - start_time;
             #endif
 
             if (hash_match(hash, record_ciphertext)) {
@@ -143,6 +147,10 @@ int main(int argc, char const *argv[]) {
         }
     }
 
+    #ifdef MEASURE_TIME
+        total_end_time = clock();
+    #endif
+
     if (!found) {
         printf("No matches found in %s.\n", filename);
     } else {
@@ -152,8 +160,12 @@ int main(int argc, char const *argv[]) {
     }
 
     #ifdef MEASURE_TIME
-        double seconds = (double) total_time / CLOCKS_PER_SEC;
-        printf("Time elapsed: %f seconds.\n", seconds);
+        double seconds = (double) total_time_hashing / CLOCKS_PER_SEC;
+        printf("Time spent hashing: %f seconds.\n", seconds);
+
+        double total_seconds =
+            (double) (total_end_time - total_start_time) / CLOCKS_PER_SEC;
+        printf("Total time elapsed: %f seconds.\n", total_seconds);
     #endif
 
 
