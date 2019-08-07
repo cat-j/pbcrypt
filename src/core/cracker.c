@@ -15,7 +15,8 @@
 #define ERR_OPEN_FILE 0x20020
 #define ERR_FILE_DATA 0x20030
 
-// ./build/cracker-no-unrolling \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./test_wordlist
+// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./test_wordlist
+// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./test_wordlist
 
 /*
  * Main password cracker function.
@@ -47,7 +48,10 @@ int main(int argc, char const *argv[]) {
     }
 
     strncpy(record, argv[1], BCRYPT_RECORD_SIZE);
+    record[BCRYPT_RECORD_SIZE] = 0;
+    
     strncpy(filename, argv[2], strlen(argv[2]));
+    filename[strlen(argv[2])] = 0;
 
     
     /////// Process record parameters ///////
@@ -76,9 +80,10 @@ int main(int argc, char const *argv[]) {
     size_t pass_length, batch_size, bytes_read;
     char *current_batch;
     char flush_newline; // skip first newline for cleaner loops
-    FILE *wl_stream = fopen(filename, "rb");
+    FILE *wl_stream = fopen(filename, "r");
 
     if (!wl_stream) {
+        // perror("fopen");
         fprintf(stderr, "Error: unable to open file %s.\n", filename);
         return ERR_OPEN_FILE;
     }
