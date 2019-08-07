@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
@@ -15,15 +16,17 @@
 #define ERR_OPEN_FILE 0x20020
 #define ERR_FILE_DATA 0x20030
 
-// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./test_wordlist
-// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./test_wordlist
+// Usage examples:
+// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
+// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
 
 /*
  * Main password cracker function.
- * Wordlist passwords must be the same length and newline-separated,
- * and the first line of the file should be the password length.
- * If MEASURE_TIME is set, it will also measure the total
- * execution time until a matching password is found.
+ * Wordlist passwords must be the same length (in bytes)
+ * and newline-separated, and the first line of the file
+ * should be the password length.
+ * If MEASURE_TIME is set, it will also store some measurements
+ * to a .csv file, which is useful for experiments.
  */
 int main(int argc, char const *argv[]) {
     /////// Process arguments ///////
@@ -110,6 +113,27 @@ int main(int argc, char const *argv[]) {
     int found = 0;
     
     #ifdef MEASURE_TIME
+        // Initialise file for measurements if needed
+        char results_filename[] = "./results.csv"; // TODO: make this configurable
+        int write_header = 0;
+
+        if (access(results_filename, F_OK) == -1) {
+            // File doesn't exist, header must be written
+            write_header = 1;
+        }
+
+        FILE *r_stream = fopen(results_filename, "a");
+        
+        if (!r_stream) {
+            printf("Could not open file %s.\n", (char *) &results_filename);
+            return ERR_OPEN_FILE;
+        }
+
+        if (write_header) {
+            fprintf(r_stream, "Passwords;Length;Batch size;Time hashing;Total time\n");
+        }
+        
+        // Initialise variables
         uint64_t passwords_cracked = 0;
         uint64_t total_time_hashing = 0;
         uint64_t start_time, end_time;
@@ -175,6 +199,12 @@ int main(int argc, char const *argv[]) {
         printf("Total time elapsed: %f seconds.\n", total_seconds);
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
+
+        // fprintf(r_stream, "Passwords;Length;Batch size;Time hashing;Total time\n");
+        fprintf(r_stream, "%lu;%lu;%lu;%f;%f\n",
+            passwords_cracked, pass_length, n_passwords, seconds, total_seconds);
+
+        fclose(r_stream);
     #endif
 
 
