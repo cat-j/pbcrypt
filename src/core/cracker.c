@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]) {
 
     strncpy(record, argv[1], BCRYPT_RECORD_SIZE);
     record[BCRYPT_RECORD_SIZE] = 0;
-    
+
     strncpy(filename, argv[2], strlen(argv[2]));
     filename[strlen(argv[2])] = 0;
 
@@ -110,6 +110,7 @@ int main(int argc, char const *argv[]) {
     int found = 0;
     
     #ifdef MEASURE_TIME
+        uint64_t passwords_cracked = 0;
         uint64_t total_time_hashing = 0;
         uint64_t start_time, end_time;
         uint64_t total_start_time, total_end_time;
@@ -140,6 +141,7 @@ int main(int argc, char const *argv[]) {
             #ifdef MEASURE_TIME
                 end_time = clock();
                 total_time_hashing += end_time - start_time;
+                ++passwords_cracked;
             #endif
 
             if (hash_match(hash, record_ciphertext)) {
@@ -171,6 +173,8 @@ int main(int argc, char const *argv[]) {
         double total_seconds =
             (double) (total_end_time - total_start_time) / CLOCKS_PER_SEC;
         printf("Total time elapsed: %f seconds.\n", total_seconds);
+
+        printf("Number of passwords cracked: %lu.\n", passwords_cracked);
     #endif
 
 
