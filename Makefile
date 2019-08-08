@@ -17,7 +17,8 @@ NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
 
 
-SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(UTILS)config.c
+SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
+CRACKER_SOURCES=$(UTILS)config.c
 TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
@@ -27,7 +28,7 @@ OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
 
 all: clean cracker encrypt
 
-cracker: $(CORE)cracker.c $(SOURCES) $(OBJS)
+cracker: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(OBJS_NO_UNROLLING)
