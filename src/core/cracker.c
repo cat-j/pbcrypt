@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include "bcrypt.h"
-#include "bcrypt_constants.h"
+#include "bcrypt-constants.h"
 #include "bcrypt-no-unrolling.h"
 #include "config.h"
 #include "print.h"

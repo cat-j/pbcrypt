@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include "bcrypt.h"
-#include "bcrypt_constants.h"
+#include "bcrypt-constants.h"
 
 int main(int argc, char const *argv[]) {
     if (argc != 4) {

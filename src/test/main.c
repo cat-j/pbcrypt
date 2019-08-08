@@ -8,7 +8,7 @@
 #include <string.h>
 
 #include "bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
-#include "bcrypt_constants.h"
+#include "bcrypt-constants.h"
 #include "openbsd.h"
 #include "test.h"
 
