@@ -144,7 +144,8 @@ int main(int argc, char const *argv[]) {
         }
 
         if (write_header) {
-            fprintf(r_stream, "Passwords;Length;Batch size;Time hashing;Total time\n");
+            fprintf(r_stream, "Passwords;Length;Passwords per batch;"
+                "Loop unrolling;Time hashing;Total time\n");
         }
 
         passwords_cracked = 0;
@@ -213,8 +214,9 @@ int main(int argc, char const *argv[]) {
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
 
-        fprintf(r_stream, "%lu;%lu;%lu;%f;%f\n",
-            passwords_cracked, pass_length, n_passwords, seconds, total_seconds);
+        fprintf(r_stream, "%lu;%lu;%lu;%d;%f;%f\n",
+            passwords_cracked, pass_length, n_passwords, unroll_loops,
+            seconds, total_seconds);
 
         fclose(r_stream);
     }
