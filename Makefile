@@ -17,7 +17,7 @@ NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
 
 
-SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
+SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(UTILS)config.c
 TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o

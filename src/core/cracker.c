@@ -6,11 +6,11 @@
 
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
+#include "config.h"
 #include "print.h"
 
-#define DEFAULT_N_PASSWORDS 1024
 
-#define MEASURE_TIME 1 // TODO: make this an environment variable
+#define DEFAULT_N_PASSWORDS 1024
 
 #define ERR_ARGS      0x20010
 #define ERR_OPEN_FILE 0x20020
@@ -19,6 +19,13 @@
 // Usage examples:
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
+
+
+/* Configuration variables */
+
+int measure;
+char results_filename[256];
+int unroll_loops;
 
 /*
  * Main password cracker function.
@@ -29,8 +36,9 @@
  * to a .csv file, which is useful for experiments.
  */
 int main(int argc, char const *argv[]) {
-    /////// Process arguments ///////
+    load_config();
 
+    /////// Process arguments ///////
     char record[BCRYPT_RECORD_SIZE+1];
     char filename[256];
     size_t n_passwords;
@@ -86,18 +94,17 @@ int main(int argc, char const *argv[]) {
     FILE *wl_stream = fopen(filename, "r");
 
     if (!wl_stream) {
-        // perror("fopen");
         fprintf(stderr, "Error: unable to open file %s.\n", filename);
         return ERR_OPEN_FILE;
     }
 
     status = fscanf(wl_stream, "%lu", &pass_length);
-    fread(&flush_newline, 1, 1, wl_stream);
-
     if (status < 1) {
         fprintf(stderr, "Error: unable to process password length.\n");
         return ERR_FILE_DATA;
     }
+    fread(&flush_newline, 1, 1, wl_stream);
+
 
     printf("Password length: %ld\n", pass_length);
 
@@ -112,7 +119,15 @@ int main(int argc, char const *argv[]) {
     char *current_pass, *matching_pass;
     int found = 0;
     
-    #ifdef MEASURE_TIME
+    // Declare variables for measuring
+    FILE *r_stream;
+    uint64_t passwords_cracked;
+    uint64_t total_time_hashing;
+    uint64_t start_time, end_time;
+    uint64_t total_start_time, total_end_time;
+    total_start_time = clock();
+
+    if (measure) {
         // Initialise file for measurements if needed
         char results_filename[] = "./results.csv"; // TODO: make this configurable
         int write_header = 0;
@@ -122,7 +137,7 @@ int main(int argc, char const *argv[]) {
             write_header = 1;
         }
 
-        FILE *r_stream = fopen(results_filename, "a");
+        r_stream = fopen(results_filename, "a");
         
         if (!r_stream) {
             printf("Could not open file %s.\n", (char *) &results_filename);
@@ -132,14 +147,13 @@ int main(int argc, char const *argv[]) {
         if (write_header) {
             fprintf(r_stream, "Passwords;Length;Batch size;Time hashing;Total time\n");
         }
-        
-        // Initialise variables
-        uint64_t passwords_cracked = 0;
-        uint64_t total_time_hashing = 0;
-        uint64_t start_time, end_time;
-        uint64_t total_start_time, total_end_time;
+
+        passwords_cracked = 0;
+        total_time_hashing = 0;
         total_start_time = clock();
-    #endif
+    }
+        
+
 
     // Read several passwords into buffer and hash them
     while (!found &&
@@ -154,20 +168,20 @@ int main(int argc, char const *argv[]) {
         for (size_t j = 0; j < n_passwords; ++j) {
             current_pass = &current_batch[j*(pass_length+1)];
 
-            #ifdef MEASURE_TIME
+            if (measure) {
                 start_time = clock();
-            #endif
-
+            }
+        
             blowfish_init_state_asm(state);
             bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
                 (uint8_t *) &hash, rounds);
             
-            #ifdef MEASURE_TIME
+            if (measure) {
                 end_time = clock();
                 total_time_hashing += end_time - start_time;
                 ++passwords_cracked;
-            #endif
-
+            }
+        
             if (hash_match(hash, record_ciphertext)) {
                 // Cracked the password!
                 found = 1;
@@ -178,9 +192,9 @@ int main(int argc, char const *argv[]) {
         }
     }
 
-    #ifdef MEASURE_TIME
+    if (measure) {
         total_end_time = clock();
-    #endif
+    }
 
     if (!found) {
         printf("No matches found in %s.\n", filename);
@@ -190,7 +204,7 @@ int main(int argc, char const *argv[]) {
         free(matching_pass);
     }
 
-    #ifdef MEASURE_TIME
+    if (measure) {
         double seconds = (double) total_time_hashing / CLOCKS_PER_SEC;
         printf("Time spent hashing: %f seconds.\n", seconds);
 
@@ -200,12 +214,11 @@ int main(int argc, char const *argv[]) {
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
 
-        // fprintf(r_stream, "Passwords;Length;Batch size;Time hashing;Total time\n");
         fprintf(r_stream, "%lu;%lu;%lu;%f;%f\n",
             passwords_cracked, pass_length, n_passwords, seconds, total_seconds);
 
         fclose(r_stream);
-    #endif
+    }
 
 
     /////// Finish ///////
