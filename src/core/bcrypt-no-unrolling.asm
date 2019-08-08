@@ -371,11 +371,10 @@ blowfish_encipher_register:
         xor x_l, tmp1 ; Xl <- Xl ^ P[0]
         BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
         sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
+        xor counter, counter ; initialise at 0 for next part
 
-        xor counter, counter
         ; n is even and ranges 2 to 14
         ; n+1 is odd and ranges 3 to 15
-        ; %rep 7
         .encipher_loop:
             cmp counter, 7
             je  .last_two
@@ -390,7 +389,6 @@ blowfish_encipher_register:
 
             inc counter
             jmp .encipher_loop
-        ; %endrep
 
         .last_two:
         ; Load P16 and P17 and perform remaining operations
@@ -425,7 +423,8 @@ blowfish_init_state_asm:
         mov  rbp, rsp
         push rsi
         push rdx
-        ; push r8
+        ; Pushing RDX isn't needed by cdecl, but this function is only ever called
+        ; in contexts where RDX needs to be preserved
     
     .copy_S_boxes:
         %define counter r8
@@ -435,11 +434,10 @@ blowfish_init_state_asm:
         xor counter, counter
         mov src, initstate_asm
         mov dst, rdi
-        ; %assign i 0
+
         ; 4 256-element boxes => 1024 elements
         ; 4 bytes per element => 4096 bytes total
         ; 32 bytes per YMM register => 4096/32 = 128 accesses to copy all the boxes
-        ; %rep    128
         .copy_S_boxes_loop:
             cmp counter, 128
             je  .copy_P_array
@@ -451,8 +449,6 @@ blowfish_init_state_asm:
 
             inc counter
             jmp .copy_S_boxes_loop
-            ; %assign i i+1
-        ; %endrep
 
     .copy_P_array:
         ; 18 4-byte elements => 72 bytes
@@ -466,7 +462,6 @@ blowfish_init_state_asm:
         mov     [rdi + BLF_CTX_P_OFFSET + 64], rax
 
     .end:
-        ; pop r8
         pop rdx
         pop rsi
         pop rbp
@@ -513,8 +508,6 @@ blowfish_expand_state_asm:
         xor loop_ctr, loop_ctr
         xor p_ctr, p_ctr
 
-        ; %assign j 0
-        ; %rep 9
         .p_array_key_loop:
             cmp p_ctr, 18
             je  .p_array_salt
@@ -525,8 +518,6 @@ blowfish_expand_state_asm:
             add p_ctr, 2
             jmp .p_array_key_loop
             
-        ;     %assign j j+2
-        ; %endrep
 
     .p_array_salt:
         %define data   r13
@@ -547,8 +538,6 @@ blowfish_expand_state_asm:
         REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
 
         ; Write to P[0], ... , P[15]
-        ; %assign i 0
-        ; %rep 4
         .p_array_salt_loop:
             cmp  p_ctr, 4
             je   .last_two
@@ -558,7 +547,6 @@ blowfish_expand_state_asm:
             mov  [dst], data
             rol  data, 32
             lea  dst, [dst + 2*P_VALUE_MEMORY_SIZE]
-            ; %assign i i+2
 
             xor  data, salt_r
             call blowfish_encipher_register
@@ -568,8 +556,6 @@ blowfish_expand_state_asm:
 
             inc  p_ctr
             jmp  .p_array_salt_loop
-            ; %assign i i+2
-        ; %endrep
 
         ; Write to P[16] and P[17]
         .last_two:
@@ -583,10 +569,9 @@ blowfish_expand_state_asm:
         
         xor s_ctr, s_ctr
         lea dst, [rdi]
+
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         ; Two accesses per repetition -> 256 repetitions
-        ; %assign i 0
-        ; %rep 256
         .s_boxes_salt_loop:
             cmp s_ctr, 256
             je  .end
@@ -596,18 +581,15 @@ blowfish_expand_state_asm:
             mov  [dst], data
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
             rol  data, 32
-            ; %assign i i+2
 
             xor  data, salt_l
             call blowfish_encipher_register
             mov  [dst], data
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
             rol  data, 32
-            ; %assign i i+2
 
             inc s_ctr
             jmp .s_boxes_salt_loop
-        ; %endrep
     
     .end:
         add rbp, 8
@@ -657,8 +639,6 @@ blowfish_expand_0_state_asm:
         xor loop_ctr, loop_ctr
         xor p_ctr, p_ctr
 
-        ; %assign j 0
-        ; %rep 9
         .p_array_key_loop:
             cmp p_ctr, 18
             je  .p_array_data
@@ -668,8 +648,6 @@ blowfish_expand_0_state_asm:
             
             add p_ctr, 2
             jmp .p_array_key_loop
-        ;     %assign j j+2
-        ; %endrep
     
     .p_array_data:
         %define data   r13
@@ -682,8 +660,6 @@ blowfish_expand_0_state_asm:
         xor p_ctr, p_ctr
         lea dst, [rdi + BLF_CTX_P_OFFSET]
 
-        ; %assign i 0
-        ; %rep 9
         .p_array_data_loop:
             cmp  p_ctr, 9
             je   .s_boxes_data
@@ -695,17 +671,14 @@ blowfish_expand_0_state_asm:
 
             inc  p_ctr
             jmp  .p_array_data_loop
-        ;     %assign i i+2
-        ; %endrep
     
     .s_boxes_data:
         %define s_ctr r14
         
-        lea dst, [rdi]
         xor s_ctr, s_ctr
+        lea dst, [rdi]
+
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
-        ; %assign i 0
-        ; %rep 512
         .s_boxes_data_loop:
             cmp  s_ctr, 512
             je   .end
@@ -717,8 +690,6 @@ blowfish_expand_0_state_asm:
 
             inc  s_ctr
             jmp  .s_boxes_data_loop
-        ;     %assign i i+2
-        ; %endrep
 
     .end:
         pop r15
@@ -768,23 +739,18 @@ blowfish_expand_0_state_salt_asm:
         rol salt_l, 32
         rol salt_r, 32
 
-        ; %assign i 0
-        ; %rep 4
         .p_array_salt_loop:
             cmp p_ctr, 4
             je  .last_element
 
             xor [dst], salt_l
             lea dst, [dst + 2*P_VALUE_MEMORY_SIZE]
-            ; %assign i i+2
 
             xor [dst], salt_r
             lea dst, [dst + 2*P_VALUE_MEMORY_SIZE]
-            ; %assign i i+2
 
             inc p_ctr
             jmp .p_array_salt_loop
-        ; %endrep
 
         .last_element:
         xor [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], salt_l
@@ -799,8 +765,6 @@ blowfish_expand_0_state_salt_asm:
         xor p_ctr, p_ctr
         lea dst, [rdi + BLF_CTX_P_OFFSET]
 
-        ; %assign i 0
-        ; %rep 9
         .p_array_data_loop:
             cmp  p_ctr, 9
             je   .s_boxes_data
@@ -812,8 +776,6 @@ blowfish_expand_0_state_salt_asm:
 
             inc  p_ctr
             jmp  .p_array_data_loop
-            ; %assign i i+2
-        ; %endrep
     
     .s_boxes_data:
         %define s_ctr r12
@@ -822,8 +784,6 @@ blowfish_expand_0_state_salt_asm:
         lea dst, [rdi]
 
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
-        ; %assign i 0
-        ; %rep 512
         .s_boxes_data_loop:
             cmp  s_ctr, 512
             je   .end
@@ -835,8 +795,6 @@ blowfish_expand_0_state_salt_asm:
 
             inc  s_ctr
             jmp  .s_boxes_data_loop
-            ; %assign i i+2
-        ; %endrep
     
     .end:
         add rbp, 8
@@ -870,8 +828,6 @@ blowfish_encrypt_asm:
         mov ctext, rsi
         xor counter, counter
 
-        ; %assign i 0
-        ; %rep BCRYPT_WORDS / 2
         .loop:
             cmp  counter, BCRYPT_WORDS / 2
             je   .end
@@ -884,8 +840,6 @@ blowfish_encrypt_asm:
 
             inc  counter
             jmp  .loop
-            ; %assign i i+1
-        ; %endrep
 
     .end:
         pop r13
