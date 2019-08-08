@@ -17,7 +17,7 @@ base directory.
 
 ### Requirements
 
-- 64-bit Intel processor
+- 64-bit Intel processor with AVX2 capabilities
 - Unix-like operating system
 
 ## How to build
