@@ -6,6 +6,7 @@
 
 #include "bcrypt.h"
 #include "bcrypt_constants.h"
+#include "bcrypt-no-unrolling.h"
 #include "config.h"
 #include "print.h"
 
@@ -172,9 +173,15 @@ int main(int argc, char const *argv[]) {
                 start_time = clock();
             }
         
-            blowfish_init_state_asm(state);
-            bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
-                (uint8_t *) &hash, rounds);
+            if (unroll_loops) {
+                blowfish_init_state_asm(state);
+                bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
+                    (uint8_t *) &hash, rounds);
+            } else {
+                blowfish_init_state_asm_nu(state);
+                bcrypt_hashpass_asm_nu(state, salt, current_pass, pass_length,
+                    (uint8_t *) &hash, rounds);
+            }
             
             if (measure) {
                 end_time = clock();
