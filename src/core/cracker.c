@@ -129,7 +129,6 @@ int main(int argc, char const *argv[]) {
 
     if (measure) {
         // Initialise file for measurements if needed
-        char results_filename[] = "./results.csv"; // TODO: make this configurable
         int write_header = 0;
 
         if (access(results_filename, F_OK) == -1) {
