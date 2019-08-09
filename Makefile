@@ -22,6 +22,7 @@ CRACKER_SOURCES=$(UTILS)config.c
 TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
+OBJS_LOADED_P=bcrypt-loaded-p.o
 
 
 .PHONY: all build test
@@ -45,6 +46,10 @@ test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-no-unrolling
 
+test-loaded-p: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-loaded-p
+
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
@@ -52,6 +57,9 @@ bcrypt.o: $(CORE)bcrypt.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-no-unrolling.o: $(CORE)bcrypt-no-unrolling.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-loaded-p.o: $(CORE)bcrypt-loaded-p.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:
