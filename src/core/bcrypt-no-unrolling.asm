@@ -7,13 +7,19 @@ extern initstate_asm
 extern initial_ctext
 
 ; exported functions for bcrypt implementation
-global blowfish_init_state_asm_nu
-global blowfish_expand_state_asm_nu
-global blowfish_expand_0_state_asm_nu
-global blowfish_expand_0_state_salt_asm_nu
-global blowfish_encipher_asm_nu
-global blowfish_encrypt_asm_nu
-global bcrypt_hashpass_asm_nu
+global blowfish_init_state_asm
+global blowfish_expand_state_asm
+global blowfish_expand_0_state_asm
+global blowfish_expand_0_state_salt_asm
+global blowfish_encipher_asm
+global blowfish_encrypt_asm
+global bcrypt_hashpass_asm
+
+; exported functions for testing macros
+global f_asm
+global blowfish_round_asm
+global reverse_bytes
+global copy_ctext_asm
 
 
 section .data
@@ -193,13 +199,80 @@ section .text
 %endmacro
 
 
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;;;;; MACRO WRAPPERS ;;;;;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Intended exclusively for testing Feistel function
+; uint32_t f_asm(uint32_t x, blf_ctx *state)
+
+f_asm:
+    ; rdi: data
+    ; rsi -> blowfish state
+    ; address MUST be 32-bit aligned
+    push rbp
+    mov  rbp, rsp
+
+    F rsi, rdi, rdx, rax
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing Blowfish round
+; uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, blf_ctx *state,
+;                             uint32_t n)
+
+blowfish_round_asm:
+    ; rdi: left half of data block, Xl
+    ; rsi: right half of data block, Xr
+    ; rdx -> Blowfish state (array of S-boxes and P-array)
+    ; rcx: P-array index
+    push rbp
+    mov  rbp, rsp
+
+    mov  r8, [rdx + BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE] ; r8: P-value
+    BLOWFISH_ROUND rdx, r9, rsi, rdi, r8, r10
+    mov  rax, rsi
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing byte reversal macro
+; uint64_t reverse_bytes(uint64_t data)
+
+reverse_bytes:
+    ; rdi: data
+    push rbp
+    mov  rbp, rsp
+
+    REVERSE_8_BYTES rdi, rsi, rdx, esi
+    mov rax, rdi
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing ciphertext copying macro
+; void copy_ctext_asm(uint64_t *data, char *ctext)
+
+copy_ctext_asm:
+    ; rdi -> destination ciphertext
+    ; rsi -> source ciphertext
+    push rbp
+    mov  rbp, rsp
+
+    COPY_CTEXT rdi, rdx, rcx, r8, ecx, rsi
+
+    pop rbp
+    ret
+
+
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; void blowfish_encipher_asm_nu(blf_ctx *state, uint64_t *data)
+; void blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
 
-blowfish_encipher_asm_nu:
+blowfish_encipher_asm:
     ; rdi -> blowfish state
     ; rsi -> | Xl | Xr |
     .build_frame:
@@ -264,7 +337,7 @@ blowfish_encipher_asm_nu:
         ret
 
 ; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
-blowfish_encipher_register_nu:
+blowfish_encipher_register:
     ; rdi -> blowfish state
     ; r13:   | Xl | Xr |
     .build_frame:
@@ -340,9 +413,9 @@ blowfish_encipher_register_nu:
         pop rbp
         ret
 
-; void blowfish_init_state_asm_nu(blf_ctx *state)
+; void blowfish_init_state_asm(blf_ctx *state)
 
-blowfish_init_state_asm_nu:
+blowfish_init_state_asm:
     ; rdi -> blowfish state (modified)
     ; address MUST be 32-bit aligned
     .build_frame:
@@ -394,10 +467,10 @@ blowfish_init_state_asm_nu:
         pop rbp
         ret
 
-; void blowfish_expand_state_asm_nu(blf_ctx *state, const char *salt,
+; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 ;                                const char *key, uint16_t keybytes)
 
-blowfish_expand_state_asm_nu:
+blowfish_expand_state_asm:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
     ; rdx -> 4 to 56 byte key
@@ -470,13 +543,13 @@ blowfish_expand_state_asm_nu:
             je   .last_two
 
             xor  data, salt_l
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             rol  data, 32
             lea  dst, [dst + 2*P_VALUE_MEMORY_SIZE]
 
             xor  data, salt_r
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             rol  data, 32
             lea  dst, [dst + 2*P_VALUE_MEMORY_SIZE]
@@ -487,7 +560,7 @@ blowfish_expand_state_asm_nu:
         ; Write to P[16] and P[17]
         .last_two:
         xor  data, salt_l
-        call blowfish_encipher_register_nu
+        call blowfish_encipher_register
         mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
         rol  data, 32
 
@@ -504,13 +577,13 @@ blowfish_expand_state_asm_nu:
             je  .end
 
             xor  data, salt_r
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
             rol  data, 32
 
             xor  data, salt_l
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
             rol  data, 32
@@ -528,10 +601,10 @@ blowfish_expand_state_asm_nu:
         pop rbp
         ret
 
-; void blowfish_expand_0_state_asm_nu(blf_ctx *state, const char *key,
+; void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
 ;                                  uint16_t keybytes)
 
-blowfish_expand_0_state_asm_nu:
+blowfish_expand_0_state_asm:
     ; rdi -> state
     ; rsi -> key
     ; rdx:   key length in bytes
@@ -591,7 +664,7 @@ blowfish_expand_0_state_asm_nu:
             cmp  p_ctr, 9
             je   .s_boxes_data
 
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             rol  data, 32
             lea  dst, [dst + 2*P_VALUE_MEMORY_SIZE]
@@ -610,7 +683,7 @@ blowfish_expand_0_state_asm_nu:
             cmp  s_ctr, 512
             je   .end
 
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             rol  data, 32
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
@@ -626,9 +699,9 @@ blowfish_expand_0_state_asm_nu:
         pop rbp
         ret
 
-; void blowfish_expand_0_state_salt_asm_nu(blf_ctx *state, const char *salt)
+; void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt)
 
-blowfish_expand_0_state_salt_asm_nu:
+blowfish_expand_0_state_salt_asm:
     ; rdi -> state
     ; rsi -> salt
     .build_frame:
@@ -641,7 +714,7 @@ blowfish_expand_0_state_salt_asm_nu:
         push r15
         sub  rbp, 8
 
-    ; Bespoke variant of blowfish_expand_0_state_asm_nu for optimised
+    ; Bespoke variant of blowfish_expand_0_state_asm for optimised
     ; encryption with salt. No expensive key reading needed, as salt
     ; is always 128 bytes and each half can be kept in one register.
 
@@ -696,7 +769,7 @@ blowfish_expand_0_state_salt_asm_nu:
             cmp  p_ctr, 9
             je   .s_boxes_data
 
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             lea  dst, [dst + 2*P_VALUE_MEMORY_SIZE]
             rol  data, 32
@@ -715,7 +788,7 @@ blowfish_expand_0_state_salt_asm_nu:
             cmp  s_ctr, 512
             je   .end
 
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [dst], data
             lea  dst, [dst + 2*S_ELEMENT_MEMORY_SIZE]
             rol  data, 32
@@ -733,9 +806,9 @@ blowfish_expand_0_state_salt_asm_nu:
         pop rbp
         ret
 
-; void blowfish_encrypt_asm_nu(blf_ctx *state, uint64_t *data)
+; void blowfish_encrypt_asm(blf_ctx *state, uint64_t *data)
 
-blowfish_encrypt_asm_nu:
+blowfish_encrypt_asm:
     ; rdi -> state
     ; rsi -> 24-byte ciphertext
     .build_frame:
@@ -761,7 +834,7 @@ blowfish_encrypt_asm_nu:
 
             mov  data, [ctext]
             rol  data, 32
-            call blowfish_encipher_register_nu
+            call blowfish_encipher_register
             mov  [ctext], data
             lea  ctext, [ctext + 8]
 
@@ -778,7 +851,7 @@ blowfish_encrypt_asm_nu:
 ;                          const char *key, uint16_t keybytes,
 ;                          uint8_t *hash, uint64_t rounds)
 
-bcrypt_hashpass_asm_nu:
+bcrypt_hashpass_asm:
     ; rdi -> state
     ; rsi -> 128-bit salt
     ; rdx -> key
@@ -796,7 +869,7 @@ bcrypt_hashpass_asm_nu:
         sub  rbp, 8
 
     .key_setup:
-        ; Save these values because blowfish_expand_state_asm_nu would modify them
+        ; Save these values because blowfish_expand_state_asm would modify them
         ; rbx -> salt
         ; r12 -> hash
         ; r13 -> key
@@ -808,9 +881,9 @@ bcrypt_hashpass_asm_nu:
         mov r14, rcx
         mov r15, r9
 
-        call blowfish_init_state_asm_nu
+        call blowfish_init_state_asm
 
-        call blowfish_expand_state_asm_nu
+        call blowfish_expand_state_asm
 
         .expand_0_state:
             %define salt_ptr  rbx
@@ -828,10 +901,10 @@ bcrypt_hashpass_asm_nu:
 
                 mov  rsi, key_ptr
                 mov  rdx, key_len
-                call blowfish_expand_0_state_asm_nu
+                call blowfish_expand_0_state_asm
 
                 mov  rsi, salt_ptr
-                call blowfish_expand_0_state_salt_asm_nu
+                call blowfish_expand_0_state_salt_asm
 
                 inc  round_ctr
                 jmp  .round_loop
@@ -847,7 +920,7 @@ bcrypt_hashpass_asm_nu:
 
         %rep 64
             mov  rsi, hash_ptr
-            call blowfish_encrypt_asm_nu
+            call blowfish_encrypt_asm
         %endrep
 
         %assign i 0

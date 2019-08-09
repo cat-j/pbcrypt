@@ -1,3 +1,2 @@
-measure 0
-unroll-loops 1
-output ./results.csv
+measure 1
+output ./nounrolling.csv

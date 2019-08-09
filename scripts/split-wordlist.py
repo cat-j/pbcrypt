@@ -32,9 +32,7 @@ def get_args():
 
 def main():
     filename = get_args()
-    
     split_wordlist(filename)
-
     return
 
 main()

@@ -6,7 +6,6 @@
 
 #include "bcrypt.h"
 #include "bcrypt-constants.h"
-#include "bcrypt-no-unrolling.h"
 #include "config.h"
 #include "print.h"
 
@@ -26,7 +25,6 @@
 
 int measure;
 char results_filename[256];
-int unroll_loops;
 
 /*
  * Main password cracker function.
@@ -173,16 +171,10 @@ int main(int argc, char const *argv[]) {
                 start_time = clock();
             }
         
-            if (unroll_loops) {
-                blowfish_init_state_asm(state);
-                bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
-                    (uint8_t *) &hash, rounds);
-            } else {
-                blowfish_init_state_asm_nu(state);
-                bcrypt_hashpass_asm_nu(state, salt, current_pass, pass_length,
-                    (uint8_t *) &hash, rounds);
-            }
-            
+            blowfish_init_state_asm(state);
+            bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
+                (uint8_t *) &hash, rounds);
+        
             if (measure) {
                 end_time = clock();
                 total_time_hashing += end_time - start_time;
@@ -221,8 +213,8 @@ int main(int argc, char const *argv[]) {
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
 
-        fprintf(r_stream, "%lu;%lu;%lu;%d;%f;%f\n",
-            passwords_cracked, pass_length, n_passwords, unroll_loops,
+        fprintf(r_stream, "%lu;%lu;%lu;%f;%f\n",
+            passwords_cracked, pass_length, n_passwords,
             seconds, total_seconds);
 
         fclose(r_stream);
