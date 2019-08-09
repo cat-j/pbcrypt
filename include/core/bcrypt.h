@@ -18,9 +18,6 @@
 #define BCRYPT_HASH_BYTES 24
 
 
-int variant;
-
-
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
     uint32_t S[4][256];    /* S-Boxes */

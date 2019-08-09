@@ -26,6 +26,9 @@
 int measure;
 char results_filename[256];
 
+extern int variant; // unrolled loops, P-array in YMM registers, etc
+
+
 /*
  * Main password cracker function.
  * Wordlist passwords must be the same length (in bytes)
@@ -144,7 +147,7 @@ int main(int argc, char const *argv[]) {
 
         if (write_header) {
             fprintf(r_stream, "Passwords;Length;Passwords per batch;"
-                "Loop unrolling;Time hashing;Total time\n");
+                "Variant;Time hashing;Total time\n");
         }
 
         passwords_cracked = 0;
@@ -213,8 +216,8 @@ int main(int argc, char const *argv[]) {
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
 
-        fprintf(r_stream, "%lu;%lu;%lu;%f;%f\n",
-            passwords_cracked, pass_length, n_passwords,
+        fprintf(r_stream, "%lu;%lu;%lu;%d;%f;%f\n",
+            passwords_cracked, pass_length, n_passwords, variant,
             seconds, total_seconds);
 
         fclose(r_stream);

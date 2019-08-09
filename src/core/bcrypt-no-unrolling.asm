@@ -21,6 +21,8 @@ global blowfish_round_asm
 global reverse_bytes
 global copy_ctext_asm
 
+global variant
+
 
 section .data
 
@@ -38,6 +40,9 @@ section .data
 %define BLF_CTX_P_OFFSET 4096
 ; length of bcrypt hash in 32-bit words
 %define BCRYPT_WORDS 6
+
+; unrolled loops, P-array in YMM registers, etc
+variant: dw 1
 
 
 section .text
