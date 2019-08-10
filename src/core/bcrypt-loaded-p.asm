@@ -192,6 +192,14 @@ section .text
         xor %6, %6
 %endmacro
 
+; %macro XOR_REGS_WITH_KEY
+;     .key_loop:
+;         cmp loop_ctr, 32
+;         je  .end_key_loop
+
+;         .
+; %endmacro
+
 ; %1 -> ciphertext buffer
 ; %2: temporary register
 ; %3: temporary register
@@ -470,6 +478,8 @@ blowfish_expand_state_asm:
     ; rsi -> 128-bit salt
     ; rdx -> 4 to 56 byte key
     ; rcx:    key length in bytes
+    ; ymm0: salt
+    ; ymm1, ymm2, ymm3: P-array
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -477,8 +487,6 @@ blowfish_expand_state_asm:
         push r12
         push r13
         push r14
-        push r15
-        sub  rbp, 8
     
     .p_array_key:
         ; key_data: a byte from the key
@@ -487,8 +495,8 @@ blowfish_expand_state_asm:
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
-        %define key_data     r9
-        %define key_data_low r9b
+        %define key_data     xmm4
+        %define key_data_2   xmm5
         %define key_data_ctr r10
         %define key_ptr      rdx
         %define key_len      rcx
@@ -496,17 +504,45 @@ blowfish_expand_state_asm:
         %define data         r13
 
         ; Initialise registers
-        xor key_data, key_data
-        xor key_data_ctr, key_data_ctr
-        xor data, data
-        xor loop_ctr, loop_ctr
+        pxor key_data, key_data
+        pxor key_data_2, key_data_2
+        xor  key_data_ctr, key_data_ctr
+        xor  loop_ctr, loop_ctr
 
-        %assign j 0
-        %rep 9
-            XOR_WITH_KEY key_data, key_data_low, key_data_ctr, \
-                key_ptr, key_len, loop_ctr, data, j
-            %assign j j+2
-        %endrep
+        .load_key_loop:
+            cmp     loop_ctr, 16
+            je      .load_key_loop_2
+            vpsrldq key_data, 1
+
+            .extract_key_bytes:
+                cmp     key_data_ctr, key_len
+                jl      .continue_extract
+                xor     key_data_ctr, key_data_ctr ; wrap around
+
+            .continue_extract:
+                vpinsrb key_data, [key_ptr + key_data_ctr], 15
+                inc     loop_ctr
+                inc     key_data_ctr
+                jmp     .load_key_loop
+        
+        .load_key_loop_2:
+            cmp     loop_ctr, 32
+            je      .end_load_key
+            vpsrldq key_data_2, 1
+
+            .extract_key_bytes_2:
+                cmp key_data_ctr, key_len
+                jl  .continue_extract_2
+                xor key_data_ctr, key_data_ctr
+
+            .continue_extract_2:
+                vpinsrb key_data_2, [key_ptr + key_data_ctr], 15
+                inc     loop_ctr
+                inc     key_data_ctr
+                jmp     .load_key_loop_2
+            
+        .end_load_key:
+            vinserti128 ymm4, key_data_2, 1
 
     .p_array_salt:
         %define data   r13
@@ -564,8 +600,6 @@ blowfish_expand_state_asm:
         %endrep
     
     .end:
-        add rbp, 8
-        pop r15
         pop r14
         pop r13
         pop r12
@@ -796,7 +830,6 @@ bcrypt_hashpass_asm:
 
         call blowfish_init_state_asm
 
-        .load_salt_and_p:
         LOAD_SALT_AND_P rdi, rbx
 
         call blowfish_expand_state_asm
