@@ -55,10 +55,10 @@ endianness_mask: db \
 
 section .text
 
-%define salt     ymm0
-%define p_0_7    ymm1
-%define p_8_15   ymm2
-%define p_16_17  xmm3
+%define salt                ymm0
+%define p_0_7               ymm1
+%define p_8_15              ymm2
+%define p_16_17             xmm3
 %define endianness_mask_ymm ymm15
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -269,7 +269,7 @@ section .text
 ; %1 -> state
 ; %2 -> salt
 %macro LOAD_SALT_AND_P 2
-    vmovdqa  endianness_mask_ymm, [shuffle_p]
+    vmovdqa  endianness_mask_ymm, [endianness_mask]
     vpxor    p_16_17, p_16_17
     
     vmovdqu  salt, [%2] ; TODO: align salt
