@@ -192,13 +192,54 @@ section .text
         xor %6, %6
 %endmacro
 
-; %macro XOR_REGS_WITH_KEY
-;     .key_loop:
-;         cmp loop_ctr, 32
-;         je  .end_key_loop
+; READ_32_KEY_BYTES key_data, key_data_1, key_data_2,
+;     key_data_ctr, key_ptr, key_len, loop_ctr, it_n
+%macro READ_32_KEY_BYTES 8
 
-;         .
-; %endmacro
+    %define key_data     %1
+    %define key_data_1   %2
+    %define key_data_2   %3
+    %define key_data_ctr %4
+    %define key_ptr      %5
+    %define key_len      %6
+    %define loop_ctr     %7
+
+    .lower_half_loop_%8:
+        cmp     loop_ctr, 16
+        je      .upper_half_loop_%8
+        vpsrldq key_data, 1
+
+        .extract_key_bytes_lower_%8:
+            cmp     key_data_ctr, key_len
+            jl      .continue_extract_lower_%8
+            xor     key_data_ctr, key_data_ctr ; wrap around
+
+        .continue_extract_lower_%8:
+            vpinsrb key_data_1, [key_ptr + key_data_ctr], 15
+            inc     loop_ctr
+            inc     key_data_ctr
+            jmp     .lower_half_loop_%8
+    
+    .upper_half_loop_%8:
+        cmp     loop_ctr, 32
+        je      .end_load_key_%8
+        vpsrldq key_data_2, 1
+
+        .extract_key_bytes_higher_%8:
+            cmp key_data_ctr, key_len
+            jl  .continue_extract_higher_%8
+            xor key_data_ctr, key_data_ctr
+
+        .continue_extract_higher_%8:
+            vpinsrb key_data_2, [key_ptr + key_data_ctr], 15
+            inc     loop_ctr
+            inc     key_data_ctr
+            jmp     .upper_half_loop_%8
+        
+    .end_load_key_%8:
+        vinserti128 key_data, key_data_2, 1
+
+%endmacro
 
 ; %1 -> ciphertext buffer
 ; %2: temporary register
@@ -489,13 +530,13 @@ blowfish_expand_state_asm:
         push r14
     
     .p_array_key:
-        ; key_data: a byte from the key
-        ; key_data_low: lower 8 bits of key_data
+        ; key_data: 32 bytes of key, wrapping
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
-        %define key_data     xmm4
+        %define key_data     ymm4
+        %define key_data_1   xmm4
         %define key_data_2   xmm5
         %define key_data_ctr r10
         %define key_ptr      rdx
@@ -504,45 +545,22 @@ blowfish_expand_state_asm:
         %define data         r13
 
         ; Initialise registers
-        pxor key_data, key_data
+        pxor key_data_1, key_data_1
         pxor key_data_2, key_data_2
         xor  key_data_ctr, key_data_ctr
         xor  loop_ctr, loop_ctr
 
-        .load_key_loop:
-            cmp     loop_ctr, 16
-            je      .load_key_loop_2
-            vpsrldq key_data, 1
+        .p_0_7:
+        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 1
+        vpxor key_data, p_0_7
+        xor loop_ctr, loop_ctr
 
-            .extract_key_bytes:
-                cmp     key_data_ctr, key_len
-                jl      .continue_extract
-                xor     key_data_ctr, key_data_ctr ; wrap around
-
-            .continue_extract:
-                vpinsrb key_data, [key_ptr + key_data_ctr], 15
-                inc     loop_ctr
-                inc     key_data_ctr
-                jmp     .load_key_loop
-        
-        .load_key_loop_2:
-            cmp     loop_ctr, 32
-            je      .end_load_key
-            vpsrldq key_data_2, 1
-
-            .extract_key_bytes_2:
-                cmp key_data_ctr, key_len
-                jl  .continue_extract_2
-                xor key_data_ctr, key_data_ctr
-
-            .continue_extract_2:
-                vpinsrb key_data_2, [key_ptr + key_data_ctr], 15
-                inc     loop_ctr
-                inc     key_data_ctr
-                jmp     .load_key_loop_2
-            
-        .end_load_key:
-            vinserti128 ymm4, key_data_2, 1
+        .p_8_15:
+        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 2
+        vpxor key_data, p_8_15
+        xor   loop_ctr, loop_ctr
 
     .p_array_salt:
         %define data   r13
