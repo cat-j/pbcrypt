@@ -233,9 +233,9 @@ section .text
         vpsrldq key_data_2, 1
 
         .extract_key_bytes_higher_%8:
-            cmp key_data_ctr, key_len
-            jl  .continue_extract_higher_%8
-            xor key_data_ctr, key_data_ctr
+            cmp     key_data_ctr, key_len
+            jl      .continue_extract_higher_%8
+            xor     key_data_ctr, key_data_ctr
 
         .continue_extract_higher_%8:
             vpinsrb key_data_2, [key_ptr + key_data_ctr], 15
@@ -246,6 +246,26 @@ section .text
     .end_load_key_%8:
         vinserti128 key_data, key_data_2, 1
 
+%endmacro
+
+%macro READ_8_KEY_BYTES 8
+    .key_loop_%8:
+        cmp     loop_ctr, 8
+        je      .end_key_loop_%8
+        vpsrldq key_data_1, 1
+    
+    .extract_key_bytes_%8:
+        cmp     key_data_ctr, key_len
+        jl      .continue_extract_%8
+        xor     key_data_ctr, key_data_ctr
+
+    .continue_extract_%8:
+        vpinsrb key_data_1, [key_ptr + key_data_ctr], 7
+        inc     loop_ctr
+        inc     key_data_ctr
+        jmp     .key_loop_%8
+    
+    .end_key_loop_%8:
 %endmacro
 
 ; %1 -> ciphertext buffer
@@ -585,13 +605,20 @@ blowfish_expand_state_asm:
         .p_0_7:
         READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
             key_data_ctr, key_ptr, key_len, loop_ctr, 1
-        vpxor key_data, p_0_7
+        vpxor p_0_7, key_data
         xor   loop_ctr, loop_ctr
 
         .p_8_15:
         READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
             key_data_ctr, key_ptr, key_len, loop_ctr, 2
-        vpxor key_data, p_8_15
+        vpxor p_8_15, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_16_17:
+        pxor key_data_1, key_data_1
+        READ_8_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 3
+        pxor  p_16_17, key_data_1
         xor   loop_ctr, loop_ctr
 
     .p_array_salt:
