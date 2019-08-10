@@ -11,6 +11,7 @@ UTILS=utils/
 CC=gcc
 CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
+FIXED_REGS= -ffixed-xmm0 -ffixed-xmm1 -ffixed-xmm2 -ffixed-xmm3 -ffixed-xmm4
 INC_DIRS=$(CORE) $(TEST) $(UTILS)
 INC_PARAMS=$(foreach d, $(INC_DIRS), -I$(INCLUDE)$d)
 NASM=nasm
@@ -39,7 +40,7 @@ encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
-	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	$(CC) $(FIXED_REGS) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
 test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)

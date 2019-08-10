@@ -20,6 +20,7 @@ global f_asm
 global blowfish_round_asm
 global reverse_bytes
 global copy_ctext_asm
+global load_salt_and_p
 
 global variant
 
@@ -192,8 +193,6 @@ section .text
         xor %6, %6
 %endmacro
 
-; READ_32_KEY_BYTES key_data, key_data_1, key_data_2,
-;     key_data_ctr, key_ptr, key_len, loop_ctr, it_n
 %macro READ_32_KEY_BYTES 8
 
     %define key_data     %1
@@ -266,7 +265,8 @@ section .text
     vmovdqu  salt, [%2] ; TODO: align salt
     vmovdqa  p_0_7, [%1 + BLF_CTX_P_OFFSET]
     vmovdqa  p_8_15, [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE]
-    vpinsrq  p_16_17, p_16_17, [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], 0
+    vpinsrq  p_16_17, p_16_17, \
+             [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], 0
 %endmacro
 
 
@@ -332,6 +332,21 @@ copy_ctext_asm:
     mov  rbp, rsp
 
     COPY_CTEXT rdi, rdx, rcx, r8, ecx, rsi
+
+    pop rbp
+    ret
+
+; Intended exclusively for initialising YMM registers
+; before testing key expansion functions
+; void load_salt_and_p(blf_ctx *state, uint8_t *salt)
+
+load_salt_and_p:
+    ; rdi -> state
+    ; rsi -> salt
+    push rbp
+    mov  rbp, rsp
+
+    LOAD_SALT_AND_P rdi, rsi
 
     pop rbp
     ret
@@ -521,6 +536,7 @@ blowfish_expand_state_asm:
     ; rcx:    key length in bytes
     ; ymm0: salt
     ; ymm1, ymm2, ymm3: P-array
+    
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -529,6 +545,8 @@ blowfish_expand_state_asm:
         push r13
         push r14
     
+    ; LOAD_SALT_AND_P rdi, rsi
+
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
         ; key_data_ctr: byte index
@@ -554,7 +572,7 @@ blowfish_expand_state_asm:
         READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
             key_data_ctr, key_ptr, key_len, loop_ctr, 1
         vpxor key_data, p_0_7
-        xor loop_ctr, loop_ctr
+        xor   loop_ctr, loop_ctr
 
         .p_8_15:
         READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \

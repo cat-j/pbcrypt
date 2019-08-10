@@ -701,6 +701,7 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
         /* Extract 4 int8 to 1 int32 from keystream */
         temp = Blowfish_stream2word(key, keybytes, &j);
         c->P[i] = c->P[i] ^ temp;
+        printf("P[%d]: 0x%08x\n", i, c->P[i]);
     }
     
     j = 0;

@@ -24,6 +24,8 @@ typedef struct BlowfishContext {
     uint32_t P[18];        /* Subkeys */
 } blf_ctx;
 
+extern int variant; // unrolled loops, P-array in YMM registers, etc
+
 
 /* ========== bcrypt functions ========== */
 
@@ -114,5 +116,7 @@ uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
 uint64_t reverse_bytes(uint64_t data);
 
 void copy_ctext_asm(uint64_t *data, const char *ctext);
+
+void load_salt_and_p(blf_ctx *state, uint8_t *salt);
 
 #endif

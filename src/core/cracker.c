@@ -26,8 +26,6 @@
 int measure;
 char results_filename[256];
 
-extern int variant; // unrolled loops, P-array in YMM registers, etc
-
 
 /*
  * Main password cracker function.

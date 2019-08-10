@@ -205,6 +205,8 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     char test_name[] = "test_blowfish_expand_state_asm";
     test_start(test_name, "state: %s, salt: %s, key: %s",
         state_name, salt, key);
+    
+    load_salt_and_p(state_actual, salt);
 
     blowfish_expand_state_asm(state_actual, salt, key, keybytes);
     Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes,
