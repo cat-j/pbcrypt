@@ -96,7 +96,6 @@ section .text
     F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
-    ; mov %3, %6 ; i <- i ^ p[n]
 %endmacro
 
 ; %1: | l | r |, then | 0 | r |
