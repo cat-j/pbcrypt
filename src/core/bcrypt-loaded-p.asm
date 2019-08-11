@@ -100,6 +100,37 @@ section .text
     add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
 %endmacro
 
+; %macro F_BIG_ENDIAN 4
+;     %define blf_state %1
+;     %define x         %2
+;     %define tmp       %3
+;     %define output    %4
+
+;     ; output <- S[0][x & 0xff] + S[1][x >> 8 & 0xff]
+;     mov tmp, x
+;     and tmp, 0xff ; lowest 8 bits
+;     mov output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
+;     mov tmp, x
+;     shr tmp, 8
+;     and tmp, 0xff ; second-lowest 8 bits
+;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
+;     add output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
+
+;     ; output <- output ^ S[2][x >> 16 & 0xff]
+;     mov tmp, x
+;     shr tmp, 16
+;     and tmp, 0xff ; second-highest 8 bits
+;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
+;     xor output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
+
+;     ; output <- output + S[3][x >> 24 & 0xff]
+;     mov tmp, x
+;     shr tmp, 24
+;     and tmp, 0xff ; highest 8 bits
+;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
+;     add output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
+; %endmacro
+
 ; %1 -> array of S-boxes
 ; %2: temporary register for F (modified)
 ; %3: data half
@@ -111,7 +142,60 @@ section .text
     F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
-    ; mov %3, %6 ; i <- i ^ p[n]
+%endmacro
+
+; %macro BLOWFISH_ROUND_BIG_ENDIAN 6
+;     %define blf_state %1
+;     %define f_tmp     %2
+;     %define i         %3
+;     %define j         %4
+;     %define p_n       %5
+;     %define f_output  %6
+
+;     F_BIG_ENDIAN blf_state, j, f_tmp, f_output
+;     xor f_output, p_n
+;     xor i, f_output
+; %endmacro
+
+%macro F_BIG_ENDIAN 4
+    %xdefine blf_state %1
+    %xdefine x         %2
+    %xdefine output    %3
+    %xdefine tmp       %4
+    
+    ; output <- s[x & 0xff] + s[0x100 + (x>>8) & 0xff]
+    mov tmp, x
+    and tmp, 0xff
+    mov output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE] ; s[x & 0xff]
+    mov tmp, x
+    shr tmp, 8
+    and tmp, 0xff
+    add output, [blf_state + S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+
+    ; output <- output ^ s[0x200 + (x>>16) & 0xff]
+    mov tmp, x
+    shr tmp, 16
+    and tmp, 0xff
+    xor output, [blf_state + 2*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+
+    ; output <- output + s[0x300 + (x>>24) & 0xff]
+    mov tmp, x
+    shr tmp, 24
+    and tmp, 0xff
+    add output, [blf_state + 3*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+%endmacro
+
+%macro BLOWFISH_ROUND_BIG_ENDIAN 6
+    %xdefine blf_state %1
+    %xdefine p_n       %2
+    %xdefine i         %3
+    %xdefine j         %4
+    %xdefine f_output  %5
+    %xdefine f_tmp     %6
+
+    F_BIG_ENDIAN blf_state, j, f_output, f_tmp
+    xor f_output, p_n
+    xor i, f_output
 %endmacro
 
 ; %1: | l | r |, then | 0 | r |
@@ -202,6 +286,7 @@ section .text
         xor %6, %6
 %endmacro
 
+; %8: iteration number
 %macro READ_32_KEY_BYTES 8
 
     %define key_data     %1
@@ -472,25 +557,47 @@ blowfish_encipher_register:
         mov ecx, edx ; rcx: | 00 | Xl |
         shr rdx, 32  ; rdx: | 00 | Xr |
 
-        %define x_l       ecx
-        %define x_r       edx
-        %define blf_state rdi
-        %define p_array   r8
-        %define p_value   r9d
-        %define tmp2      r11
+        %define x_l        ecx
+        %define x_r        edx
+        %define x_l_64     rcx
+        %define x_r_64     rdx
+        %define blf_state  rdi
+        %define p_value    r9d
+        %define p_value_64 r9
+        %define tmp1       r8
+        %define tmp2       r11
     
     .do_encipher:
+        ; Encrypt with P[0]
         vpextrd p_value, p_0_7x, 0
         xor     x_l, p_value
+
+        ; Blowfish round with P[1]
+        vpextrd p_value, p_0_7x, 1
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2
+
+        ; %1 -> array of S-boxes
+        ; %2: temporary register for F (modified)
+        ; %3: data half
+        ; %4: other data half
+        ; %5: value read from P-array, p[n]
+        ; %6: temporary register for F output (modified)
+        ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+
+        ; %macro BLOWFISH_ROUND 6
+        ;     F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
+        ;     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
+        ;     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
+        ; %endmacro
+
+
         ; Read first two P elements
     ;     lea p_array, [blf_state + BLF_CTX_P_OFFSET]
     ;     mov tmp1, [p_array]  ; tmp1: | P1 | P0 |
     ;     SPLIT_L_R tmp1, tmp2 ; tmp1: | 00 | P0 |  tmp2: | 00 | P1 |
 
     ;     ; Start enciphering
-    ;     ; macro parameters:
-    ;     ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
-    ;     xor x_l, tmp1 ; Xl <- Xl ^ P[0]
     ;     BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
     ;     sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
 
