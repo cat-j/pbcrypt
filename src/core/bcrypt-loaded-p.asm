@@ -55,8 +55,9 @@ endianness_mask: db \
 
 section .text
 
-%define salt                ymm0
+%define salt                xmm0
 %define p_0_7               ymm1
+%define p_0_7x              xmm1
 %define p_8_15              ymm2
 %define p_16_17             xmm3
 %define endianness_mask_ymm ymm15
@@ -292,7 +293,7 @@ section .text
     vmovdqa  endianness_mask_ymm, [endianness_mask]
     vpxor    p_16_17, p_16_17
     
-    vmovdqu  salt, [%2] ; TODO: align salt
+    movdqu   salt, [%2]
     vmovdqa  p_0_7, [%1 + BLF_CTX_P_OFFSET]
     vmovdqa  p_8_15, [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE]
     vpinsrq  p_16_17, p_16_17, \
@@ -459,7 +460,7 @@ blowfish_encipher_asm:
 ; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
 blowfish_encipher_register:
     ; rdi -> blowfish state
-    ; r13:   | Xl | Xr |
+    ; r13:   | Xr | Xl |, each reversed
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -467,57 +468,59 @@ blowfish_encipher_register:
         sub  rbp, 8
 
     .separate_xl_xr:
-        mov rdx, r13 ; rdx: | Xl | Xr |
-        mov ecx, edx ; rcx: | 00 | Xr |
-        shr rdx, 32  ; rdx: | 00 | Xl |
+        mov rdx, r13 ; rdx: | Xr | Xl |
+        mov ecx, edx ; rcx: | 00 | Xl |
+        shr rdx, 32  ; rdx: | 00 | Xr |
 
-        %define x_l       rdx
-        %define x_r       rcx
+        %define x_l       ecx
+        %define x_r       edx
         %define blf_state rdi
         %define p_array   r8
-        %define tmp1      r9
+        %define p_value   r9d
         %define tmp2      r11
     
     .do_encipher:
+        vpextrd p_value, p_0_7x, 0
+        xor     x_l, p_value
         ; Read first two P elements
-        lea p_array, [blf_state + BLF_CTX_P_OFFSET]
-        mov tmp1, [p_array]  ; tmp1: | P1 | P0 |
-        SPLIT_L_R tmp1, tmp2 ; tmp1: | 00 | P0 |  tmp2: | 00 | P1 |
+    ;     lea p_array, [blf_state + BLF_CTX_P_OFFSET]
+    ;     mov tmp1, [p_array]  ; tmp1: | P1 | P0 |
+    ;     SPLIT_L_R tmp1, tmp2 ; tmp1: | 00 | P0 |  tmp2: | 00 | P1 |
 
-        ; Start enciphering
-        ; macro parameters:
-        ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
-        xor x_l, tmp1 ; Xl <- Xl ^ P[0]
-        BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
-        sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
+    ;     ; Start enciphering
+    ;     ; macro parameters:
+    ;     ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+    ;     xor x_l, tmp1 ; Xl <- Xl ^ P[0]
+    ;     BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
+    ;     sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
 
-        ; n is even and ranges 2 to 14
-        ; n+1 is odd and ranges 3 to 15
-        %rep 7
-            lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-            mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
-            SPLIT_L_R tmp1, tmp2
-            BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
-            sub blf_state, S_BOX_MEMORY_SIZE*3
-            BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
-            sub blf_state, S_BOX_MEMORY_SIZE*3
-        %endrep
+    ;     ; n is even and ranges 2 to 14
+    ;     ; n+1 is odd and ranges 3 to 15
+    ;     %rep 7
+    ;         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+    ;         mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
+    ;         SPLIT_L_R tmp1, tmp2
+    ;         BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
+    ;         sub blf_state, S_BOX_MEMORY_SIZE*3
+    ;         BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
+    ;         sub blf_state, S_BOX_MEMORY_SIZE*3
+    ;     %endrep
 
-        ; Load P16 and P17 and perform remaining operations
-        lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-        mov tmp1, [p_array] ; tmp1: | P17 | P16 |
-        SPLIT_L_R tmp1, tmp2
-        BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1 , rax
-        sub blf_state, S_BOX_MEMORY_SIZE*3
+    ;     ; Load P16 and P17 and perform remaining operations
+    ;     lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
+    ;     mov tmp1, [p_array] ; tmp1: | P17 | P16 |
+    ;     SPLIT_L_R tmp1, tmp2
+    ;     BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1 , rax
+    ;     sub blf_state, S_BOX_MEMORY_SIZE*3
         
-        xor x_r, tmp2
+    ;     xor x_r, tmp2
 
-    .build_output:
-        shl x_l, 32  ; | Xl | 00 |
-        shl x_r, 32
-        shr x_r, 32  ; | 00 | Xr |
-        or  x_r, x_l ; | Xl | Xr |
-        mov r13, x_r
+    ; .build_output:
+    ;     shl x_l, 32  ; | Xl | 00 |
+    ;     shl x_r, 32
+    ;     shr x_r, 32  ; | 00 | Xr |
+    ;     or  x_r, x_l ; | Xl | Xr |
+    ;     mov r13, x_r
 
     .end:
         add rbp, 8
@@ -629,28 +632,27 @@ blowfish_expand_state_asm:
         %define tmp2   r9
         %define tmp1l  ebx
 
-        xor data, data        ; 0
-        mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
-        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt = Xl | Xr
-
-        REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
-        REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
+        xor    data, data      ; 0
+        pextrq salt_l, salt, 0 ; leftmost 64 bits of salt =  Xl | Xr
+        pextrq salt_r, salt, 1 ; rightmost 64 bits of salt = Xl | Xr 
 
         ; Write to P[0], ... , P[15]
-        %assign i 0
-        %rep 4
-            xor  data, salt_l
-            call blowfish_encipher_register
-            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
+        xor  data, salt_l
+        call blowfish_encipher_register
+        ; %assign i 0
+        ; %rep 4
+        ;     xor  data, salt_l
+        ;     call blowfish_encipher_register
+        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+        ;     rol  data, 32
+        ;     %assign i i+2
 
-            xor  data, salt_r
-            call blowfish_encipher_register
-            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
-        %endrep
+        ;     xor  data, salt_r
+        ;     call blowfish_encipher_register
+        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+        ;     rol  data, 32
+        ;     %assign i i+2
+        ; %endrep
 
         ; Write to P[16] and P[17]
         xor  data, salt_l
