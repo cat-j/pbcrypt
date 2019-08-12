@@ -61,6 +61,7 @@ section .text
 %define p_8_15              ymm2
 %define p_16_17             xmm3
 %define endianness_mask_ymm ymm15
+%define endianness_mask_xmm xmm15
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;;;;;; MACROS ;;;;;;;;;;
@@ -100,37 +101,6 @@ section .text
     add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
 %endmacro
 
-; %macro F_BIG_ENDIAN 4
-;     %define blf_state %1
-;     %define x         %2
-;     %define tmp       %3
-;     %define output    %4
-
-;     ; output <- S[0][x & 0xff] + S[1][x >> 8 & 0xff]
-;     mov tmp, x
-;     and tmp, 0xff ; lowest 8 bits
-;     mov output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
-;     mov tmp, x
-;     shr tmp, 8
-;     and tmp, 0xff ; second-lowest 8 bits
-;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
-;     add output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
-
-;     ; output <- output ^ S[2][x >> 16 & 0xff]
-;     mov tmp, x
-;     shr tmp, 16
-;     and tmp, 0xff ; second-highest 8 bits
-;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
-;     xor output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
-
-;     ; output <- output + S[3][x >> 24 & 0xff]
-;     mov tmp, x
-;     shr tmp, 24
-;     and tmp, 0xff ; highest 8 bits
-;     add blf_state, S_BOX_MEMORY_SIZE ; move to next S-box
-;     add output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE]
-; %endmacro
-
 ; %1 -> array of S-boxes
 ; %2: temporary register for F (modified)
 ; %3: data half
@@ -143,19 +113,6 @@ section .text
     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
 %endmacro
-
-; %macro BLOWFISH_ROUND_BIG_ENDIAN 6
-;     %define blf_state %1
-;     %define f_tmp     %2
-;     %define i         %3
-;     %define j         %4
-;     %define p_n       %5
-;     %define f_output  %6
-
-;     F_BIG_ENDIAN blf_state, j, f_tmp, f_output
-;     xor f_output, p_n
-;     xor i, f_output
-; %endmacro
 
 %macro F_BIG_ENDIAN 4
     %xdefine blf_state %1
@@ -185,15 +142,17 @@ section .text
     add output, [blf_state + 3*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
 %endmacro
 
-%macro BLOWFISH_ROUND_BIG_ENDIAN 6
+%macro BLOWFISH_ROUND_BIG_ENDIAN 7
     %xdefine blf_state %1
     %xdefine p_n       %2
     %xdefine i         %3
     %xdefine j         %4
     %xdefine f_output  %5
     %xdefine f_tmp     %6
+    %xdefine r_tmp     %7
 
     F_BIG_ENDIAN blf_state, j, f_output, f_tmp
+    REVERSE_4_BYTES f_output, f_tmp, r_tmp
     xor f_output, p_n
     xor i, f_output
 %endmacro
@@ -251,6 +210,30 @@ section .text
 
     shr %1, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
     or  %1, %3         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+%endmacro
+
+; input:  | b3 | b2 | b1 | b0 |
+; output: | b0 | b1 | b2 | b3 |
+%macro REVERSE_4_BYTES 3
+    %xdefine data %1
+    %xdefine tmp1 %2
+    %xdefine tmp2 %3
+
+    mov tmp1, data
+    shr tmp1, 24       ; | 00 | 00 | 00 | b3 |
+
+    mov tmp2, data
+    shr tmp2, 8        ; | 00 | b3 | b2 | b1 |
+    and tmp2, 0xff00   ; | 00 | 00 | b2 | 00 |
+    or  tmp1, tmp2     ; | 00 | 00 | b2 | b3 |
+
+    mov tmp2, data
+    shl tmp2, 8        ; | b2 | b1 | b0 | 00 |
+    and tmp2, 0xff0000 ; | 00 | b1 | 00 | 00 |
+    or  tmp1, tmp2     ; | 00 | b1 | b2 | b3 |
+
+    shr data, 24       ; | b0 | 00 | 00 | 00 |
+    or  data, tmp1     ; | b0 | b1 | b2 | b3 |
 %endmacro
 
 ; %1: key_data
@@ -566,6 +549,7 @@ blowfish_encipher_register:
         %define p_value_64 r9
         %define tmp1       r8
         %define tmp2       r11
+        %define tmp3       r10
     
     .do_encipher:
         ; Encrypt with P[0]
@@ -575,7 +559,7 @@ blowfish_encipher_register:
         ; Blowfish round with P[1]
         vpextrd p_value, p_0_7x, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
-            x_r_64, x_l_64, tmp1, tmp2
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)

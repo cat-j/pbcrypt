@@ -634,12 +634,20 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
 
     Xl = *xl;
     Xr = *xr;
-    // printf("xl: 0x%08x\n", Xl);
-    // printf("xr: 0x%08x\n", Xr);
 
     Xl ^= p[0];
 
+    // printf("P[1]: 0x%08x\n", p[1]);
+    // printf("  Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("s[0]: 0x%08x\n", (s)[(((Xl)>>24)&0xFF)]);
+    printf("s[1]: 0x%08x\n", (s)[0x100 + (((Xl)>>16)&0xFF)]);
+    printf("s[2]: 0x%08x\n", (s)[0x200 + (((Xl)>> 8)&0xFF)]);
+    printf("s[3]: 0x%08x\n", (s)[0x300 + ( (Xl)     &0xFF)]);
+    printf("F^p[1]: 0x%08x\n", F(s, Xl) ^ p[1]);
+    
+    // printf("0x%08x\n", s[0x100 + 0x21]);
     BLFRND(s, p, Xr, Xl, 1);
+    printf("  Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xl, Xr, 2);
     BLFRND(s, p, Xr, Xl, 3);
     BLFRND(s, p, Xl, Xr, 4);
@@ -701,31 +709,32 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
         /* Extract 4 int8 to 1 int32 from keystream */
         temp = Blowfish_stream2word(key, keybytes, &j);
         c->P[i] = c->P[i] ^ temp;
-        printf("P[%d]: 0x%08x\n", i, c->P[i]);
     }
     
     j = 0;
     datal = 0x00000000;
     datar = 0x00000000;
-    for (i = 0; i < BLF_N + 2; i += 2) {
+    for (i = 0; i < 1; i += 2) {
         datal ^= Blowfish_stream2word(data, databytes, &j);
         datar ^= Blowfish_stream2word(data, databytes, &j);
         Blowfish_encipher(c, &datal, &datar);
 
         c->P[i] = datal;
         c->P[i + 1] = datar;
+        // printf("P[%d]: 0x%08x\n", i, c->P[i]);
+        // printf("P[%d]: 0x%08x\n", i+1, c->P[i+1]);
     }
 
-    for (i = 0; i < 4; i++) {
-        for (k = 0; k < 256; k += 2) {
-            datal ^= Blowfish_stream2word(data, databytes, &j);
-            datar ^= Blowfish_stream2word(data, databytes, &j);
-            Blowfish_encipher(c, &datal, &datar);
+    // for (i = 0; i < 4; i++) {
+    //     for (k = 0; k < 256; k += 2) {
+    //         datal ^= Blowfish_stream2word(data, databytes, &j);
+    //         datar ^= Blowfish_stream2word(data, databytes, &j);
+    //         Blowfish_encipher(c, &datal, &datar);
 
-            c->S[i][k] = datal;
-            c->S[i][k + 1] = datar;
-        }
-    }
+    //         c->S[i][k] = datal;
+    //         c->S[i][k + 1] = datar;
+    //     }
+    // }
 }
 
 void
