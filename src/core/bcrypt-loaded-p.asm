@@ -220,7 +220,8 @@ section .text
     %xdefine tmp2 %3
 
     mov tmp1, data
-    shr tmp1, 24       ; | 00 | 00 | 00 | b3 |
+    shr tmp1, 24
+    and tmp1, 0xff     ; | 00 | 00 | 00 | b3 |
 
     mov tmp2, data
     shr tmp2, 8        ; | 00 | b3 | b2 | b1 |
@@ -232,7 +233,7 @@ section .text
     and tmp2, 0xff0000 ; | 00 | b1 | 00 | 00 |
     or  tmp1, tmp2     ; | 00 | b1 | b2 | b3 |
 
-    shr data, 24       ; | b0 | 00 | 00 | 00 |
+    shl data, 24       ; | b0 | 00 | 00 | 00 |
     or  data, tmp1     ; | b0 | b1 | b2 | b3 |
 %endmacro
 
