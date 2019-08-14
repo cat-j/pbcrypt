@@ -557,7 +557,7 @@ blowfish_encipher_register:
         vpextrd p_value, p_0_7x, 0
         xor     x_l, p_value
 
-        ; Blowfish round with P[1]
+        ; Blowfish rounds with P[1], ... P[7]
         vpextrd p_value, p_0_7x, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
@@ -565,6 +565,28 @@ blowfish_encipher_register:
         vpextrd p_value, p_0_7x, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_0_7x, 3
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_0_7x, 4
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        ; vpextrd p_value, p_0_7x, 5
+        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+        ;     x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        ; vpextrd p_value, p_0_7x, 6
+        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+        ;     x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        ; vpextrd p_value, p_0_7x, 7
+        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+        ;     x_r_64, x_l_64, tmp1, tmp2, tmp3
+        
+        .finish:
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)
