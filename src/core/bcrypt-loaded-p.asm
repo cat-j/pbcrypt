@@ -143,18 +143,18 @@ section .text
 %endmacro
 
 %macro BLOWFISH_ROUND_BIG_ENDIAN 7
-    %xdefine blf_state %1
-    %xdefine p_n       %2
-    %xdefine i         %3
-    %xdefine j         %4
-    %xdefine f_output  %5
-    %xdefine f_tmp     %6
-    %xdefine r_tmp     %7
+    ; %xdefine blf_state %1
+    ; %xdefine p_n       %2
+    ; %xdefine i         %3
+    ; %xdefine j         %4
+    ; %xdefine f_output  %5
+    ; %xdefine f_tmp     %6
+    ; %xdefine r_tmp     %7
 
-    F_BIG_ENDIAN blf_state, j, f_output, f_tmp
-    REVERSE_4_BYTES f_output, f_tmp, r_tmp
-    xor f_output, p_n
-    xor i, f_output
+    F_BIG_ENDIAN %1, %4, %5, %6
+    REVERSE_4_BYTES %5, %6, %7
+    xor %5, %2
+    xor %3, %5
 %endmacro
 
 ; %1: | l | r |, then | 0 | r |
@@ -215,26 +215,26 @@ section .text
 ; input:  | b3 | b2 | b1 | b0 |
 ; output: | b0 | b1 | b2 | b3 |
 %macro REVERSE_4_BYTES 3
-    %xdefine data %1
-    %xdefine tmp1 %2
-    %xdefine tmp2 %3
+    ; %xdefine data %1
+    ; %xdefine tmp1 %2
+    ; %xdefine tmp2 %3
 
-    mov tmp1, data
-    shr tmp1, 24
-    and tmp1, 0xff     ; | 00 | 00 | 00 | b3 |
+    mov %2, %1
+    shr %2, 24
+    and %2, 0xff     ; | 00 | 00 | 00 | b3 |
 
-    mov tmp2, data
-    shr tmp2, 8        ; | 00 | b3 | b2 | b1 |
-    and tmp2, 0xff00   ; | 00 | 00 | b2 | 00 |
-    or  tmp1, tmp2     ; | 00 | 00 | b2 | b3 |
+    mov %3, %1
+    shr %3, 8        ; | 00 | b3 | b2 | b1 |
+    and %3, 0xff00   ; | 00 | 00 | b2 | 00 |
+    or  %2, %3       ; | 00 | 00 | b2 | b3 |
 
-    mov tmp2, data
-    shl tmp2, 8        ; | b2 | b1 | b0 | 00 |
-    and tmp2, 0xff0000 ; | 00 | b1 | 00 | 00 |
-    or  tmp1, tmp2     ; | 00 | b1 | b2 | b3 |
+    mov %3, %1
+    shl %3, 8        ; | b2 | b1 | b0 | 00 |
+    and %3, 0xff0000 ; | 00 | b1 | 00 | 00 |
+    or  %2, %3       ; | 00 | b1 | b2 | b3 |
 
-    shl data, 24       ; | b0 | 00 | 00 | 00 |
-    or  data, tmp1     ; | b0 | b1 | b2 | b3 |
+    shl %1, 24       ; | b0 | 00 | 00 | 00 |
+    or  %1, %2       ; | b0 | b1 | b2 | b3 |
 %endmacro
 
 ; %1: key_data
@@ -561,6 +561,10 @@ blowfish_encipher_register:
         vpextrd p_value, p_0_7x, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_0_7x, 2
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)
