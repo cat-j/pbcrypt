@@ -642,7 +642,14 @@ blowfish_encipher_register:
         ; Encrypt with P[17] and flip
         vpextrd p_value, p_16_17, 1
         xor     x_r, p_value
-        
+    
+    .build_output:
+        shl x_l_64, 32     ; | Xl | 00 |
+        shr x_l_64, 32     ; | 00 | Xl |
+        shl x_r_64, 32     ; | Xr | 00 |
+        or  x_l_64, x_r_64 ; | Xr | Xl |
+        mov r13, x_l_64
+
     .end:
         add rbp, 8
         pop r8
