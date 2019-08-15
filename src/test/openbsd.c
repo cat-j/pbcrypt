@@ -659,7 +659,6 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
     BLFRND(s, p, Xr, Xl, 5);
     BLFRND(s, p, Xl, Xr, 6);
     BLFRND(s, p, Xr, Xl, 7);
-    printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xl, Xr, 8);
     BLFRND(s, p, Xr, Xl, 9);
     BLFRND(s, p, Xl, Xr, 10);
@@ -668,6 +667,7 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
     BLFRND(s, p, Xr, Xl, 13);
     BLFRND(s, p, Xl, Xr, 14);
     BLFRND(s, p, Xr, Xl, 15);
+    printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xl, Xr, 16);
 
     *xl = Xr ^ p[17];

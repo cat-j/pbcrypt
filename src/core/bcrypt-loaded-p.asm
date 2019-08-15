@@ -58,8 +58,8 @@ section .text
 %define salt                xmm0
 %define p_0_7               ymm1
 %define p_0_7x              xmm1
-; %define p_4_7x              xmm5
 %define p_8_15              ymm2
+%define p_8_15x             xmm2
 %define p_16_17             xmm3
 %define endianness_mask_ymm ymm15
 %define endianness_mask_xmm xmm15
@@ -558,7 +558,7 @@ blowfish_encipher_register:
         vpextrd p_value, p_0_7x, 0
         xor     x_l, p_value
 
-        ; Blowfish rounds with P[1], ... P[7]
+        ; Blowfish rounds with P[1], ..., P[3]
         vpextrd p_value, p_0_7x, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
@@ -571,9 +571,10 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        ; Move P[4],...,P[7] to lower part of the YMM register
+        ; Move P[4], ..., P[7] to lower part of the YMM register
         vpermq  p_0_7, p_0_7, 0x4e
 
+        ; Blowfish rounds with P[4], ..., P[7]
         vpextrd p_value, p_0_7x, 0
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
@@ -592,6 +593,47 @@ blowfish_encipher_register:
 
         ; Rotate 128 bits back
         vpermq  p_0_7, p_0_7, 0x4e
+
+        ; Blowfish rounds with P[8], ..., P[11]
+        vpextrd p_value, p_8_15x, 0
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_8_15x, 1
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_8_15x, 2
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_8_15x, 3
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        ; Move P[12], ..., P[15] to lower part of the YMM register
+        vpermq  p_8_15, p_8_15, 0x4e
+
+        ; Blowfish rounds with P[12], ..., P[15]
+        vpextrd p_value, p_8_15x, 0
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_8_15x, 1
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        vpextrd p_value, p_8_15x, 2
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
+
+    .round_15:
+        vpextrd p_value, p_8_15x, 3
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        ; Rotate 128 bits back
+        vpermq  p_8_15, p_8_15, 0x4e
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)
