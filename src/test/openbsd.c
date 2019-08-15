@@ -636,25 +636,10 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
     Xr = *xr;
 
     Xl ^= p[0];
-
-    // printf("P[1]: 0x%08x\n", p[1]);
-    // printf("  Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     
-    // printf("0x%08x\n", s[0x100 + 0x21]);
-    // printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xr, Xl, 1);
-    // printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xl, Xr, 2);
-    // printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xr, Xl, 3);
-    // printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
-    // printf("  p[4]: 0x%08x\n", p[4]);
-    // printf("  s[0]: 0x%08x\n", (s)[(((Xr)>>24)&0xFF)]);
-    // printf("  s[1]: 0x%08x\n", (s)[0x100 + (((Xr)>>16)&0xFF)]);
-    // printf("  s[2]: 0x%08x\n", (s)[0x200 + (((Xr)>> 8)&0xFF)]);
-    // printf("  s[3]: 0x%08x\n", (s)[0x300 + ( (Xr)     &0xFF)]);
-    // printf("F^p[4]: 0x%08x\n", F(s, Xr) ^ p[4]);
-    // printf("result: 0x%08x\n", F(s, Xr) ^ p[4] ^ Xl);
     BLFRND(s, p, Xl, Xr, 4);
     BLFRND(s, p, Xr, Xl, 5);
     BLFRND(s, p, Xl, Xr, 6);
@@ -667,14 +652,10 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
     BLFRND(s, p, Xr, Xl, 13);
     BLFRND(s, p, Xl, Xr, 14);
     BLFRND(s, p, Xr, Xl, 15);
-    printf("    Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
     BLFRND(s, p, Xl, Xr, 16);
 
     *xl = Xr ^ p[17];
     *xr = Xl;
-
-    // printf("xl: 0x%08x\n", Xr ^ p[17]);
-    // printf("xr: 0x%08x\n", Xl);
 }
 
 uint32_t

@@ -626,8 +626,7 @@ blowfish_encipher_register:
         vpextrd p_value, p_8_15x, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
-
-    .round_15:
+            
         vpextrd p_value, p_8_15x, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
@@ -635,58 +634,15 @@ blowfish_encipher_register:
         ; Rotate 128 bits back
         vpermq  p_8_15, p_8_15, 0x4e
 
-        ; %1 -> array of S-boxes
-        ; %2: temporary register for F (modified)
-        ; %3: data half
-        ; %4: other data half
-        ; %5: value read from P-array, p[n]
-        ; %6: temporary register for F output (modified)
-        ; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+        ; Blowfish round with P[16]
+        vpextrd p_value, p_16_17, 0
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        ; %macro BLOWFISH_ROUND 6
-        ;     F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
-        ;     xor %6, %5       ; %6 <- F(s, j) ^ p[n]
-        ;     xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
-        ; %endmacro
-
-
-        ; Read first two P elements
-    ;     lea p_array, [blf_state + BLF_CTX_P_OFFSET]
-    ;     mov tmp1, [p_array]  ; tmp1: | P1 | P0 |
-    ;     SPLIT_L_R tmp1, tmp2 ; tmp1: | 00 | P0 |  tmp2: | 00 | P1 |
-
-    ;     ; Start enciphering
-    ;     BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax ; BLFRND(s,p,xr,xl,1)
-    ;     sub blf_state, S_BOX_MEMORY_SIZE*3 ; it was modified for calculating F
-
-    ;     ; n is even and ranges 2 to 14
-    ;     ; n+1 is odd and ranges 3 to 15
-    ;     %rep 7
-    ;         lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-    ;         mov tmp1, [p_array] ; tmp1: | Pn+1 |  Pn  |
-    ;         SPLIT_L_R tmp1, tmp2
-    ;         BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1, rax
-    ;         sub blf_state, S_BOX_MEMORY_SIZE*3
-    ;         BLOWFISH_ROUND blf_state, rsi, x_r, x_l, tmp2, rax
-    ;         sub blf_state, S_BOX_MEMORY_SIZE*3
-    ;     %endrep
-
-    ;     ; Load P16 and P17 and perform remaining operations
-    ;     lea p_array, [p_array + P_VALUE_MEMORY_SIZE*2]
-    ;     mov tmp1, [p_array] ; tmp1: | P17 | P16 |
-    ;     SPLIT_L_R tmp1, tmp2
-    ;     BLOWFISH_ROUND blf_state, rsi, x_l, x_r, tmp1 , rax
-    ;     sub blf_state, S_BOX_MEMORY_SIZE*3
+        ; Encrypt with P[17] and flip
+        vpextrd p_value, p_16_17, 1
+        xor     x_r, p_value
         
-    ;     xor x_r, tmp2
-
-    ; .build_output:
-    ;     shl x_l, 32  ; | Xl | 00 |
-    ;     shl x_r, 32
-    ;     shr x_r, 32  ; | 00 | Xr |
-    ;     or  x_r, x_l ; | Xl | Xr |
-    ;     mov r13, x_r
-
     .end:
         add rbp, 8
         pop r8
