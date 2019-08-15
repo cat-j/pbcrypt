@@ -571,23 +571,27 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-    .round_4:
-        vpshufd p_0_7, p_0_7, 0x1b
-        vpextrd p_value, p_0_7x, 4
+        ; Move P[4],...,P[7] to lower part of the YMM register
+        vpermq  p_0_7, p_0_7, 0x4e
+
+        vpextrd p_value, p_0_7x, 0
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        ; vpextrd p_value, p_0_7x, 5
-        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
-        ;     x_r_64, x_l_64, tmp1, tmp2, tmp3
+        vpextrd p_value, p_0_7x, 1
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        ; vpextrd p_value, p_0_7x, 6
-        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
-        ;     x_l_64, x_r_64, tmp1, tmp2, tmp3
+        vpextrd p_value, p_0_7x, 2
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        ; vpextrd p_value, p_0_7x, 7
-        ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
-        ;     x_r_64, x_l_64, tmp1, tmp2, tmp3
+        vpextrd p_value, p_0_7x, 3
+        BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
+            x_r_64, x_l_64, tmp1, tmp2, tmp3
+
+        ; Rotate 128 bits back
+        vpermq  p_0_7, p_0_7, 0x4e
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)
