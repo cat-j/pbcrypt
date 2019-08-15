@@ -58,6 +58,7 @@ section .text
 %define salt                xmm0
 %define p_0_7               ymm1
 %define p_0_7x              xmm1
+; %define p_4_7x              xmm5
 %define p_8_15              ymm2
 %define p_16_17             xmm3
 %define endianness_mask_ymm ymm15
@@ -570,6 +571,8 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
+    .round_4:
+        vpshufd p_0_7, p_0_7, 0x1b
         vpextrd p_value, p_0_7x, 4
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
@@ -585,8 +588,6 @@ blowfish_encipher_register:
         ; vpextrd p_value, p_0_7x, 7
         ; BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
         ;     x_r_64, x_l_64, tmp1, tmp2, tmp3
-        
-        .finish:
 
         ; %1 -> array of S-boxes
         ; %2: temporary register for F (modified)
