@@ -762,12 +762,18 @@ blowfish_expand_state_asm:
         pextrq salt_l, salt, 0 ; leftmost 64 bits of salt =  Xl | Xr
         pextrq salt_r, salt, 1 ; rightmost 64 bits of salt = Xl | Xr 
 
-        ; Write to P[0], ... , P[15]
+        ; Write to P[0], ... , P[3]
         xor    data, salt_l
         call   blowfish_encipher_register
         pinsrq p_0_7x, data, 0
 
         xor    data, salt_r
+        call   blowfish_encipher_register
+        pinsrq p_0_7x, data, 1
+
+        xor    data, salt_l
+        call   blowfish_encipher_register
+        pinsrq p_0_7x, data, 2
         ; %assign i 0
         ; %rep 4
         ;     xor  data, salt_l
