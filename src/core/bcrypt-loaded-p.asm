@@ -68,6 +68,8 @@ section .text
 ; ;;;;;;;;;; MACROS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+%define ROTATE_128(Y) vpermq Y, Y, 0x4e
+
 ; TODO: see if this can be optimised by indexing
 ; with an 8-bit register instead of using & 0xff
 
@@ -551,7 +553,7 @@ blowfish_encipher_register:
         %define p_value_64 r9
         %define tmp1       r8
         %define tmp2       r11
-        %define tmp3       r10
+        %define tmp3       rax
     
     .do_encipher:
         ; Encrypt with P[0]
@@ -572,7 +574,7 @@ blowfish_encipher_register:
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
         ; Move P[4], ..., P[7] to lower part of the YMM register
-        vpermq  p_0_7, p_0_7, 0x4e
+        ROTATE_128(p_0_7)
 
         ; Blowfish rounds with P[4], ..., P[7]
         vpextrd p_value, p_0_7x, 0
@@ -591,8 +593,7 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        ; Rotate 128 bits back
-        vpermq  p_0_7, p_0_7, 0x4e
+        ROTATE_128(p_0_7)
 
         ; Blowfish rounds with P[8], ..., P[11]
         vpextrd p_value, p_8_15x, 0
@@ -612,7 +613,7 @@ blowfish_encipher_register:
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
         ; Move P[12], ..., P[15] to lower part of the YMM register
-        vpermq  p_8_15, p_8_15, 0x4e
+        ROTATE_128(p_8_15)
 
         ; Blowfish rounds with P[12], ..., P[15]
         vpextrd p_value, p_8_15x, 0
@@ -632,7 +633,7 @@ blowfish_encipher_register:
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
         ; Rotate 128 bits back
-        vpermq  p_8_15, p_8_15, 0x4e
+        ROTATE_128(p_8_15)
 
         ; Blowfish round with P[16]
         vpextrd p_value, p_16_17, 0
@@ -765,29 +766,24 @@ blowfish_expand_state_asm:
         ; Write to P[0], ... , P[3]
         xor    data, salt_l
         call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 0
+        pinsrq p_0_7x, data, 0 ; 0 and 1
 
         xor    data, salt_r
         call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 1
+        pinsrq p_0_7x, data, 1 ; 2 and 3
 
+        ; Write to P[4], ... , P[7]
         xor    data, salt_l
         call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 2
-        ; %assign i 0
-        ; %rep 4
-        ;     xor  data, salt_l
-        ;     call blowfish_encipher_register
-        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-        ;     rol  data, 32
-        ;     %assign i i+2
+        ROTATE_128(p_0_7)
+        pinsrq p_0_7x, data, 0 ; 4 and 5
+        ROTATE_128(p_0_7)
 
-        ;     xor  data, salt_r
-        ;     call blowfish_encipher_register
-        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-        ;     rol  data, 32
-        ;     %assign i i+2
-        ; %endrep
+        xor    data, salt_r
+        call   blowfish_encipher_register
+        ROTATE_128(p_0_7)
+        pinsrq p_0_7x, data, 1 ; 6 and 7
+        ROTATE_128(p_0_7)
 
         ; Write to P[16] and P[17]
         xor  data, salt_l
