@@ -644,10 +644,10 @@ blowfish_encipher_register:
         xor     x_r, p_value
     
     .build_output:
-        shl x_l_64, 32     ; | Xl | 00 |
-        shr x_l_64, 32     ; | 00 | Xl |
         shl x_r_64, 32     ; | Xr | 00 |
-        or  x_l_64, x_r_64 ; | Xr | Xl |
+        shr x_r_64, 32     ; | 00 | Xr |
+        shl x_l_64, 32     ; | Xl | 00 |
+        or  x_l_64, x_r_64 ; | Xl | Xr |
         mov r13, x_l_64
 
     .end:
@@ -710,8 +710,6 @@ blowfish_expand_state_asm:
         push r13
         push r14
     
-    ; LOAD_SALT_AND_P rdi, rsi
-
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
         ; key_data_ctr: byte index
@@ -760,13 +758,16 @@ blowfish_expand_state_asm:
         %define tmp2   r9
         %define tmp1l  ebx
 
-        xor    data, data      ; 0
+        xor    data, data      ; | 0000 0000 | 0000 0000 |
         pextrq salt_l, salt, 0 ; leftmost 64 bits of salt =  Xl | Xr
         pextrq salt_r, salt, 1 ; rightmost 64 bits of salt = Xl | Xr 
 
         ; Write to P[0], ... , P[15]
-        xor  data, salt_l
-        call blowfish_encipher_register
+        xor    data, salt_l
+        call   blowfish_encipher_register
+        pinsrq p_0_7x, data, 0
+
+        xor    data, salt_r
         ; %assign i 0
         ; %rep 4
         ;     xor  data, salt_l
