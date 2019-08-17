@@ -815,18 +815,20 @@ blowfish_expand_state_asm:
     .s_boxes_salt:
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         ; Two accesses per repetition -> 256 repetitions
+        ; FIXME: if anything is going wrong with S later,
+        ; it might be the endianness on this thing
         %assign i 0
         %rep 256
             xor  data, salt_r
             call blowfish_encipher_register
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            rol  data, 32
+            ; rol  data, 32
             %assign i i+2
 
             xor  data, salt_l
             call blowfish_encipher_register
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            rol  data, 32
+            ; rol  data, 32
             %assign i i+2
         %endrep
     
