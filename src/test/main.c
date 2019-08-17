@@ -215,7 +215,6 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes,
                          (uint8_t *) key, keybytes);
 
-    // FIXME: uncomment after coding all remaining functions with loaded P
     compare_states(state_actual, state_expected, test_name);
 }
 
@@ -422,37 +421,28 @@ int main(int argc, char const *argv[]) {
     char final_data_actual[BCRYPT_HASH_BYTES];
     char final_data_expected[BCRYPT_HASH_BYTES];
 
-    // if (variant < 2) {
-    //     // No YMM-loading, no need to preserve YMM regs
-        test_blowfish_init_state_asm(state, state_expected);
-        test_blowfish_round_all(state, "initial_state");
-        test_blowfish_encipher_asm_all(state, "initial_state");
-        test_F_asm_all(state, "initial_state");
+    test_blowfish_init_state_asm(state, state_expected);
+    test_blowfish_round_all(state, "initial_state");
+    test_blowfish_encipher_asm_all(state, "initial_state");
+    test_F_asm_all(state, "initial_state");
 
-        test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
-            key, keybytes, "initial_state");
+    test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
+        key, keybytes, "initial_state");
 
-        test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
-            "expanded_state");
-        
-        test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
-            "key_expanded_state");
+    test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
+        "expanded_state");
+    
+    test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
+        "key_expanded_state");
 
-        test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
-        
-        test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
-            "expanded_0_state");
+    test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
+    
+    test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
+        "expanded_0_state");
 
-        test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
+    test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
-        test_bcrypt_hashpass();
-    // } else {
-    //     // YMM registers must be preserved, so functions are tested
-    //     // inside wrappers for pure ASM code
-    //     test_blowfish_init_state_asm(state, state_expected);
-
-    // }
-
+    test_bcrypt_hashpass();
 
     test_get_record_data_all();
     
