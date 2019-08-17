@@ -69,6 +69,15 @@ section .text
     vpshufb  ymm3, endianness_mask_ymm
 %endmacro
 
+; %1 -> state
+; %2: helper general-purpose reg for extracting P[16] and P[17]
+%macro STORE_P 2
+    vmovdqa [%1 + BLF_CTX_P_OFFSET], p_0_7
+    vmovdqa [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE], p_8_15
+    vpextrq %2, p_16_17, 0
+    mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
+%endmacro
+
 blowfish_expand_state_wrapper:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
@@ -82,6 +91,7 @@ blowfish_expand_state_wrapper:
         call blowfish_init_state_asm
         LOAD_SALT_AND_P rdi, rsi
         call blowfish_expand_state_asm
+        STORE_P rdi, rax
 
     .end:
         pop rbp
@@ -118,6 +128,8 @@ blowfish_expand_0_state_wrapper:
         mov  rsi, key_ptr
         mov  rdx, key_len
         call blowfish_expand_0_state_asm
+
+        STORE_P rdi, rax
 
     .end:
         add rbp, 8
