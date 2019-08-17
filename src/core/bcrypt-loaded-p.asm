@@ -42,15 +42,15 @@ section .data
 ; length of bcrypt hash in 32-bit words
 %define BCRYPT_WORDS 6
 
-; unrolled loops, P-array in YMM registers, etc
-variant: dw 2
-
 align 16
 endianness_mask: db \
 0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, \
 0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, \
 0x13, 0x12, 0x11, 0x10, 0x17, 0x16, 0x15, 0x14, \
 0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
+
+; unrolled loops, P-array in YMM registers, etc
+variant: dw 2
 
 
 section .text
@@ -899,19 +899,23 @@ blowfish_expand_0_state_asm:
     
     .p_array_data:
         %define data   r13
-        %define tmp1   rcx
-        %define tmp2   r9
-        %define tmp1l  ecx
 
         xor data, data ; 0
 
-        %assign i 0
-        %rep 9
-            call blowfish_encipher_register
-            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
-        %endrep
+        ; Write to P[0], ... , P[3]
+        call   blowfish_encipher_register
+        pinsrq p_0_7x, data, 0 ; 0 and 1
+
+        call   blowfish_encipher_register
+        pinsrq p_0_7x, data, 1 ; 2 and 3
+
+        ; %assign i 0
+        ; %rep 9
+        ;     call blowfish_encipher_register
+        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+        ;     rol  data, 32
+        ;     %assign i i+2
+        ; %endrep
     
     .s_boxes_data:
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
@@ -976,7 +980,6 @@ blowfish_expand_0_state_salt_asm:
     
     .p_array_data:
         %define data   r13
-        %define tmp1   rcx
         %define tmp2   r9
         %define tmp1l  ecx
 
