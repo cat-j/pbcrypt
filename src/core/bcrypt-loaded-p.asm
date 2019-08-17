@@ -713,6 +713,8 @@ blowfish_expand_state_asm:
     
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
+        ; key_data_1: lower 16 bytes of key_data
+        ; key_data_2: helper for loading into key_data
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
@@ -854,32 +856,46 @@ blowfish_expand_0_state_asm:
         push r13
     
     .p_array_key:
-        ; key_data: a byte from the key
-        ; key_data_low: lower 8 bits of key_data
+        ; key_data: 32 bytes of key, wrapping
+        ; key_data_1: lower 16 bytes of key_data
+        ; key_data_2: helper for loading into key_data
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
-        %define key_data     r9
-        %define key_data_low r9b
+        %define key_data     ymm4
+        %define key_data_1   xmm4
+        %define key_data_2   xmm5
         %define key_data_ctr r10
         %define key_ptr      rsi
         %define key_len      rdx
         %define loop_ctr     r12
         %define data         r13
-    
-        ; Initialise registers
-        xor key_data, key_data
-        xor key_data_ctr, key_data_ctr
-        xor data, data
-        xor loop_ctr, loop_ctr
 
-        %assign j 0
-        %rep 9
-            XOR_WITH_KEY key_data, key_data_low, key_data_ctr, \
-                key_ptr, key_len, loop_ctr, data, j
-            %assign j j+2
-        %endrep
+        ; Initialise registers
+        pxor key_data_1, key_data_1
+        pxor key_data_2, key_data_2
+        xor  key_data_ctr, key_data_ctr
+        xor  loop_ctr, loop_ctr
+
+        .p_0_7:
+        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 1
+        vpxor p_0_7, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_8_15:
+        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 2
+        vpxor p_8_15, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_16_17:
+        pxor key_data_1, key_data_1
+        READ_8_KEY_BYTES key_data, key_data_1, key_data_2, \
+            key_data_ctr, key_ptr, key_len, loop_ctr, 3
+        pxor  p_16_17, key_data_1
+        xor   loop_ctr, loop_ctr
     
     .p_array_data:
         %define data   r13
