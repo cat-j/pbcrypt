@@ -699,7 +699,7 @@ blowfish_expand_state_asm:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
     ; rdx -> 4 to 56 byte key
-    ; rcx:    key length in bytes
+    ; rcx:   key length in bytes
     ; ymm0: salt
     ; ymm1, ymm2, ymm3: P-array
     

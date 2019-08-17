@@ -21,9 +21,9 @@ NASMFLAGS=-f elf64 -g -F DWARF
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c
 TEST_SOURCES=$(TEST)openbsd.c
-OBJS=bcrypt.o
+OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
-OBJS_LOADED_P=bcrypt-loaded-p.o
+OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
 
 
 .PHONY: all build test
@@ -48,7 +48,7 @@ test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
 	./build/test-no-unrolling
 
 test-loaded-p: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
-	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
 b64encode: $(UTILS)main.c $(UTILS)base64.c
@@ -61,6 +61,9 @@ bcrypt-no-unrolling.o: $(CORE)bcrypt-no-unrolling.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-loaded-p.o: $(CORE)bcrypt-loaded-p.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:
