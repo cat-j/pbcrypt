@@ -72,11 +72,16 @@ section .text
 ; %1 -> state
 ; %2: helper general-purpose reg for extracting P[16] and P[17]
 %macro STORE_P 2
+    vpshufb p_0_7, endianness_mask_ymm
+    vpshufb p_8_15, endianness_mask_ymm
+    vpshufb ymm3, endianness_mask_ymm
+
     vmovdqa [%1 + BLF_CTX_P_OFFSET], p_0_7
     vmovdqa [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE], p_8_15
     vpextrq %2, p_16_17, 0
     mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
 %endmacro
+
 
 blowfish_expand_state_wrapper:
     ; rdi -> blowfish state (modified)
@@ -91,7 +96,7 @@ blowfish_expand_state_wrapper:
         call blowfish_init_state_asm
         LOAD_SALT_AND_P rdi, rsi
         call blowfish_expand_state_asm
-        STORE_P rdi, rax
+        call fix_state_endianness
 
     .end:
         pop rbp
@@ -129,10 +134,36 @@ blowfish_expand_0_state_wrapper:
         mov  rdx, key_len
         call blowfish_expand_0_state_asm
 
-        STORE_P rdi, rax
+        call fix_state_endianness
 
     .end:
         add rbp, 8
         pop rbx
+        pop rbp
+        ret
+
+; Helper function for correcting endianness so that tests pass.
+; For internal use only.
+fix_state_endianness:
+    ; rdi -> blowfish state (modified)
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_function:
+        STORE_P rdi, rax
+
+        %assign i 0
+        ; 4 256-element boxes => 1024 elements
+        ; 4 bytes per element => 4096 bytes total
+        ; 32 bytes per YMM register => 4096/32 = 128 accesses to fix all the boxes
+        %rep    128
+            vmovdqa ymm14, [rdi + i*YMM_SIZE]
+            vpshufb ymm14, endianness_mask_ymm
+            vmovdqa [rdi + i*YMM_SIZE], ymm14
+            %assign i i+1
+        %endrep
+
+    .end:
         pop rbp
         ret
