@@ -240,6 +240,52 @@ section .text
     or  %1, %2       ; | b0 | b1 | b2 | b3 |
 %endmacro
 
+; %1: input, then output
+; %2: temp
+; %3: temp
+; %4: lower 32 bits of %2
+%macro REVERSE_ENDIANNESS_2_DWORDS 4
+    mov %3, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %3, 24               ; | b4 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %2, 8                ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+    and %2, 0xff000000000000 ; | 00 | b5 | 00 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2               ; | b4 | b5 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 8                ; | 00 | b7 | b6 | b5 | b4 | b3 | b1 | b0 |
+    and %2, 0xff0000000000   ; | 00 | 00 | b6 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2               ; | b4 | b5 | b6 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 24               ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %2, 0xff00000000     ; | 00 | 00 | 00 | b7 | 00 | 00 | 00 | 00 |
+    or  %3, %2               ; | b4 | b5 | b6 | b7 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 24               ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %2, 0xff             ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
+    or  %3, %2               ; | b4 | b5 | b6 | b7 | 00 | 00 | 00 | b3 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 8                ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+    and %2, 0xff00           ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | 00 |
+    or  %3, %2               ; | b4 | b5 | b6 | b7 | 00 | 00 | b2 | b3 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %2, 8                ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+    and %2, 0xff0000         ; | 00 | 00 | 00 | 00 | 00 | b1 | 00 | 00 |
+    or  %3, %2               ; | b4 | b5 | b6 | b7 | 00 | b1 | b2 | b3 |
+
+    mov %2, %1               ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %2, 24               ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
+    and %4, 0xff000000       ; | 00 | 00 | 00 | 00 | b0 | 00 | 00 | 00 |
+    or  %3, %2               ; | b4 | b5 | b6 | b7 | b0 | b1 | b2 | b3 |
+
+    mov %1, %3
+%endmacro
+
 ; %1: key_data
 ; %2: key_data_low
 ; %3: key_data_ctr
@@ -628,6 +674,7 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
             
+        .fucked_up:
         vpextrd p_value, p_8_15x, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
@@ -758,7 +805,7 @@ blowfish_expand_state_asm:
         %define salt_l r10
         %define salt_r r14
         %define tmp1   rbx
-        %define tmp2   r9
+        %define tmp2   r15
         %define tmp1l  ebx
 
         xor    data, data      ; | 0000 0000 | 0000 0000 |
@@ -815,24 +862,45 @@ blowfish_expand_state_asm:
         pinsrq p_16_17, data, 0
 
     .s_boxes_salt:
+        xor  data, salt_r
+        call blowfish_encipher_register
+        REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+        mov  [rdi], data
+
+        xor  data, salt_l
+        call blowfish_encipher_register
+        REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+        mov  [rdi + 8], data
+
+        xor  data, salt_r
+        call blowfish_encipher_register
+        mov  [rdi + 16], data
+
+        xor  data, salt_l
+        call blowfish_encipher_register
+        mov  [rdi + 24], data
+
+    .fucked_up:
+        xor  data, salt_r
+        call blowfish_encipher_register
+        mov  [rdi + 32], data
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         ; Two accesses per repetition -> 256 repetitions
-        ; FIXME: if anything is going wrong with S later,
-        ; it might be the endianness on this thing
-        %assign i 0
-        %rep 256
-            xor  data, salt_r
-            call blowfish_encipher_register
-            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            ; rol  data, 32
-            %assign i i+2
+        ; %assign i 0
+        ; %rep 256
+        ;     ; FIXME: this starts yielding wrong results at S[0][8]
+        ;     xor  data, salt_r
+        ;     call blowfish_encipher_register
+        ;     REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+        ;     mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+        ;     %assign i i+2
 
-            xor  data, salt_l
-            call blowfish_encipher_register
-            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            ; rol  data, 32
-            %assign i i+2
-        %endrep
+        ;     xor  data, salt_l
+        ;     call blowfish_encipher_register
+        ;     REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+        ;     mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+        ;     %assign i i+2
+        ; %endrep
     
     .end:
         pop r14
