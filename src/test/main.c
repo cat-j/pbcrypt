@@ -237,12 +237,17 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
 }
 
 void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state_expected,
-                                      const char *salt, const char *state_name)
+                                           const char *salt, const char *key,
+                                           uint16_t keybytes, const char *state_name)
 {
     char test_name[] = "test_blowfish_expand_0_state_salt_asm";
     test_start(test_name, "state: %s, salt: %s", state_name, salt);
 
-    blowfish_expand_0_state_salt_asm(state_actual, salt);
+    if (variant < 2) {
+        blowfish_expand_0_state_salt_asm(state_actual, salt);
+    } else {
+        blowfish_expand_0_state_salt_wrapper(state_actual, salt, key, keybytes);
+    }
     Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
 
     compare_states(state_actual, state_expected, test_name);
@@ -438,7 +443,7 @@ int main(int argc, char const *argv[]) {
         key, keybytes, "expanded_state");
     
     test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
-        "key_expanded_state");
+        key, keybytes, "key_expanded_state");
 
     test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
     

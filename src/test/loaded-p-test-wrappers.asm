@@ -13,6 +13,7 @@ extern blowfish_expand_0_state_salt_asm
 ; Exported functions
 global blowfish_expand_state_wrapper
 global blowfish_expand_0_state_wrapper
+global blowfish_expand_0_state_salt_wrapper
 
 
 section .data
@@ -84,6 +85,9 @@ section .text
 %endmacro
 
 
+; void blowfish_expand_state_wrapper(blf_ctx *state, const char *salt,
+;                                    const char *key, uint16_t keybytes)
+
 blowfish_expand_state_wrapper:
     ; rdi -> blowfish state (modified)
     ; rsi -> 128-bit salt
@@ -102,6 +106,9 @@ blowfish_expand_state_wrapper:
     .end:
         pop rbp
         ret
+
+; void blowfish_expand_0_state_wrapper(blf_ctx *state, const char *salt,
+;                                      const char *key, uint64_t keybytes)
 
 blowfish_expand_0_state_wrapper:
     ; rdi -> blowfish state (modified)
@@ -134,6 +141,50 @@ blowfish_expand_0_state_wrapper:
         mov  rsi, key_ptr
         mov  rdx, key_len
         call blowfish_expand_0_state_asm
+        STORE_P rdi, rax
+
+    .end:
+        add rbp, 8
+        pop rbx
+        pop rbp
+        ret
+
+; void blowfish_expand_0_state_salt_wrapper(blf_ctx *state, const char *salt,
+;                                           const char *key, uint64_t keybytes)
+
+blowfish_expand_0_state_salt_wrapper:
+    ; rdi -> blowfish state (modified)
+    ; rsi -> 128-bit salt
+    ; rdx -> 4 to 56 byte key
+    ; rcx:   key length in bytes
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+        push rbx
+        sub  rbp, 8
+
+    .do_function:
+        ; Save these values because blowfish_expand_state_asm would modify them
+        ; rbx -> salt
+        ; r12 -> key
+        ; r14:   key length in bytes
+        mov rbx, rsi
+        mov r12, rdx
+        mov r14, rcx
+        
+        call blowfish_init_state_asm
+        LOAD_SALT_AND_P rdi, rbx
+        call blowfish_expand_state_asm
+
+        %define salt_ptr  rbx
+        %define key_ptr   r12
+        %define key_len   r14
+
+        mov  rsi, key_ptr
+        mov  rdx, key_len
+        call blowfish_expand_0_state_asm
+
+        call blowfish_expand_0_state_salt_asm
         STORE_P rdi, rax
 
     .end:

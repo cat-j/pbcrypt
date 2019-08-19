@@ -840,8 +840,8 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 
         c->P[i] = datal;
         c->P[i + 1] = datar;
-        printf("P[%d]:\t0x%08x\n", i, c->P[i]);
-        printf("P[%d]:\t0x%08x\n", i+1, c->P[i+1]);
+        // printf("P[%d]:\t0x%08x\n", i, c->P[i]);
+        // printf("P[%d]:\t0x%08x\n", i+1, c->P[i+1]);
     }
 
     for (i = 0; i < 4; i++) {
@@ -914,7 +914,6 @@ Blowfish_expand0statesalt(blf_ctx *c, const uint8_t *key, uint16_t keybytes)
         /* Extract 4 int8 to 1 int32 from keystream */
         temp = Blowfish_stream2word(key, keybytes, &j);
         c->P[i] = c->P[i] ^ temp;
-        // printf("P[%d]: 0x%08x\n", i, c->P[i]);
     }
 
     j = 0;
@@ -925,6 +924,8 @@ Blowfish_expand0statesalt(blf_ctx *c, const uint8_t *key, uint16_t keybytes)
 
         c->P[i] = datal;
         c->P[i + 1] = datar;
+        // printf("P[%d]:\t0x%08x\n", i, c->P[i]);
+        // printf("P[%d]:\t0x%08x\n", i+1, c->P[i+1]);
     }
 
     for (i = 0; i < 4; i++) {
