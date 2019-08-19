@@ -12,6 +12,7 @@ extern blowfish_expand_0_state_salt_asm
 
 ; Exported functions
 global blowfish_expand_state_wrapper
+global blowfish_expand_0_state_wrapper
 
 
 section .data
@@ -96,7 +97,7 @@ blowfish_expand_state_wrapper:
         call blowfish_init_state_asm
         LOAD_SALT_AND_P rdi, rsi
         call blowfish_expand_state_asm
-        call fix_state_endianness
+        STORE_P rdi, rax
 
     .end:
         pop rbp
@@ -133,8 +134,7 @@ blowfish_expand_0_state_wrapper:
         mov  rsi, key_ptr
         mov  rdx, key_len
         call blowfish_expand_0_state_asm
-
-        call fix_state_endianness
+        STORE_P rdi, rax
 
     .end:
         add rbp, 8

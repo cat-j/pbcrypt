@@ -18,6 +18,7 @@ void Blowfish_expand0state(blf_ctx *c, const uint8_t *key, uint16_t keybytes);
 void Blowfish_expand0statesalt(blf_ctx *c, const uint8_t *key, uint16_t keybytes);
 
 void Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr);
+void Blowfish_encipher_debug(const blf_ctx *c, uint32_t *xl, uint32_t *xr);
 
 void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks);
 

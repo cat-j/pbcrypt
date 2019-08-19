@@ -951,21 +951,46 @@ blowfish_expand_0_state_asm:
         call   blowfish_encipher_register
         pinsrq p_0_7x, data, 1 ; 2 and 3
 
-        ; %assign i 0
-        ; %rep 9
-        ;     call blowfish_encipher_register
-        ;     mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-        ;     rol  data, 32
-        ;     %assign i i+2
-        ; %endrep
+        ; Write to P[4], ... , P[7]
+        call   blowfish_encipher_register
+        ROTATE_128(p_0_7)
+        pinsrq p_0_7x, data, 0 ; 4 and 5
+        ROTATE_128(p_0_7)
+
+        call   blowfish_encipher_register
+        ROTATE_128(p_0_7)
+        pinsrq p_0_7x, data, 1 ; 6 and 7
+        ROTATE_128(p_0_7)
+
+        ; Write to P[8], ... , P[11]
+        call   blowfish_encipher_register
+        pinsrq p_8_15x, data, 0 ; 8 and 9
+
+        call   blowfish_encipher_register
+        pinsrq p_8_15x, data, 1 ; 10 and 11
+
+        ; Write to P[12], ... , P[15]
+        call   blowfish_encipher_register
+        ROTATE_128(p_8_15)
+        pinsrq p_8_15x, data, 0 ; 12 and 13
+        ROTATE_128(p_8_15)
+
+        call   blowfish_encipher_register
+        ROTATE_128(p_8_15)
+        pinsrq p_8_15x, data, 1 ; 14 and 15
+        ROTATE_128(p_8_15)
+
+        ; Write to P[16] and P[17]
+        call   blowfish_encipher_register
+        pinsrq p_16_17, data, 0
     
     .s_boxes_data:
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         %assign i 0
         %rep 512
             call blowfish_encipher_register
-            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            rol  data, 32
+            REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], tmp2
             %assign i i+2
         %endrep
 

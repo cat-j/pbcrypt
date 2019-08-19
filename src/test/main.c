@@ -219,13 +219,18 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
 }
 
 void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
+                                      const char *salt, uint16_t saltbytes,
                                       const char *key, uint16_t keybytes,
                                       const char *state_name)
 {
     char test_name[] = "test_blowfish_expand_0_state_asm";
     test_start(test_name, "state: %s, key: %s", state_name, key);
 
-    blowfish_expand_0_state_asm(state_actual, key, keybytes);
+    if (variant < 2) {
+        blowfish_expand_0_state_asm(state_actual, key, keybytes);
+    } else {
+        blowfish_expand_0_state_wrapper(state_actual, salt, key, keybytes);
+    }
     Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
 
     compare_states(state_actual, state_expected, test_name);
@@ -422,15 +427,15 @@ int main(int argc, char const *argv[]) {
     char final_data_expected[BCRYPT_HASH_BYTES];
 
     test_blowfish_init_state_asm(state, state_expected);
-    test_blowfish_round_all(state, "initial_state");
-    test_blowfish_encipher_asm_all(state, "initial_state");
-    test_F_asm_all(state, "initial_state");
+    // test_blowfish_round_all(state, "initial_state");
+    // test_blowfish_encipher_asm_all(state, "initial_state");
+    // test_F_asm_all(state, "initial_state");
 
     test_blowfish_expand_state_asm(state, state_expected, salt, saltbytes,
         key, keybytes, "initial_state");
 
-    test_blowfish_expand_0_state_asm(state, state_expected, key, keybytes,
-        "expanded_state");
+    test_blowfish_expand_0_state_asm(state, state_expected, salt, saltbytes,
+        key, keybytes, "expanded_state");
     
     test_blowfish_expand_0_state_salt_asm(state, state_expected, salt,
         "key_expanded_state");

@@ -51,6 +51,10 @@
                   + (s)[0x300 + ( (x)     &0xFF)])
 
 #define BLFRND(s,p,i,j,n) (i ^= F(s,j) ^ (p)[n])
+#define BLFRND_DEBUG(s,p,i,j,n) \
+    printf("F:\t0x%08x\n", F(s,j)); \
+    printf("F^p[n]:\t0x%08x\n", F(s,j) ^ p[n]); \
+    i ^= F_DEBUG(c,j) ^ (p)[n];
 
 #define BLF_N 16              /* Number of Subkeys */
 #define BCRYPT_WORDS 6        /* Ciphertext words */
@@ -58,6 +62,26 @@
 
 #define BCRYPT_SALTSPACE (7 + (BCRYPT_MAXSALT * 4 + 2) / 3 + 1)
 #define BCRYPT_HASHSPACE 61
+
+uint32_t F_DEBUG(uint32_t *s, uint32_t x) {
+    printf("\n");
+    uint32_t x0 = (s)[(((x)>>24)&0xFF)];
+    uint32_t x1 = (s)[0x100 + (((x)>>16)&0xFF)];
+    uint32_t x2 = (s)[0x200 + (((x)>> 8)&0xFF)];
+    uint32_t x3 = (s)[0x300 + ((x)&0xFF)];
+
+    printf("S[0][%d]:\t\t0x%08x\n", x>>24 & 0xFF, x0);
+    printf("S[1][%d]:\t\t0x%08x\n", x>>16 & 0xFF, x1);
+    printf("S[2][%d]:\t\t0x%08x\n", x>>8 & 0xFF, x2);
+    printf("S[3][%d]:\t\t0x%08x\n", x & 0xFF, x3);
+
+    printf("x0 + x1:\t\t0x%08x\n", x0 + x1);
+    printf("x0 + x1 ^ x2:\t\t0x%08x\n", (x0 + x1) ^ x2);
+    printf("x0 + x1 ^ x2 + x3:\t0x%08x\n", ((x0 + x1) ^ x2) + x3);
+    printf("\n");
+
+    return F(s, x);
+}
 
 void
 Blowfish_initstate(blf_ctx *c) {
@@ -660,6 +684,110 @@ Blowfish_encipher(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
     *xr = Xl;
 }
 
+void
+Blowfish_encipher_debug(const blf_ctx *c, uint32_t *xl, uint32_t *xr) {
+    uint32_t Xl;
+    uint32_t Xr;
+    const uint32_t *s = c->S[0];
+    const uint32_t *p = c->P;
+
+    Xl = *xl;
+    Xr = *xr;
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 0 ==========\n");
+    Xl ^= p[0];
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+    
+    printf("========== 1 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 1);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 2 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 2);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 3 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 3);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 4 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 4);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 5 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 5);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 6 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 6);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 7 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 7);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 8 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 8);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 9 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 9);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 10 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 10);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 11 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 11);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 12 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 12);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 13 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 13);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 14 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 14);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 15 ==========\n");
+    BLFRND_DEBUG(s, p, Xr, Xl, 15);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    printf("========== 16 ==========\n");
+    BLFRND_DEBUG(s, p, Xl, Xr, 16);
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr);
+    printf("\n");
+
+    *xl = Xr ^ p[17];
+    *xr = Xl;
+    printf("========== 17 ==========\n");
+    printf("Xl: 0x%08x\tXr: 0x%08x\n", Xl, Xr^p[17]);
+    printf("\n");
+}
+
 uint32_t
 Blowfish_stream2word(const uint8_t *data, uint16_t databytes,
     uint16_t *current)
@@ -685,7 +813,6 @@ void
 Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
     const uint8_t *key, uint16_t keybytes)
 {
-    // printf("RUNNING BLOWFISH_EXPANDSTATE YEAH BITCH\n");
     uint16_t i;
     uint16_t j;
     uint16_t k;
@@ -713,40 +840,19 @@ Blowfish_expandstate(blf_ctx *c, const uint8_t *data, uint16_t databytes,
 
         c->P[i] = datal;
         c->P[i + 1] = datar;
+        printf("P[%d]:\t0x%08x\n", i, c->P[i]);
+        printf("P[%d]:\t0x%08x\n", i+1, c->P[i+1]);
     }
 
     for (i = 0; i < 4; i++) {
         for (k = 0; k < 256; k += 2) {
             datal ^= Blowfish_stream2word(data, databytes, &j);
             datar ^= Blowfish_stream2word(data, databytes, &j);
-            // if (i == 0 && k == 0) {
-            //     printf("datal: 0x%08x\n", datal);
-            //     printf("datar: 0x%08x\n", datar);
-            // }
-
+            // printf("\n=======DEBUGGING S[%d][%d]=======\n", i, k);
             Blowfish_encipher(c, &datal, &datar);
 
             c->S[i][k] = datal;
             c->S[i][k + 1] = datar;
-            // if (i == 0 && k == 0) {
-            //     printf("S[0][0]: 0x%08x\n", c->S[0][0]);
-            //     printf("S[0][1]: 0x%08x\n", c->S[0][1]);
-            // }
-
-            // if (i == 0 && k == 2) {
-            //     printf("S[0][2]: 0x%08x\n", c->S[0][2]);
-            //     printf("S[0][3]: 0x%08x\n", c->S[0][3]);
-            // }
-
-            // if (i == 0 && k == 4) {
-            //     printf("S[0][4]: 0x%08x\n", c->S[0][4]);
-            //     printf("S[0][5]: 0x%08x\n", c->S[0][5]);
-            // }
-
-            // if (i == 0 && k == 6) {
-            //     printf("S[0][6]: 0x%08x\n", c->S[0][6]);
-            //     printf("S[0][7]: 0x%08x\n", c->S[0][7]);
-            // }
         }
     }
 }
