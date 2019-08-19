@@ -1,0 +1,398 @@
+%ifndef _BCRYPT_MACROS_MAC_
+%define _BCRYPT_MACROS_MAC_
+
+; how many 1-byte memory slots each P_n takes up
+%define P_VALUE_MEMORY_SIZE 4
+; how many 1-byte memory slots each element in an S-box takes up
+%define S_ELEMENT_MEMORY_SIZE 4
+; how many 1-byte memory slots one S-box takes up
+%define S_BOX_MEMORY_SIZE 1024
+; encryption rounds
+%define ROUNDS 16
+; YMM register size in bytes
+%define YMM_SIZE 32
+; P-array byte offset within context struct
+%define BLF_CTX_P_OFFSET 4096
+; length of bcrypt hash in 32-bit words
+%define BCRYPT_WORDS 6
+
+%define salt                xmm0
+%define p_0_7               ymm1
+%define p_0_7x              xmm1
+%define p_8_15              ymm2
+%define p_8_15x             xmm2
+%define p_16_17             xmm3
+%define endianness_mask_ymm ymm15
+%define endianness_mask_xmm xmm15
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;;;;;;;;; MACROS ;;;;;;;;;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+%define ROTATE_128(Y) vpermq Y, Y, 0x4e
+
+; TODO: see if this can be optimised by indexing
+; with an 8-bit register instead of using & 0xff
+
+; Function for Feistel network
+; %1 -> array of S-boxes
+; %2: data
+; %3: temporary register for shifting data (modified)
+; %4: output (modified)
+%macro F 4
+    ; %4 <- S[0][x >> 24] + S[1][x >> 16 & 0xff]
+    mov %3, %2
+    shr %3, 24 ; highest 8 bits
+    and %3, 0xff
+    mov %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+    mov %3, %2
+    shr %3, 16
+    and %3, 0xff ; second-highest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+
+    ; %4 <- %4 ^ S[2][x >> 8 & 0xff]
+    mov %3, %2
+    shr %3, 8
+    and %3, 0xff ; second-lowest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    xor %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+
+    ; %4 <- %4 + S[3][x & 0xff]
+    mov %3, %2
+    and %3, 0xff ; lowest 8 bits
+    add %1, S_BOX_MEMORY_SIZE ; move to next S-box
+    add %4, [%1 + %3*S_ELEMENT_MEMORY_SIZE]
+%endmacro
+
+; %1 -> array of S-boxes
+; %2: temporary register for F (modified)
+; %3: data half
+; %4: other data half
+; %5: value read from P-array, p[n]
+; %6: temporary register for F output (modified)
+; BLOWFISH_ROUND s, t1, i, j, p[n], t2
+%macro BLOWFISH_ROUND 6
+    F %1, %4, %2, %6 ; %6 <- F(%1, %4) = F(s, j)
+    xor %6, %5       ; %6 <- F(s, j) ^ p[n]
+    xor %3, %6       ;  i <- i ^ F(s, j) ^ p[n]
+%endmacro
+
+%macro F_BIG_ENDIAN 4
+    %xdefine blf_state %1
+    %xdefine x         %2
+    %xdefine output    %3
+    %xdefine tmp       %4
+    
+    ; output <- s[x & 0xff] + s[0x100 + (x>>8) & 0xff]
+    mov tmp, x
+    and tmp, 0xff
+    mov output, [blf_state + tmp*S_ELEMENT_MEMORY_SIZE] ; s[x & 0xff]
+    mov tmp, x
+    shr tmp, 8
+    and tmp, 0xff
+    add output, [blf_state + S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+
+    ; output <- output ^ s[0x200 + (x>>16) & 0xff]
+    mov tmp, x
+    shr tmp, 16
+    and tmp, 0xff
+    xor output, [blf_state + 2*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+
+    ; output <- output + s[0x300 + (x>>24) & 0xff]
+    mov tmp, x
+    shr tmp, 24
+    and tmp, 0xff
+    add output, [blf_state + 3*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+%endmacro
+
+%macro BLOWFISH_ROUND_BIG_ENDIAN 7
+    ; %xdefine blf_state %1
+    ; %xdefine p_n       %2
+    ; %xdefine i         %3
+    ; %xdefine j         %4
+    ; %xdefine f_output  %5
+    ; %xdefine f_tmp     %6
+    ; %xdefine r_tmp     %7
+
+    F_BIG_ENDIAN %1, %4, %5, %6
+    REVERSE_4_BYTES %5, %6, %7
+    xor %5, %2
+    xor %3, %5
+%endmacro
+
+; %1: | l | r |, then | 0 | r |
+; %2: |garbage|, then | 0 | l |
+%macro SPLIT_L_R 2
+    mov %2, %1
+    shl %1, 32
+    shr %1, 32
+    shr %2, 32
+%endmacro
+
+; TODO: see if this is faster with shifts
+; (or justify why you didn't)
+; input:  | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+; output: | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+; %1: input, then output
+; %2: temp
+; %3: temp
+; %4: lower 32 bits of %2
+%macro REVERSE_8_BYTES 4
+    mov %3, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %3, 56         ; | b0 | 00 | 00 | 00 | 00 | 00 | 00 | 00 |
+    
+    mov %2, %1
+    and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b1 | 00 |
+    shl %2, 40         ; | 00 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2         ; | b0 | b1 | 00 | 00 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b2 | 00 | 00 |
+    shl %2, 24         ; | 00 | 00 | b2 | 00 | 00 | 00 | 00 | 00 |
+    or  %3, %2         ; | b0 | b1 | b2 | 00 | 00 | 00 | 00 | 00 |
+    
+    mov %2, %1
+    and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b3 | 00 | 00 | 00 |
+    shl %2, 8          ; | 00 | 00 | 00 | b3 | 00 | 00 | 00 | 00 |
+    or  %3, %2         ; | b0 | b1 | b2 | b3 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1
+    shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+    and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
+    or  %3, %2         ; | b0 | b1 | b2 | b3 | b4 | 00 | 00 | 00 |
+    
+    mov %2, %1
+    shr %2, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
+    or  %3, %2         ; | b0 | b1 | b2 | b3 | b4 | b5 | 00 | 00 |
+
+    mov %2, %1
+    shr %2, 40         ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
+    and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
+    or  %3, %2         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | 00 |
+
+    shr %1, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
+    or  %1, %3         ; | b0 | b1 | b2 | b3 | b4 | b5 | b6 | b7 |
+%endmacro
+
+; input:  | b3 | b2 | b1 | b0 |
+; output: | b0 | b1 | b2 | b3 |
+%macro REVERSE_4_BYTES 3
+    ; %xdefine data %1
+    ; %xdefine tmp1 %2
+    ; %xdefine tmp2 %3
+
+    mov %2, %1
+    shr %2, 24
+    and %2, 0xff     ; | 00 | 00 | 00 | b3 |
+
+    mov %3, %1
+    shr %3, 8        ; | 00 | b3 | b2 | b1 |
+    and %3, 0xff00   ; | 00 | 00 | b2 | 00 |
+    or  %2, %3       ; | 00 | 00 | b2 | b3 |
+
+    mov %3, %1
+    shl %3, 8        ; | b2 | b1 | b0 | 00 |
+    and %3, 0xff0000 ; | 00 | b1 | 00 | 00 |
+    or  %2, %3       ; | 00 | b1 | b2 | b3 |
+
+    shl %1, 24       ; | b0 | 00 | 00 | 00 |
+    or  %1, %2       ; | b0 | b1 | b2 | b3 |
+%endmacro
+
+; %1: input
+; %2: temp
+; %3: output
+; %4: lower 32 bits of %2
+%macro REVERSE_ENDIANNESS_2_DWORDS 4
+    mov %2, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+    and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b4 | 00 | 00 | 00 |
+
+    mov %3, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %3, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %3, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b5 | 00 | 00 |
+    or  %2, %3         ; | 00 | 00 | 00 | 00 | b4 | b5 | 00 | 00 |
+
+    mov %3, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %3, 40         ; | 00 | 00 | 00 | 00 | 00 | b7 | b6 | b5 |
+    and %3, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b6 | 00 |
+    or  %2, %3         ; | 00 | 00 | 00 | 00 | b4 | b5 | b6 | 00 |
+
+    mov %3, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %3, 56         ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b7 |
+    or  %3, %2         ; | 00 | 00 | 00 | 00 | b4 | b5 | b6 | b7 |
+    shl %3, 32         ; | b4 | b5 | b6 | b7 | 00 | 00 | 00 | 00 |
+
+    mov %2, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %2, 24         ; | b4 | b3 | b2 | b1 | b0 | 00 | 00 | 00 |
+    and %4, 0xff000000 ; | 00 | 00 | 00 | 00 | b0 | 00 | 00 | 00 |
+    or  %3, %2         ; | b4 | b5 | b6 | b7 | b0 | 00 | 00 | 00 |
+
+    mov %2, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shl %2, 8          ; | b6 | b5 | b4 | b3 | b2 | b1 | b0 | 00 |
+    and %2, 0xff0000   ; | 00 | 00 | 00 | 00 | 00 | b1 | 00 | 00 |
+    or  %3, %2         ; | b4 | b5 | b6 | b7 | b0 | b1 | 00 | 00 |
+
+    mov %2, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 8          ; | 00 | b7 | b6 | b5 | b4 | b3 | b2 | b1 |
+    and %2, 0xff00     ; | 00 | 00 | 00 | 00 | 00 | 00 | b2 | 00 |
+    or  %3, %2         ; | b4 | b5 | b6 | b7 | b0 | b1 | b2 | 00 |
+
+    mov %2, %1         ; | b7 | b6 | b5 | b4 | b3 | b2 | b1 | b0 |
+    shr %2, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
+    and %2, 0xff       ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
+    or  %3, %2         ; | b4 | b5 | b6 | b7 | b0 | b1 | b2 | b3 |
+%endmacro
+
+; %1: key_data
+; %2: key_data_low
+; %3: key_data_ctr
+; %4: key_ptr
+; %5: key_len
+; %6: loop_ctr
+; %7: data
+; %8: iteration number
+%macro XOR_WITH_KEY 8
+    .key_loop_%8:
+        cmp %6, 8
+        je  .end_key_loop_%8
+
+        .extract_key_bytes_%8:
+            cmp %3, %5
+            jl  .continue_extract_%8
+            xor %3, %3 ; reset counter
+
+        .continue_extract_%8:
+            mov %2, [%4 + %3] ; key_data_low, [key_ptr + key_data_ctr]
+            shl %7, 8
+            or  %7, %1
+
+            inc %3
+            inc %6
+            jmp .key_loop_%8
+
+    .end_key_loop_%8:
+        rol %7, 32
+        xor [rdi + BLF_CTX_P_OFFSET + %8*P_VALUE_MEMORY_SIZE], %7
+        xor %6, %6
+%endmacro
+
+; %8: iteration number
+%macro READ_32_KEY_BYTES 8
+
+    %define key_data     %1
+    %define key_data_1   %2
+    %define key_data_2   %3
+    %define key_data_ctr %4
+    %define key_ptr      %5
+    %define key_len      %6
+    %define loop_ctr     %7
+
+    .lower_half_loop_%8:
+        cmp     loop_ctr, 16
+        je      .upper_half_loop_%8
+        vpsrldq key_data, 1
+
+        .extract_key_bytes_lower_%8:
+            cmp     key_data_ctr, key_len
+            jl      .continue_extract_lower_%8
+            xor     key_data_ctr, key_data_ctr ; wrap around
+
+        .continue_extract_lower_%8:
+            vpinsrb key_data_1, [key_ptr + key_data_ctr], 15
+            inc     loop_ctr
+            inc     key_data_ctr
+            jmp     .lower_half_loop_%8
+    
+    .upper_half_loop_%8:
+        cmp     loop_ctr, 32
+        je      .end_load_key_%8
+        vpsrldq key_data_2, 1
+
+        .extract_key_bytes_higher_%8:
+            cmp     key_data_ctr, key_len
+            jl      .continue_extract_higher_%8
+            xor     key_data_ctr, key_data_ctr
+
+        .continue_extract_higher_%8:
+            vpinsrb key_data_2, [key_ptr + key_data_ctr], 15
+            inc     loop_ctr
+            inc     key_data_ctr
+            jmp     .upper_half_loop_%8
+        
+    .end_load_key_%8:
+        vinserti128 key_data, key_data_2, 1
+
+%endmacro
+
+%macro READ_8_KEY_BYTES 8
+    .key_loop_%8:
+        cmp     loop_ctr, 8
+        je      .end_key_loop_%8
+        vpsrldq key_data_1, 1
+    
+    .extract_key_bytes_%8:
+        cmp     key_data_ctr, key_len
+        jl      .continue_extract_%8
+        xor     key_data_ctr, key_data_ctr
+
+    .continue_extract_%8:
+        vpinsrb key_data_1, [key_ptr + key_data_ctr], 7
+        inc     loop_ctr
+        inc     key_data_ctr
+        jmp     .key_loop_%8
+    
+    .end_key_loop_%8:
+%endmacro
+
+; %1 -> ciphertext buffer
+; %2: temporary register
+; %3: temporary register
+; %4: temporary register
+; %5: lower 32 bits of %3
+; %6 -> 24-byte ciphertext to be copied
+%macro COPY_CTEXT 6
+    %assign j 0
+    %rep BCRYPT_WORDS / 2
+        mov %2, [%6 + j*8]
+        REVERSE_8_BYTES %2, %3, %4, %5
+        rol %2, 32
+        mov [%1 + j*8], %2
+        %assign j j+1
+    %endrep
+%endmacro
+
+; Keep salt and P-array cached
+; %1 -> state
+; %2 -> salt
+%macro LOAD_SALT_AND_P 2
+    vmovdqa  endianness_mask_ymm, [endianness_mask]
+    vpxor    p_16_17, p_16_17
+    
+    movdqu   salt, [%2]
+    vmovdqa  p_0_7, [%1 + BLF_CTX_P_OFFSET]
+    vmovdqa  p_8_15, [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE]
+    vpinsrq  p_16_17, p_16_17, \
+             [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], 0
+    
+    vpshufb  p_0_7, endianness_mask_ymm
+    vpshufb  p_8_15, endianness_mask_ymm
+    vpshufb  ymm3, endianness_mask_ymm
+%endmacro
+
+; %1 -> state
+; %2: helper general-purpose reg for extracting P[16] and P[17]
+%macro STORE_P 2
+    vpshufb p_0_7, endianness_mask_ymm
+    vpshufb p_8_15, endianness_mask_ymm
+    vpshufb ymm3, endianness_mask_ymm
+
+    vmovdqa [%1 + BLF_CTX_P_OFFSET], p_0_7
+    vmovdqa [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE], p_8_15
+    vpextrq %2, p_16_17, 0
+    mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
+%endmacro
+
+%endif
