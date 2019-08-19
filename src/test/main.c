@@ -444,9 +444,11 @@ int main(int argc, char const *argv[]) {
         key, keybytes, "key_expanded_state");
 
     test_copy_ctext_asm(data_actual, data_expected, (const char *) initial_ctext);
-    
-    test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
-        "expanded_0_state");
+
+    if (variant < 2) {
+        test_blowfish_encrypt_asm_rounds(state, data_actual, data_expected, 64,
+            "expanded_0_state");
+    }    
 
     test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
