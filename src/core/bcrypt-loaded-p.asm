@@ -293,7 +293,6 @@ blowfish_encipher_register:
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
             
-        .fucked_up:
         vpextrd p_value, p_8_15x, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
@@ -376,6 +375,8 @@ blowfish_expand_state_asm:
         push r12
         push r13
         push r14
+        push r15
+        sub  rbp, 8
     
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
@@ -497,6 +498,8 @@ blowfish_expand_state_asm:
         %endrep
     
     .end:
+        add rbp, 8
+        pop r15
         pop r14
         pop r13
         pop r12
@@ -516,6 +519,8 @@ blowfish_expand_0_state_asm:
         mov  rbp, rsp
         push r12
         push r13
+        push r8
+        sub  rbp, 8
     
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
@@ -615,6 +620,8 @@ blowfish_expand_0_state_asm:
         %endrep
 
     .end:
+        add rbp, 8
+        pop r8
         pop r13
         pop r12
         pop rbp
@@ -631,7 +638,7 @@ blowfish_expand_0_state_salt_asm:
         push rbx
         push r13
         push r14
-        sub  rbp, 8
+        push r8
 
     ; Bespoke variant of blowfish_expand_0_state_asm for optimised
     ; encryption with salt. No expensive key reading needed, as salt
@@ -706,7 +713,7 @@ blowfish_expand_0_state_salt_asm:
         %endrep
     
     .end:
-        add rbp, 8
+        pop r8
         pop r14
         pop r13
         pop rbx
@@ -752,7 +759,6 @@ blowfish_encrypt_asm:
 ;                          const char *key, uint16_t keybytes,
 ;                          uint8_t *hash, uint64_t rounds)
 
-; FIXME: this is most likely segfaulting
 bcrypt_hashpass_asm:
     ; rdi -> state
     ; rsi -> 128-bit salt
@@ -769,74 +775,6 @@ bcrypt_hashpass_asm:
         push r14
         push r15
         sub  rbp, 8
-
-    .key_setup:
-        ; Save these values because blowfish_expand_state_asm would modify them
-        ; rbx -> salt
-        ; r12 -> hash
-        ; r13 -> key
-        ; r14:   key length in bytes
-        ; r15:   rounds
-        mov rbx, rsi
-        mov r12, r8
-        mov r13, rdx
-        mov r14, rcx
-        mov r15, r9
-
-        call blowfish_init_state_asm
-
-        LOAD_SALT_AND_P rdi, rbx
-
-        call blowfish_expand_state_asm
-
-        .expand_0_state:
-            %define salt_ptr  rbx
-            %define hash_ptr  r12
-            %define key_ptr   r13
-            %define key_len   r14
-            %define rounds    r15
-            %define round_ctr r8
-
-            xor round_ctr, round_ctr
-            
-            ; .round_loop:
-            ;     cmp  round_ctr, rounds
-            ;     je   .encrypt
-
-            ;     mov  rsi, key_ptr
-            ;     mov  rdx, key_len
-            ;     call blowfish_expand_0_state_asm
-
-            ;     mov  rsi, salt_ptr
-            ;     call blowfish_expand_0_state_salt_asm
-
-            ;     inc  round_ctr
-            ;     jmp  .round_loop
-
-    .encrypt:
-        ; %1 -> ciphertext buffer
-        ; %2: temporary register
-        ; %3: temporary register
-        ; %4: temporary register
-        ; %5: lower 32 bits of %3
-        ; %6 -> 24-byte ciphertext to be copied
-        COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
-
-        %rep 64
-            mov  rsi, hash_ptr
-            call blowfish_encrypt_asm
-        %endrep
-
-        %assign i 0
-        %rep 3
-            xor rdx, rdx
-            xor rcx, rcx
-            mov rax, [hash_ptr + i*8]
-            rol rax, 32
-            REVERSE_8_BYTES rax, rdx, rcx, edx
-            mov [hash_ptr + i*8], rax
-            %assign i i+1
-        %endrep
     
     .end:
         add rbp, 8
