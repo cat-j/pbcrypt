@@ -519,7 +519,7 @@ blowfish_expand_0_state_asm:
         mov  rbp, rsp
         push r12
         push r13
-        push r8
+        push r15
         sub  rbp, 8
     
     .p_array_key:
@@ -621,7 +621,7 @@ blowfish_expand_0_state_asm:
 
     .end:
         add rbp, 8
-        pop r8
+        pop r15
         pop r13
         pop r12
         pop rbp
@@ -631,7 +631,7 @@ blowfish_expand_0_state_asm:
 
 blowfish_expand_0_state_salt_asm:
     ; rdi -> state
-    ; rsi -> salt
+    ; rsi -> salt (unused)
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -775,6 +775,90 @@ bcrypt_hashpass_asm:
         push r14
         push r15
         sub  rbp, 8
+
+    .key_setup:
+        %define key_ptr   rbx
+        %define key_len   r12
+        %define rounds    r13
+        %define round_ctr r14
+        %define hash      r15
+
+        ; Save these values because blowfish_expand_state_asm would modify them
+        mov  rbx, rdx ; key pointer
+        mov  r12, rcx ; key length
+        mov  r13, r9  ; rounds
+        mov  r15, r8  ; hash
+
+        call blowfish_init_state_asm
+
+        LOAD_SALT_AND_P rdi, rbx
+
+        call blowfish_expand_state_asm
+
+        .expand_0_state:
+            xor round_ctr, round_ctr ; initialise at 0
+
+            .round_loop:
+                cmp round_ctr, rounds
+                je  .end
+
+                mov  rsi, key_ptr
+                mov  rdx, key_len
+                call blowfish_expand_0_state_asm
+
+                ; call blowfish_expand_0_state_salt_asm
+
+                inc round_ctr
+                jmp .round_loop
+
+        ; .expand_0_state:
+        ;     %define salt_ptr  rbx
+        ;     %define hash_ptr  r12
+        ;     %define key_ptr   r13
+        ;     %define key_len   r14
+        ;     %define rounds    r15
+        ;     %define round_ctr r8
+
+        ;     xor round_ctr, round_ctr
+            
+        ;     .round_loop:
+        ;         cmp  round_ctr, rounds
+        ;         je   .encrypt
+
+        ;         mov  rsi, key_ptr
+        ;         mov  rdx, key_len
+        ;         ; call blowfish_expand_0_state_asm ; FIXME: this is fucking up some loop variable
+
+        ;         mov  rsi, salt_ptr
+        ;         ; call blowfish_expand_0_state_salt_asm
+
+        ;         inc  round_ctr
+        ;         jmp  .round_loop
+
+    ; .encrypt:
+    ;     ; %1 -> ciphertext buffer
+    ;     ; %2: temporary register
+    ;     ; %3: temporary register
+    ;     ; %4: temporary register
+    ;     ; %5: lower 32 bits of %3
+    ;     ; %6 -> 24-byte ciphertext to be copied
+    ;     COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
+
+    ;     %rep 64
+    ;         mov  rsi, hash_ptr
+    ;         call blowfish_encrypt_asm
+    ;     %endrep
+
+    ;     %assign i 0
+    ;     %rep 3
+    ;         xor rdx, rdx
+    ;         xor rcx, rcx
+    ;         mov rax, [hash_ptr + i*8]
+    ;         rol rax, 32
+    ;         REVERSE_8_BYTES rax, rdx, rcx, edx
+    ;         mov [hash_ptr + i*8], rax
+    ;         %assign i i+1
+    ;     %endrep
     
     .end:
         add rbp, 8
