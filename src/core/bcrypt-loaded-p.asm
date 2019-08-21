@@ -517,9 +517,9 @@ blowfish_expand_0_state_asm:
     .build_frame:
         push rbp
         mov  rbp, rsp
+        push rbx
         push r12
         push r13
-        push r15
         sub  rbp, 8
     
     .p_array_key:
@@ -621,9 +621,9 @@ blowfish_expand_0_state_asm:
 
     .end:
         add rbp, 8
-        pop r15
         pop r13
         pop r12
+        pop rbx
         pop rbp
         ret
 
@@ -791,7 +791,7 @@ bcrypt_hashpass_asm:
 
         call blowfish_init_state_asm
 
-        LOAD_SALT_AND_P rdi, rbx
+        LOAD_SALT_AND_P rdi, rsi
 
         call blowfish_expand_state_asm
 
@@ -806,7 +806,7 @@ bcrypt_hashpass_asm:
                 mov  rdx, key_len
                 call blowfish_expand_0_state_asm
 
-                ; call blowfish_expand_0_state_salt_asm
+                call blowfish_expand_0_state_salt_asm
 
                 inc round_ctr
                 jmp .round_loop
