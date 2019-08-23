@@ -3,9 +3,11 @@
 Final project for Computer Organisation II course, MSc Computer Science,
 University of Buenos Aires (UBA).
 
-This is basically research into whether a *brute-force password cracker for bcrypt*
-can be optimised by rearranging the bytes from all plaintexts so that hashing
-is done with SIMD for several passwords at once.
+This is basically research into different methods for optimising a
+**brute-force password cracker for bcrypt** with Intel's AVX2 extensions,
+such as storing frequently used data in YMM registers and hashing
+several passwords at once with SIMD instructions after rearranging
+the bytes from all plaintexts. 
 
 ## Details
 
