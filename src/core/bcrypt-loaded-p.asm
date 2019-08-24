@@ -613,6 +613,11 @@ blowfish_expand_0_state_asm:
         pinsrq p_16_17, data, 0
     
     .s_boxes_data:
+        %define tmp1  rbx
+        %define tmp2  ebx
+        %define tmp2  r15
+        %define tmp2l r15d
+
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         %assign i 0
         %rep 512
