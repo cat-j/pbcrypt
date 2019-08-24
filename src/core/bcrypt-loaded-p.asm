@@ -724,7 +724,7 @@ blowfish_expand_0_state_salt_asm:
 
 blowfish_encrypt_asm:
     ; rdi -> state
-    ; rsi -> 24-byte ciphertext
+    ; ymm4:  24-byte ciphertext
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -733,34 +733,29 @@ blowfish_encrypt_asm:
 
     .do_encrypt:
         %define data     r13
-        %define ctext    rbx
         %define tmp1     rdx
         %define tmp2     rcx
         %define tmp1_low edx
 
-        mov ctext, rsi
+        vpshufb p_0_7, endianness_mask_ymm
+        vpshufb p_8_15, endianness_mask_ymm
+        vpshufb ymm3, endianness_mask_ymm
 
-        mov  data, [ctext]
-        REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1_low
-        mov  data, tmp2
-        call blowfish_encipher_register
-        mov  [ctext], data
+        pextrq data, ctext_x, 0 ; two data halves from ciphertext
+        call   blowfish_encipher_register
+        pinsrq ctext_x, data, 0
 
-        mov  data, [ctext + 8]
-        call blowfish_encipher_register
-        mov  [ctext + 8], data
+        pextrq data, ctext_x, 1
+        call   blowfish_encipher_register
+        pinsrq ctext_x, data, 1
 
-        mov  data, [ctext + 16]
-        call blowfish_encipher_register
-        mov  [ctext + 16], data
+        ROTATE_128(ctext_y)
 
-        ; %assign i 0
-        ; %rep BCRYPT_WORDS / 2
-        ;     mov  data, [ctext + i*8]
-        ;     call blowfish_encipher_register
-        ;     mov  [ctext + i*8], data
-        ;     %assign i i+1
-        ; %endrep
+        pextrq data, ctext_x, 0
+        call   blowfish_encipher_register
+        pinsrq ctext_x, data, 0
+
+        ROTATE_128(ctext_y)
 
     .end:
         pop r13
