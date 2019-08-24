@@ -405,11 +405,13 @@
     movdqu  ctext_x, [%1]
 %endmacro
 
-; %1 -> initial ciphertext
-%macro STORE_CTEXT 1
-    movdqu  [%1], ctext_x
+; %1 -> buffer for bcrypt hash
+; %2: helper general-purpose reg for extracting last 8 bytes
+%macro STORE_CTEXT 2
+    movdqu [%1], ctext_x
     ROTATE_128(ctext_y)
-    vpinsrq [%1 + 16], ctext_x, 0
+    pextrq %2, ctext_x, 0
+    mov    [%1 + 16], %2
 %endmacro
 
 %endif

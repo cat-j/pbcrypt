@@ -737,10 +737,6 @@ blowfish_encrypt_asm:
         %define tmp2     rcx
         %define tmp1_low edx
 
-        vpshufb p_0_7, endianness_mask_ymm
-        vpshufb p_8_15, endianness_mask_ymm
-        vpshufb ymm3, endianness_mask_ymm
-
         pextrq data, ctext_x, 0 ; two data halves from ciphertext
         call   blowfish_encipher_register
         pinsrq ctext_x, data, 0
@@ -808,7 +804,7 @@ bcrypt_hashpass_asm:
 
             .round_loop:
                 cmp round_ctr, rounds
-                je  .end_loop
+                je  .encrypt
 
                 mov  rsi, key_ptr
                 mov  rdx, key_len
@@ -818,9 +814,6 @@ bcrypt_hashpass_asm:
 
                 inc round_ctr
                 jmp .round_loop
-
-            .end_loop:
-                STORE_P rdi, rax
 
     .encrypt:
         ; %1 -> ciphertext buffer
@@ -835,18 +828,8 @@ bcrypt_hashpass_asm:
             call blowfish_encrypt_asm
         %endrep
 
-        %assign i 0
-        %rep 3
-            xor rdx, rdx
-            xor rcx, rcx
-            mov rax, [hash_ptr + i*8]
-            rol rax, 32
-            REVERSE_8_BYTES rax, rdx, rcx, edx
-            mov [hash_ptr + i*8], rax
-            %assign i i+1
-        %endrep
-
-        STORE_CTEXT initial_ctext
+        STORE_P rdi, rax
+        STORE_CTEXT hash_ptr, rax
     
     .end:
         add rbp, 8
