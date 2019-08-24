@@ -203,6 +203,8 @@
     or  %1, %2       ; | b0 | b1 | b2 | b3 |
 %endmacro
 
+; TODO: compare performance of the next two macros
+
 ; %1: input
 ; %2: temp
 ; %3: output
@@ -246,6 +248,19 @@
     shr %2, 24         ; | 00 | 00 | 00 | b7 | b6 | b5 | b4 | b3 |
     and %2, 0xff       ; | 00 | 00 | 00 | 00 | 00 | 00 | 00 | b3 |
     or  %3, %2         ; | b4 | b5 | b6 | b7 | b0 | b1 | b2 | b3 |
+%endmacro
+
+; %1: input, then output
+; %2: helper reg
+; %3: lower 32 bits of input reg
+; %4: lower 32 bits of helper reg
+%macro REVERSE_ENDIANNESS_2_DWORDS_BSWAP 4
+    mov   %2, %1 ; |  Xl  |  Xr  |
+    shr   %2, 32 ; |  00  |  Xl  |
+    bswap %4     ; |  00  |  Xl' |
+    shl   %2, 32 ; |  Xl' |  00  |
+    bswap %3     ; |  00  |  Xr' |
+    or    %1, %2 ; |  Xl' |  Xr' |
 %endmacro
 
 ; %1: key_data

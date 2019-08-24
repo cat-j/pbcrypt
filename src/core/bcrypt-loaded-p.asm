@@ -427,6 +427,7 @@ blowfish_expand_state_asm:
         %define tmp1   rbx
         %define tmp2   r15
         %define tmp1l  ebx
+        %define tmp2l  r15d
 
         xor    data, data      ; | 0000 0000 | 0000 0000 |
         pextrq salt_l, salt, 0 ; leftmost 64 bits of salt =  Xl | Xr
@@ -486,13 +487,15 @@ blowfish_expand_state_asm:
         %rep 256
             xor  data, salt_r
             call blowfish_encipher_register
-            REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+            mov  tmp2, data
+            REVERSE_ENDIANNESS_2_DWORDS_BSWAP tmp2, tmp1, tmp2l, tmp1l
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], tmp2
             %assign i i+2
 
             xor  data, salt_l
             call blowfish_encipher_register
-            REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+            mov  tmp2, data
+            REVERSE_ENDIANNESS_2_DWORDS_BSWAP tmp2, tmp1, tmp2l, tmp1l
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], tmp2
             %assign i i+2
         %endrep
@@ -614,7 +617,8 @@ blowfish_expand_0_state_asm:
         %assign i 0
         %rep 512
             call blowfish_encipher_register
-            REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+            mov  tmp2, data
+            REVERSE_ENDIANNESS_2_DWORDS_BSWAP tmp2, tmp1, tmp2l, tmp1l
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], tmp2
             %assign i i+2
         %endrep
@@ -702,12 +706,14 @@ blowfish_expand_0_state_salt_asm:
         %define tmp1   rcx
         %define tmp2   r9
         %define tmp1l  ecx
+        %define tmp2l  r9d
 
         ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
         %assign i 0
         %rep 512
             call blowfish_encipher_register
-            REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1l
+            mov  tmp2, data
+            REVERSE_ENDIANNESS_2_DWORDS_BSWAP tmp2, tmp1, tmp2l, tmp1l
             mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], tmp2
             %assign i i+2
         %endrep
