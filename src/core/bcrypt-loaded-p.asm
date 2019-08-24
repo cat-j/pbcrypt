@@ -520,7 +520,7 @@ blowfish_expand_0_state_asm:
         push rbx
         push r12
         push r13
-        sub  rbp, 8
+        push r15
     
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
@@ -620,7 +620,7 @@ blowfish_expand_0_state_asm:
         %endrep
 
     .end:
-        add rbp, 8
+        pop r15
         pop r13
         pop r12
         pop rbx
@@ -638,7 +638,7 @@ blowfish_expand_0_state_salt_asm:
         push rbx
         push r13
         push r14
-        push r8
+        push r15
 
     ; Bespoke variant of blowfish_expand_0_state_asm for optimised
     ; encryption with salt. No expensive key reading needed, as salt
@@ -713,7 +713,7 @@ blowfish_expand_0_state_salt_asm:
         %endrep
     
     .end:
-        pop r8
+        pop r15
         pop r14
         pop r13
         pop rbx
@@ -740,14 +740,27 @@ blowfish_encrypt_asm:
 
         mov ctext, rsi
 
-        %assign i 0
-        %rep BCRYPT_WORDS / 2
-            mov  data, [ctext + i*8]
-            rol  data, 32
-            call blowfish_encipher_register
-            mov  [ctext + i*8], data
-            %assign i i+1
-        %endrep
+        mov  data, [ctext]
+        REVERSE_ENDIANNESS_2_DWORDS data, tmp1, tmp2, tmp1_low
+        mov  data, tmp2
+        call blowfish_encipher_register
+        mov  [ctext], data
+
+        mov  data, [ctext + 8]
+        call blowfish_encipher_register
+        mov  [ctext + 8], data
+
+        mov  data, [ctext + 16]
+        call blowfish_encipher_register
+        mov  [ctext + 16], data
+
+        ; %assign i 0
+        ; %rep BCRYPT_WORDS / 2
+        ;     mov  data, [ctext + i*8]
+        ;     call blowfish_encipher_register
+        ;     mov  [ctext + i*8], data
+        ;     %assign i i+1
+        ; %endrep
 
     .end:
         pop r13
@@ -821,23 +834,23 @@ bcrypt_hashpass_asm:
         ; %4: temporary register
         ; %5: lower 32 bits of %3
         ; %6 -> 24-byte ciphertext to be copied
-        ; COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
+        LOAD_CTEXT initial_ctext
 
-        ; %rep 64
-        ;     mov  rsi, hash_ptr
-        ;     call blowfish_encrypt_asm
-        ; %endrep
+        %rep 64
+            mov  rsi, hash_ptr
+            call blowfish_encrypt_asm
+        %endrep
 
-        ; %assign i 0
-        ; %rep 3
-        ;     xor rdx, rdx
-        ;     xor rcx, rcx
-        ;     mov rax, [hash_ptr + i*8]
-        ;     rol rax, 32
-        ;     REVERSE_8_BYTES rax, rdx, rcx, edx
-        ;     mov [hash_ptr + i*8], rax
-        ;     %assign i i+1
-        ; %endrep
+        %assign i 0
+        %rep 3
+            xor rdx, rdx
+            xor rcx, rcx
+            mov rax, [hash_ptr + i*8]
+            rol rax, 32
+            REVERSE_8_BYTES rax, rdx, rcx, edx
+            mov [hash_ptr + i*8], rax
+            %assign i i+1
+        %endrep
     
     .end:
         add rbp, 8

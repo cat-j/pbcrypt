@@ -944,7 +944,11 @@ void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks) {
 
     d = data;
     for (i = 0; i < blocks; i++) {
+        printf("d:\t0x%08x\n", *d);
+        printf("d + 1:\t0x%08x\n", *(d + 1));
         Blowfish_encipher(c, d, d + 1);
+        printf("d:\t0x%08x\n", *d);
+        printf("d + 1:\t0x%08x\n", *(d + 1));
         d += 2;
     }
 }
@@ -992,8 +996,10 @@ int bcrypt_hashpass(blf_ctx *state, const char *key, const char *salt,
         cdata[i] = Blowfish_stream2word(ciphertext, 4 * BCRYPT_WORDS, &j);
 
     /* Now do the encryption */
-    for (k = 0; k < 64; k++)
+    for (k = 0; k < 64; k++) {
+        printf("=== BLF_ENC ===\n");
         blf_enc(state, cdata, BCRYPT_WORDS / 2);
+    }
 
     for (i = 0; i < BCRYPT_WORDS; i++) {
         hash[4 * i + 3] = cdata[i] & 0xff;
