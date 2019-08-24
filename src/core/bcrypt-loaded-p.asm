@@ -832,7 +832,6 @@ bcrypt_hashpass_asm:
         LOAD_CTEXT initial_ctext
 
         %rep 64
-            mov  rsi, hash_ptr
             call blowfish_encrypt_asm
         %endrep
 
@@ -846,6 +845,8 @@ bcrypt_hashpass_asm:
             mov [hash_ptr + i*8], rax
             %assign i i+1
         %endrep
+
+        STORE_CTEXT initial_ctext
     
     .end:
         add rbp, 8

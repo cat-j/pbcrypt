@@ -397,12 +397,19 @@
     mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
 %endmacro
 
-; %1 -> ciphertext
+; %1 -> initial ciphertext
 %macro LOAD_CTEXT 1
     vpxor   ctext_y, ctext_y
     vpinsrq ctext_x, [%1 + 16], 0 ; skip 16 bytes
     ROTATE_128(ctext_y)
     movdqu  ctext_x, [%1]
+%endmacro
+
+; %1 -> initial ciphertext
+%macro STORE_CTEXT 1
+    movdqu  [%1], ctext_x
+    ROTATE_128(ctext_y)
+    vpinsrq [%1 + 16], ctext_x, 0
 %endmacro
 
 %endif
