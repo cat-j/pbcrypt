@@ -86,3 +86,27 @@ blowfish_parallelise_state:
     .end:
         pop rbp
         ret
+
+blowfish_init_state_parallel:
+    ; rdi -> parallel blowfish state (modified)
+    ; rsi -> parallel blowfish state to be copied
+    ; both addresses MUST be 32-bit aligned
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+    
+    .copy_all:
+        %define eight_elements ymm1
+        ; 4096 S elements + 18 P elements = 4114 elements
+        ; 4 copies per element => 16456 elements
+        ; 8 elements per YMM => 16456/8 = 2057 accesses
+        %assign i 0
+        %rep    2057
+            vmovdqa eight_elements, [rsi + i*YMM_SIZE]
+            vmovdqa [rdi + i*YMM_SIZE], eight_elements
+            %assign i i+1
+        %endrep
+
+    .end:
+        pop rbp
+        ret
