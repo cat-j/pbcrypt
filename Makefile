@@ -63,6 +63,9 @@ bcrypt-no-unrolling.o: $(CORE)bcrypt-no-unrolling.asm build
 bcrypt-loaded-p.o: $(CORE)bcrypt-loaded-p.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
+bcrypt-parallel.o: $(CORE)bcrypt-parallel.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
 loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 

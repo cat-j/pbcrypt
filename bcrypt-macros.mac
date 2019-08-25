@@ -24,6 +24,8 @@
 %define p_16_17             xmm3
 %define ctext_x             xmm4
 %define ctext_y             ymm4
+%define element_offset      xmm13
+%define s_box_offset        xmm14
 %define endianness_mask_ymm ymm15
 %define endianness_mask_xmm xmm15
 
@@ -106,6 +108,50 @@
     shr tmp, 24
     and tmp, 0xff
     add output, [blf_state + 3*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
+%endmacro
+
+; %1 -> array of S-boxes
+; %2: 4 32-bit blocks from different passwords
+; %3: output
+; %4: temporary XMM register
+; %5: temporary XMM register
+; %6: mask; only most significant bit of each element used
+%macro F_XMM 6
+    ; output <- s[x & 0xff] + s[0x100 + (x>>8) & 0xff]
+    movdqa     %4, %2
+    psrld      %4, 24             ; highest byte
+    pslld      %4, 2              ; multiply by 4
+    paddd      %4, element_offset ; move inside vector
+    vpgatherdd %3, [%4 + %1], %6
+
+    movdqa     %4, %2
+    pslld      %4, 8
+    psrld      %4, 24             ; 2nd-highest byte
+    pslld      %4, 2
+    paddd      %4, element_offset
+    paddd      %4, s_box_offset
+    vpgatherdd %3, [%4 + %1], %6
+    paddd      %3, %5
+
+    movdqa     %4, %2
+    pslld      %4, 16
+    psrld      %4, 24             ; 2nd-lowest byte
+    pslld      %4, 2
+    paddd      %4, element_offset
+    paddd      %4, s_box_offset
+    paddd      %4, s_box_offset
+    vpgatherdd %3, [%4 + %1], %6
+    pxor       %3, %5
+
+    movdqa     %4, %2
+    pslld      %4, 24             ; lowest byte
+    psrld      %4, 2
+    paddd      %4, element_offset
+    paddd      %4, s_box_offset
+    paddd      %4, s_box_offset
+    paddd      %4, s_box_offset
+    vpgatherdd %3, [%4 + %1], %6
+    paddd      %3, %5
 %endmacro
 
 %macro BLOWFISH_ROUND_BIG_ENDIAN 7
