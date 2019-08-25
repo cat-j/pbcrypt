@@ -1,5 +1,8 @@
 %include "bcrypt-macros.mac"
 
+; variables
+extern initstate_asm
+
 ; exported functions for testing macros
 global f_xmm
 
@@ -32,3 +35,54 @@ f_xmm:
 
     pop rbp
     ret
+
+
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+blowfish_parallelise_state:
+    ; rdi -> parallel blowfish state (4 keys)
+    ; rsi -> single-key blowfish state
+    ; address MUST be 32-bit aligned
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+    
+    .copy_S_boxes:
+        %define two_elements        rdx
+        %define one_element         edx
+        %define parallel_elements_y ymm1
+        %define parallel_elements_x xmm1
+        %define writemask           ymm2
+
+        %assign i 0
+        ; 4 256-element boxes => 1024 elements
+        ; 4 bytes per element => 4096 bytes total
+        ; 2 elements per extended register => 4096/2 = 2048 accesses to copy all the boxes
+        %rep    2048
+            mov          two_elements, [rsi + i*S_ELEMENT_MEMORY_SIZE*2]
+            rol          two_elements, 32
+            vpbroadcastd parallel_elements_x, one_element
+            rol          two_elements, 32
+            ROTATE_128(parallel_elements_y)
+            vpbroadcastd parallel_elements_x, one_element
+            vmovdqa      [rdi + i*YMM_SIZE], parallel_elements_y
+            %assign i i+1
+        %endrep
+
+    .copy_P_array:
+        %rep 9
+            ; P elements are the same size as S elements
+            mov          two_elements, [rsi + i*S_ELEMENT_MEMORY_SIZE*2]
+            rol          two_elements, 32
+            vpbroadcastd parallel_elements_x, one_element
+            rol          two_elements, 32
+            ROTATE_128(parallel_elements_y)
+            vpbroadcastd parallel_elements_x, one_element
+            vmovdqa      [rdi + i*YMM_SIZE], parallel_elements_y
+        %endrep
+    
+    .end:
+        pop rbp
+        ret

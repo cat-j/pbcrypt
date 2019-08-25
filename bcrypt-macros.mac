@@ -26,6 +26,7 @@
 %define p_16_17             xmm3
 %define ctext_x             xmm4
 %define ctext_y             ymm4
+%define element_offset      xmm14
 %define endianness_mask_ymm ymm15
 %define endianness_mask_xmm xmm15
 
