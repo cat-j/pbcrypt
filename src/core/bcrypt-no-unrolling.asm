@@ -1,3 +1,5 @@
+%include "bcrypt-macros.mac"
+
 ; C functions
 extern malloc
 extern free
