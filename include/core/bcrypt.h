@@ -24,6 +24,12 @@ typedef struct BlowfishContext {
     uint32_t P[18];        /* Subkeys */
 } blf_ctx;
 
+/* Blowfish context with 4 copies of each element */
+typedef struct ParallelBlowfishContext {
+    uint32_t S[4][1024];
+    uint32_t P[72];
+} p_blf_ctx;
+
 extern int variant; // unrolled loops, P-array in YMM registers, etc
 
 
@@ -89,6 +95,11 @@ int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
  */
 char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
              uint64_t rounds);
+
+
+/* ========== Parallelised functions ========== */
+
+void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src);
 
 
 /* ========== Cracker functions ========== */

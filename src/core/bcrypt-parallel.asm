@@ -3,6 +3,9 @@
 ; variables
 extern initstate_asm
 
+; exported functions for bcrypt implementation
+global blowfish_parallelise_state
+
 ; exported functions for testing macros
 global f_xmm
 
@@ -40,6 +43,8 @@ f_xmm:
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src)
 
 blowfish_parallelise_state:
     ; rdi -> parallel blowfish state (4 keys)

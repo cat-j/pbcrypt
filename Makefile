@@ -24,6 +24,7 @@ TEST_SOURCES=$(TEST)openbsd.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
+OBJS_PARALLEL=bcrypt-parallel.o
 
 
 .PHONY: all build test
@@ -50,6 +51,10 @@ test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
 test-loaded-p: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
+
+test-parallel: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_PARALLEL)
+	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-parallel
 
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
