@@ -6,6 +6,8 @@
 #include "openbsd.h"
 #include "test.h"
 
+#define DWORDS_PER_XMM 4
+
 void test_blowfish_parallelise_state(p_blf_ctx *state_actual, blf_ctx *src,
                                      size_t scale)
 {
@@ -62,15 +64,28 @@ void compare_parallelised_state(p_blf_ctx *state_actual, blf_ctx *src,
     test_pass("Success: states in %s are equal.\n", test_name);
 }
 
+void test_blowfish_init_state_parallel(p_blf_ctx *state_actual,
+                                       p_blf_ctx *state_expected)
+{
+    char test_name[] = "test_blowfish_init_state_parallel";
+    test_start(test_name, "");
+    blowfish_init_state_parallel(state_actual, state_expected);
+    compare_states(state_actual, state_expected, DWORDS_PER_XMM, test_name);
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
-    p_blf_ctx *state;
+    p_blf_ctx *state_expected;
+    p_blf_ctx *state_actual;
+
     posix_memalign((void**) &src, 32, sizeof(blf_ctx));
-    posix_memalign((void**) &state, 32, sizeof(p_blf_ctx));
+    posix_memalign((void**) &state_expected, 32, sizeof(p_blf_ctx));
+    posix_memalign((void**) &state_actual, 32, sizeof(p_blf_ctx));
 
     Blowfish_initstate(src);
 
-    test_blowfish_parallelise_state(state, src, 4);
+    test_blowfish_parallelise_state(state_expected, src, DWORDS_PER_XMM);
+    test_blowfish_init_state_parallel(state_actual, state_expected);
 
     return 0;
 }

@@ -21,7 +21,7 @@ void test_blowfish_init_state_asm(blf_ctx *state_actual, blf_ctx *state_expected
     blowfish_init_state_asm(state_actual);
     Blowfish_initstate(state_expected);
 
-    compare_states(state_actual, state_expected, test_name);
+    compare_states(state_actual, state_expected, 1, test_name);
 }
 
 void test_F_asm(uint32_t x, const blf_ctx *state, const char *state_name) {
@@ -73,37 +73,6 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data,
     data_expected |= (uint64_t) xl_expected << 32;
 
     do_test(data_actual, data_expected, test_name);
-}
-
-void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
-                    const char *test_name) {
-    uint32_t *p_actual = state_actual->P, *p_expected = state_expected->P;
-    uint32_t current_actual, current_expected;
-
-    for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
-        current_actual = p_actual[i];
-        current_expected = p_expected[i];
-        if (current_actual != current_expected) {
-            test_fail("States in test %s differ. "
-                "P-element: %d, expected value: 0x%08x, actual value: 0x%08x\n",
-                test_name, i, current_expected, current_actual);
-        }
-    }
-
-    for (size_t i = 0; i < 4; ++i) {
-        for (size_t j = 0; j < S_BOX_LENGTH; ++j) {
-            current_actual = state_actual->S[i][j];
-            current_expected = state_expected->S[i][j];
-            if (current_actual != current_expected) {
-                test_fail("States in test %s differ. "
-                    "S-box: %d, element: %d, "
-                    "expected value: 0x%08x, actual value: 0x%08x\n",
-                    test_name, i, j, current_expected, current_actual);
-            }
-        }
-    }
-
-    test_pass("Success: states in %s are equal.\n", test_name);
 }
 
 // TODO: look into refactoring the following two functions
@@ -166,7 +135,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes,
                          (uint8_t *) key, keybytes);
 
-    compare_states(state_actual, state_expected, test_name);
+    compare_states(state_actual, state_expected, 1, test_name);
 }
 
 void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
@@ -184,7 +153,7 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
     }
     Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
 
-    compare_states(state_actual, state_expected, test_name);
+    compare_states(state_actual, state_expected, 1, test_name);
 }
 
 void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state_expected,
@@ -201,7 +170,7 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
     }
     Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
 
-    compare_states(state_actual, state_expected, test_name);
+    compare_states(state_actual, state_expected, 1, test_name);
 }
 
 void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
@@ -292,7 +261,7 @@ void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
     bcrypt_hashpass_asm(state_actual, salt, key, keybytes, hash_actual, rounds);
     bcrypt_hashpass(state_expected, key, salt, rounds, hash_expected);
 
-    compare_states(state_actual, state_expected, test_name);
+    compare_states(state_actual, state_expected, 1, test_name);
     compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_HASH_BYTES);
 }
 

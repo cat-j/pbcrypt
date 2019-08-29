@@ -5,6 +5,7 @@ extern initstate_asm
 
 ; exported functions for bcrypt implementation
 global blowfish_parallelise_state
+global blowfish_init_state_parallel
 
 ; exported functions for testing macros
 global f_xmm
@@ -63,8 +64,6 @@ blowfish_parallelise_state:
 
         %assign i 0
         ; 4 256-element boxes => 1024 elements
-        ; 4 bytes per element => 4096 bytes total
-        ; 2 elements per extended register => 4096/2 = 2048 accesses to copy all the boxes
         %rep    1024
             vpbroadcastd parallel_elements_x, [rsi + i*S_ELEMENT_MEMORY_SIZE]
             vmovdqa      [rdi + i*16], parallel_elements_x
@@ -73,7 +72,6 @@ blowfish_parallelise_state:
 
     .copy_P_array:
         %rep 18
-            ; P elements are the same size as S elements
             vpbroadcastd parallel_elements_x, [rsi + i*S_ELEMENT_MEMORY_SIZE]
             vmovdqa      [rdi + i*16], parallel_elements_x
             %assign i i+1

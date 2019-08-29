@@ -15,4 +15,6 @@ typedef struct ParallelBlowfishContext {
 
 void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src);
 
+void blowfish_init_state_parallel(p_blf_ctx *state, p_blf_ctx *src);
+
 #endif
