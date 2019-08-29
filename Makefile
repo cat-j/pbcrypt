@@ -20,7 +20,7 @@ NASMFLAGS=-f elf64 -g -F DWARF
 
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c
-TEST_SOURCES=$(TEST)openbsd.c
+TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
