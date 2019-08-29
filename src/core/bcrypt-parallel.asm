@@ -65,27 +65,18 @@ blowfish_parallelise_state:
         ; 4 256-element boxes => 1024 elements
         ; 4 bytes per element => 4096 bytes total
         ; 2 elements per extended register => 4096/2 = 2048 accesses to copy all the boxes
-        %rep    2048
-            mov          two_elements, [rsi + i*S_ELEMENT_MEMORY_SIZE*2]
-            rol          two_elements, 32
-            vpbroadcastd parallel_elements_x, one_element
-            rol          two_elements, 32
-            ROTATE_128(parallel_elements_y)
-            vpbroadcastd parallel_elements_x, one_element
-            vmovdqa      [rdi + i*YMM_SIZE], parallel_elements_y
+        %rep    1024
+            vpbroadcastd parallel_elements_x, [rsi + i*S_ELEMENT_MEMORY_SIZE]
+            vmovdqa      [rdi + i*16], parallel_elements_x
             %assign i i+1
         %endrep
 
     .copy_P_array:
-        %rep 9
+        %rep 18
             ; P elements are the same size as S elements
-            mov          two_elements, [rsi + i*S_ELEMENT_MEMORY_SIZE*2]
-            rol          two_elements, 32
-            vpbroadcastd parallel_elements_x, one_element
-            rol          two_elements, 32
-            ROTATE_128(parallel_elements_y)
-            vpbroadcastd parallel_elements_x, one_element
-            vmovdqa      [rdi + i*YMM_SIZE], parallel_elements_y
+            vpbroadcastd parallel_elements_x, [rsi + i*S_ELEMENT_MEMORY_SIZE]
+            vmovdqa      [rdi + i*16], parallel_elements_x
+            %assign i i+1
         %endrep
     
     .end:

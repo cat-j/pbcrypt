@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "bcrypt-constants.h"
 #include "bcrypt-parallel.h"
 #include "openbsd.h"
 #include "test.h"
@@ -52,6 +53,8 @@ void compare_parallelised_state(p_blf_ctx *state_actual, blf_ctx *src,
                         "expected value: 0x%08x, actual value: 0x%08x\n",
                         test_name, i, j, current_expected, current_actual);
                 }
+
+                ++k;
             }
         }
     }
@@ -65,7 +68,7 @@ int main(int argc, char const *argv[]) {
     posix_memalign((void**) &src, 32, sizeof(blf_ctx));
     posix_memalign((void**) &state, 32, sizeof(p_blf_ctx));
 
-    Blowfish_initstate(state);
+    Blowfish_initstate(src);
 
     test_blowfish_parallelise_state(state, src, 4);
 
