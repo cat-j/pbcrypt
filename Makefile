@@ -40,19 +40,19 @@ cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(OBJS_NO_U
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-test: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
+test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
 	$(CC) $(FIXED_REGS) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
-test-no-unrolling: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
+test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-no-unrolling
 
-test-loaded-p: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
+test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
-test-parallel: $(TEST)main.c $(SOURCES) $(TEST_SOURCES) $(OBJS_PARALLEL)
+test-parallel: $(TEST)parallel.c $(SOURCES) $(TEST_SOURCES) $(OBJS_PARALLEL)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 
