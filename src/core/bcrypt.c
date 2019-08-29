@@ -76,7 +76,7 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
     return 1;
 }
 
-// TODO: accept different bcrypt versions
+// TODO: accept different bcrypt versions#
 int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds)
 {

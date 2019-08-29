@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "bcrypt-parallel.h"
+#include "openbsd.h"
+#include "test.h"
 
 void test_blowfish_parallelise_state(p_blf_ctx *state_actual, blf_ctx *src,
                                      size_t scale)
@@ -55,4 +57,17 @@ void compare_parallelised_state(p_blf_ctx *state_actual, blf_ctx *src,
     }
 
     test_pass("Success: states in %s are equal.\n", test_name);
+}
+
+int main(int argc, char const *argv[]) {
+    blf_ctx *src;
+    p_blf_ctx *state;
+    posix_memalign((void**) &src, 32, sizeof(blf_ctx));
+    posix_memalign((void**) &state, 32, sizeof(p_blf_ctx));
+
+    Blowfish_initstate(state);
+
+    test_blowfish_parallelise_state(state, src, 4);
+
+    return 0;
 }

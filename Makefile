@@ -52,7 +52,7 @@ test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
-test-parallel: $(TEST)parallel.c $(SOURCES) $(TEST_SOURCES) $(OBJS_PARALLEL)
+test-parallel: $(TEST)parallel.c $(TEST_SOURCES) $(OBJS_PARALLEL)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 
