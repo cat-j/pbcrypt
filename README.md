@@ -38,6 +38,9 @@ replace `cracker` with `cracker-no-unrolling`.
 will test ASM macros and bcrypt components against their counterparts from
 the OpenBSD source code.
 
+To test other variants, replace `test` with `test-no-unrolling`,
+`test-loaded-p` or `test-parallel`.
+
 ## How to run
 
 ```$ ./build/cracker <PASSWORD_RECORD> <PATH_TO_WORDLIST> <PASSWORDS_PER_BATCH>```
