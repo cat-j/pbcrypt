@@ -56,11 +56,11 @@ void test_fail(const char *format, ...) {
 
 
 void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
-                    size_t scale, const char *test_name) {
+                    const char *test_name) {
     uint32_t *p_actual = state_actual->P, *p_expected = state_expected->P;
     uint32_t current_actual, current_expected;
 
-    for (size_t i = 0; i < P_ARRAY_LENGTH*scale; ++i) {
+    for (size_t i = 0; i < P_ARRAY_LENGTH; ++i) {
         current_actual = p_actual[i];
         current_expected = p_expected[i];
         if (current_actual != current_expected) {
@@ -71,7 +71,7 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
     }
 
     for (size_t i = 0; i < 4; ++i) {
-        for (size_t j = 0; j < S_BOX_LENGTH*scale; ++j) {
+        for (size_t j = 0; j < S_BOX_LENGTH; ++j) {
             current_actual = state_actual->S[i][j];
             current_expected = state_expected->S[i][j];
             if (current_actual != current_expected) {

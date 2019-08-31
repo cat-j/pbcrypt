@@ -8,7 +8,7 @@ void test_pass(const char *format, ...);
 void test_fail(const char *format, ...);
 
 void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
-                    size_t scale, const char *test_name);
+                    const char *test_name);
 
 void do_test(uint64_t actual, uint64_t expected, const char *test_name);
 

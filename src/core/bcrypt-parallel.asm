@@ -89,13 +89,21 @@ blowfish_init_state_parallel:
         push rbp
         mov  rbp, rsp
     
-    .copy_all:
+    .copy_S_boxes:
         %define eight_elements ymm1
-        ; 4096 S elements + 18 P elements = 4114 elements
-        ; 4 copies per element => 16456 elements
-        ; 8 elements per YMM => 16456/8 = 2057 accesses
+        ; 4 1024-element boxes => 4096 elements
+        ; 8 elements per YMM => 4096/8 = 512 accesses
         %assign i 0
-        %rep    2057
+        %rep    512
+            vmovdqa eight_elements, [rsi + i*YMM_SIZE]
+            vmovdqa [rdi + i*YMM_SIZE], eight_elements
+            %assign i i+1
+        %endrep
+
+    .copy_P_array:
+        ; 72 P-elements
+        ; 8 elements per YMM => 72/8 = 9 accesses
+        %rep 9
             vmovdqa eight_elements, [rsi + i*YMM_SIZE]
             vmovdqa [rdi + i*YMM_SIZE], eight_elements
             %assign i i+1

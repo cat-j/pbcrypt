@@ -21,7 +21,7 @@ void test_blowfish_init_state_asm(blf_ctx *state_actual, blf_ctx *state_expected
     blowfish_init_state_asm(state_actual);
     Blowfish_initstate(state_expected);
 
-    compare_states(state_actual, state_expected, 1, test_name);
+    compare_states(state_actual, state_expected, test_name);
 }
 
 void test_F_asm(uint32_t x, const blf_ctx *state, const char *state_name) {
@@ -135,7 +135,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes,
                          (uint8_t *) key, keybytes);
 
-    compare_states(state_actual, state_expected, 1, test_name);
+    compare_states(state_actual, state_expected, test_name);
 }
 
 void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
@@ -153,7 +153,7 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
     }
     Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
 
-    compare_states(state_actual, state_expected, 1, test_name);
+    compare_states(state_actual, state_expected, test_name);
 }
 
 void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state_expected,
@@ -170,7 +170,7 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
     }
     Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
 
-    compare_states(state_actual, state_expected, 1, test_name);
+    compare_states(state_actual, state_expected, test_name);
 }
 
 void test_blowfish_encrypt_asm(const blf_ctx *state, char *data_actual,
@@ -261,7 +261,7 @@ void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
     bcrypt_hashpass_asm(state_actual, salt, key, keybytes, hash_actual, rounds);
     bcrypt_hashpass(state_expected, key, salt, rounds, hash_expected);
 
-    compare_states(state_actual, state_expected, 1, test_name);
+    compare_states(state_actual, state_expected, test_name);
     compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
