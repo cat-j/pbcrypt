@@ -83,18 +83,4 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2);
 
 blf_ctx *get_aligned_state();
 
-
-/* ========== Macro wrappers for testing ========== */
-
-uint32_t f_asm(uint32_t x, const blf_ctx *state);
-
-uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
-                            uint32_t n);
-
-uint64_t reverse_bytes(uint64_t data);
-
-void copy_ctext_asm(uint64_t *data, const char *ctext);
-
-void load_salt_and_p(blf_ctx *state, uint8_t *salt);
-
 #endif

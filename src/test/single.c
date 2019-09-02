@@ -34,16 +34,6 @@ void test_F_asm(uint32_t x, const blf_ctx *state, const char *state_name) {
     do_test(actual, expected, test_name);
 }
 
-void test_reverse_bytes(uint64_t data, uint64_t expected)
-{
-    char test_name[] = "test_reverse_bytes";
-    test_start(test_name, "data: 0x%016lx", data);
-
-    uint64_t actual = reverse_bytes(data);
-
-    do_test(actual, expected, test_name);
-}
-
 void test_blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
                              uint32_t n, const char *state_name)
 {
@@ -330,8 +320,6 @@ void test_get_record_data_all() {
 }
 
 int main(int argc, char const *argv[]) {
-    test_reverse_bytes(0xdeadbeefaac0ffee, 0xeeffc0aaefbeadde);
-
     blf_ctx *state;
     blf_ctx *state_expected;
 

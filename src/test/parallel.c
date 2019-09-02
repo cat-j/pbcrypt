@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "bcrypt-constants.h"
+#include "bcrypt-macro-testing.h"
 #include "bcrypt-parallel.h"
 #include "openbsd.h"
 #include "test.h"
@@ -106,8 +107,12 @@ void test_blowfish_init_state_parallel(p_blf_ctx *state_actual,
     compare_p_states(state_actual, state_expected, DWORDS_PER_XMM, test_name);
 }
 
-void test_f_xmm(p_blf_ctx *state, uint32_t *bytes) {
-    f_xmm(state, bytes);
+void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
+                uint32_t *bytes_actual, uint32_t *bytes_expected)
+{
+    f_xmm(p_state, bytes_actual);
+
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {}
 }
 
 int main(int argc, char const *argv[]) {
@@ -124,8 +129,9 @@ int main(int argc, char const *argv[]) {
     test_blowfish_parallelise_state(state_expected, src, DWORDS_PER_XMM);
     test_blowfish_init_state_parallel(state_actual, state_expected);
 
-    uint32_t f_test_bytes[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
-    test_f_xmm(state_actual, &f_test_bytes);
+    uint32_t bytes_actual[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
+    uint32_t bytes_expected[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
+    test_f_xmm(state_actual, src, &bytes_actual, &bytes_expected);
 
     return 0;
 }

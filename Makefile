@@ -22,9 +22,10 @@ SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c
 TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
-OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
-OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
+OBJS_NO_UNROLLING=bcrypt-no-unrolling.o
+OBJS_LOADED_P=bcrypt-loaded-p.o
 OBJS_PARALLEL=bcrypt-parallel.o
+OBJS_TESTING=bcrypt-macro-testing.o
 
 
 .PHONY: all build test
@@ -40,19 +41,19 @@ cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(OBJS_NO_U
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS)
+test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS) $(OBJS_TESTING)
 	$(CC) $(FIXED_REGS) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
-test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING)
+test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-no-unrolling
 
-test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P)
+test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P) $(OBJS_TESTING) loaded-p-test-wrappers.o
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
-test-parallel: $(TEST)parallel.c $(TEST_SOURCES) $(OBJS_PARALLEL)
+test-parallel: $(TEST)parallel.c $(TEST_SOURCES) $(OBJS_PARALLEL) $(OBJS_TESTING)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 
@@ -72,6 +73,9 @@ bcrypt-parallel.o: $(CORE)bcrypt-parallel.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:
