@@ -24,6 +24,7 @@ f_xmm:
 
     movdqu xmm4, [rsi]
     F_XMM rdi, xmm4, xmm5, xmm6, xmm7, xmm8
+    movdqu [rsi], xmm5
 
     pop rbp
     ret

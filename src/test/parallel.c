@@ -110,9 +110,14 @@ void test_blowfish_init_state_parallel(p_blf_ctx *state_actual,
 void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
                 uint32_t *bytes_actual, uint32_t *bytes_expected)
 {
+    char test_name[] = "test_f_xmm";
     f_xmm(p_state, bytes_actual);
+    uint32_t current_expected;
 
-    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {}
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
+        current_expected = f_asm(bytes_expected[i], state);
+        do_test(bytes_actual[i], current_expected, test_name);
+    }
 }
 
 int main(int argc, char const *argv[]) {
