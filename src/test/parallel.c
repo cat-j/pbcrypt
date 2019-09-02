@@ -84,7 +84,7 @@ void compare_p_states(p_blf_ctx *state_actual, p_blf_ctx *state_expected,
         for (size_t j = 0; j < S_BOX_LENGTH*scale; ++j) {
             current_actual = state_actual->S[i][j];
             current_expected = state_expected->S[i][j];
-            
+
             if (current_actual != current_expected) {
                 test_fail("States in test %s differ. "
                     "S-box: %d, element: %d, "
@@ -106,6 +106,10 @@ void test_blowfish_init_state_parallel(p_blf_ctx *state_actual,
     compare_p_states(state_actual, state_expected, DWORDS_PER_XMM, test_name);
 }
 
+void test_f_xmm(p_blf_ctx *state, uint32_t *bytes) {
+    f_xmm(state, bytes);
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
     p_blf_ctx *state_expected;
@@ -119,6 +123,9 @@ int main(int argc, char const *argv[]) {
 
     test_blowfish_parallelise_state(state_expected, src, DWORDS_PER_XMM);
     test_blowfish_init_state_parallel(state_actual, state_expected);
+
+    uint32_t f_test_bytes[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
+    test_f_xmm(state_actual, &f_test_bytes);
 
     return 0;
 }
