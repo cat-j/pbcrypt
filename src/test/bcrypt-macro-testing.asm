@@ -9,6 +9,16 @@ global copy_ctext_asm
 ; multi-data
 global f_xmm
 
+
+section .data
+
+align 32
+element_offset: dd 0x0, 0x1, 0x2, 0x3
+gather_mask: times 4 dd 0x80000000
+
+
+section .text
+
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;; MACRO WRAPPERS ;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -19,12 +29,21 @@ global f_xmm
 f_xmm:
     ; rdi -> blowfish state
     ; rsi -> four 32-bit data blocks from different keys
+    %define data   xmm4
+    %define output xmm5
+    %define tmp1   xmm6
+    %define tmp2   xmm7
+    %define mask   xmm8
+
     push rbp
     mov  rbp, rsp
 
-    movdqu xmm4, [rsi]
-    F_XMM rdi, xmm4, xmm5, xmm6, xmm7, xmm8
-    movdqu [rsi], xmm5
+    movdqa element_offset_xmm, [element_offset]
+    movdqa gather_mask_xmm, [gather_mask]
+
+    movdqu data, [rsi]
+    F_XMM rdi, data, output, tmp1, tmp2, mask
+    movdqu [rsi], output
 
     pop rbp
     ret
