@@ -174,6 +174,20 @@
     xor %3, %5
 %endmacro
 
+; %1 -> array of S-boxes
+; %2: 4 P-elements for different passwords (same index)
+; %3: 4 32-bit 'i' blocks
+; %4: 4 32-bit 'j' blocks (inputs for F_XMM)
+; %5: 4 F outputs
+; %6: temporary XMM register for F_XMM
+; %7: temporary XMM register for F_XMM
+; %8: mask for F_XMM
+%macro BLOWFISH_ROUND_XMM 6
+    F_XMM %1, %4, %5, %6, %7, %8
+    pxor %5, %2
+    pxor %3, %5
+%endmacro
+
 ; %1: | l | r |, then | 0 | r |
 ; %2: |garbage|, then | 0 | l |
 %macro SPLIT_L_R 2
