@@ -27,7 +27,7 @@ section .text
 ; uint32_t f_asm(blf_ctx *state, uint32_t *bytes)
 
 f_xmm:
-    ; rdi -> blowfish state
+    ; rdi -> parallel blowfish state
     ; rsi -> four 32-bit data blocks from different keys
     %define data   xmm4
     %define output xmm5
@@ -78,6 +78,30 @@ blowfish_round_asm:
     mov  r8, [rdx + BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE] ; r8: P-value
     BLOWFISH_ROUND rdx, r9, rsi, rdi, r8, r10
     mov  rax, rsi
+
+    pop rbp
+    ret
+
+blowfish_round_xmm:
+    ; rdi -> parallel blowfish state
+    ; rsi -> four 32-bit left halves from different keys
+    ; rdx -> four 32-bit right halves from different keys
+    ; rcx: P-array index
+    push rbp
+    mov  rbp, rsp
+
+    %define xl_xmm xmm0
+    %define xr_xmm xmm1
+    %define p_xmm  xmm2
+    %define output xmm3
+    %define tmp1   xmm4
+    %define tmp2   xmm5
+    %define mask   xmm6
+
+    shl    rcx, 2 ; multiply by 4 because there are 4 copies of each
+    movdqu xl_xmm, [rsi]
+    movdqu xr_xmm, [rdx]
+    movdqu p_xmm, [rdi + P_BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE]
 
     pop rbp
     ret

@@ -3,21 +3,32 @@
 
 ; how many 1-byte memory slots each P_n takes up
 %define P_VALUE_MEMORY_SIZE 4
+
 ; how many 1-byte memory slots each element in an S-box takes up
 %define S_ELEMENT_MEMORY_SIZE 4
+
 ; how many 1-byte memory slots one S-box takes up
 %define S_BOX_MEMORY_SIZE 1024
+
 ; same as before, but for parallel S-box
 %define PARALLEL_S_BOX_MEMORY_SIZE 4096
+
 ; encryption rounds
 %define ROUNDS 16
+
 ; YMM register size in bytes
 %define YMM_SIZE 32
+
 ; P-array byte offset within context struct
 %define BLF_CTX_P_OFFSET 4096
+
+; P-array byte offset within parallel context struct
+%define P_BLF_CTX_P_OFFSET 16384
+
 ; length of bcrypt hash in 32-bit words
 %define BCRYPT_WORDS 6
 
+; for loaded P-array variant
 %define salt                xmm0
 %define p_0_7               ymm1
 %define p_0_7x              xmm1
@@ -26,10 +37,15 @@
 %define p_16_17             xmm3
 %define ctext_x             xmm4
 %define ctext_y             ymm4
+
+; for XMM parallel variant
 %define gather_mask_xmm     xmm13
 %define element_offset_xmm  xmm14
+
+; generally handy
 %define endianness_mask_ymm ymm15
 %define endianness_mask_xmm xmm15
+
 
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; ;;;;;;;;;; MACROS ;;;;;;;;;;
