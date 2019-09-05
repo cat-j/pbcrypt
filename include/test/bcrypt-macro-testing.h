@@ -16,6 +16,6 @@ void copy_ctext_asm(uint64_t *data, const char *ctext);
 
 void load_salt_and_p(blf_ctx *state, uint8_t *salt);
 
-uint32_t f_xmm(p_blf_ctx *state, uint32_t *bytes);
+void f_xmm(p_blf_ctx *state, uint32_t *bytes);
 
 #endif
