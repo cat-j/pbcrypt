@@ -8,6 +8,7 @@ global copy_ctext_asm
 
 ; multi-data
 global f_xmm
+global blowfish_round_xmm
 
 
 section .data
@@ -81,6 +82,9 @@ blowfish_round_asm:
 
     pop rbp
     ret
+
+; void blowfish_round_xmm(const p_blf_ctx *state, uint32_t *xl, uint32_t *xr,
+;                         uint32_t n)
 
 blowfish_round_xmm:
     ; rdi -> parallel blowfish state

@@ -120,6 +120,22 @@ void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
     }
 }
 
+void test_blowfish_round_xmm(p_blf_ctx *p_state, blf_ctx *state,
+                             uint32_t *xl_actual, uint32_t *xr_actual,
+                             uint32_t *xl_expected, uint32_t *xr_expected,
+                             uint32_t n)
+{
+    char test_name[] = "test_blowfish_round_xmm";
+    blowfish_round_xmm(p_state, xl_actual, xr_actual, n);
+    uint32_t current_expected;
+
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
+        current_expected = blowfish_round_asm(xl_expected[i], xr_expected[i],
+            state, n);
+        do_test(xl_actual[i], current_expected, test_name);
+    }
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
     p_blf_ctx *state_expected;
@@ -137,6 +153,12 @@ int main(int argc, char const *argv[]) {
     uint32_t bytes_actual[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
     uint32_t bytes_expected[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
     test_f_xmm(state_actual, src, &bytes_actual, &bytes_expected);
+
+    uint32_t xl_actual[4] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed};
+    uint32_t xr_actual[4] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00};
+    uint32_t xl_expected[4] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed};
+    uint32_t xr_expected[4] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00};
+    test_blowfish_round_xmm(state_actual, src, &xl_actual, &xr_actual, &xl_expected, &xr_expected, 1);
 
     return 0;
 }
