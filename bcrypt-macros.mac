@@ -149,6 +149,7 @@
     pxor       %3, %5
 
     movdqa     %4, %2
+    pslld      %4, 24
     psrld      %4, 24                 ; lowest byte
     pslld      %4, 2                  ; multiply by 4
     paddd      %4, element_offset_xmm
