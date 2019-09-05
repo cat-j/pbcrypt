@@ -128,7 +128,7 @@
     add output, [blf_state + 3*S_BOX_MEMORY_SIZE + tmp*S_ELEMENT_MEMORY_SIZE]
 %endmacro
 
-; %1 -> array of S-boxes
+; %1 -> array of parallel S-boxes
 ; %2: 4 32-bit blocks from different passwords
 ; %3: output
 ; %4: temporary XMM register
@@ -190,7 +190,7 @@
     xor %3, %5
 %endmacro
 
-; %1 -> array of S-boxes
+; %1 -> array of parallel S-boxes
 ; %2: 4 P-elements for different passwords (same index)
 ; %3: 4 32-bit 'i' blocks
 ; %4: 4 32-bit 'j' blocks (inputs for F_XMM)
@@ -198,7 +198,7 @@
 ; %6: temporary XMM register for F_XMM
 ; %7: temporary XMM register for F_XMM
 ; %8: mask for F_XMM
-%macro BLOWFISH_ROUND_XMM 6
+%macro BLOWFISH_ROUND_XMM 8
     F_XMM %1, %4, %5, %6, %7, %8
     pxor %5, %2
     pxor %3, %5
