@@ -108,7 +108,7 @@ blowfish_round_xmm:
     movdqu p_xmm, [rdi + P_BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE]
 
     BLOWFISH_ROUND_XMM rdi, p_xmm, xr_xmm, xl_xmm, output, tmp1, tmp2, mask
-    movdqu [rdx], output
+    movdqu [rdx], xr_xmm
 
     pop rbp
     ret
