@@ -377,6 +377,15 @@
         xor %6, %6
 %endmacro
 
+; %1: key_data
+; %2: key_data_ctr
+; %3: key_ptr
+; %4: key_len
+; %5: loop_ctr
+; %6: iteration number
+%macro READ_4_KEY_BYTES_PARALLEL 6
+%endmacro
+
 ; %8: iteration number
 %macro READ_32_KEY_BYTES 8
 

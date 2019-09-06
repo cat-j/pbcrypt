@@ -92,3 +92,16 @@ blowfish_init_state_parallel:
     .end:
         pop rbp
         ret
+
+blowfish_expand_state_parallel:
+    ; rdi -> parallel blowfish state (modified)
+    ; rsi -> 128-bit salt
+    ; rdx -> array of four 4 to 56 byte keys
+    ; rcx:   key length
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .end:
+        pop rbp
+        ret
