@@ -136,6 +136,49 @@ void test_blowfish_round_xmm(p_blf_ctx *p_state, blf_ctx *state,
     }
 }
 
+void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
+                                         const char *salt, const char *keys,
+                                         uint64_t keybytes, size_t scale)
+{
+    char test_name[] = "test_blowfish_expand_state_parallel";
+    blowfish_expand_state_parallel(p_state, salt, keys, keybytes);
+
+    for (size_t i = 0; i < scale; ++i) {
+        blowfish_expand_state_asm(states[i], salt, &keys[i*keybytes], keybytes);
+    }
+
+    uint32_t current_actual, current_expected;
+    blf_ctx *current_state;
+
+    for (size_t i = 0; i < scale; ++i) {
+        current_state = states[i];
+
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < S_BOX_LENGTH; ++k) {
+                current_actual = p_state->S[j][k+i];
+                current_expected = current_state->S[j][k];
+                if (current_actual != current_expected) {
+                    test_fail("States in test %s differ. "
+                        "State: %d, S-box: %d, element: %d, "
+                        "expected value: 0x%08x, actual value: 0x%08x\n",
+                        test_name, i, j, k, current_expected, current_actual);
+                }
+            }
+
+            for (size_t j = 0; j < P_ARRAY_LENGTH; ++j) {
+                current_actual = p_state->P[j+i];
+                current_expected = current_state->P[j];
+                if (current_actual != current_expected) {
+                    test_fail("States in test %s differ. "
+                        "State: %d, P-element: %d, "
+                        "expected value: 0x%08x, actual value: 0x%08x\n",
+                        test_name, i, j, current_expected, current_actual);
+                }
+            }
+        }
+    }
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
     p_blf_ctx *state_expected;

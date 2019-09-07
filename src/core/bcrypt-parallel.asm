@@ -6,6 +6,7 @@ extern initstate_asm
 ; exported functions for bcrypt implementation
 global blowfish_parallelise_state
 global blowfish_init_state_parallel
+global blowfish_expand_state_parallel
 
 global variant
 
@@ -92,6 +93,9 @@ blowfish_init_state_parallel:
     .end:
         pop rbp
         ret
+
+; void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
+;                                     const char *keys, uint64_t keybytes)
 
 blowfish_expand_state_parallel:
     ; rdi -> parallel blowfish state (modified)
