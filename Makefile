@@ -53,7 +53,7 @@ test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-loaded-
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
-test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL) $(OBJS_TESTING)
+test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS) $(OBJS_PARALLEL) $(OBJS_TESTING)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 

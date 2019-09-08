@@ -8,16 +8,11 @@ global blowfish_parallelise_state
 global blowfish_init_state_parallel
 global blowfish_expand_state_parallel
 
-global variant
-
 
 section .data
 
 align 32
 element_offset: dd 0x0, 0x1, 0x2, 0x3
-
-; unrolled loops, P-array in YMM registers, etc
-variant: dw 3
 
 
 section .text

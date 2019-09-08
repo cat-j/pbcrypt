@@ -205,5 +205,20 @@ int main(int argc, char const *argv[]) {
     test_blowfish_round_xmm(state_actual, src, &xl_actual, &xr_actual,
         &xl_expected, &xr_expected, 1);
 
+    blf_ctx **states = malloc(DWORDS_PER_XMM * sizeof(blf_ctx *)); // expected single-data states
+    blf_ctx *current;
+    // Initialise single-data states
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
+        posix_memalign((void**) &current, 32, sizeof(blf_ctx));
+        Blowfish_initstate(current);
+        states[i] = current;
+    }
+
+    char salt[] = "opabiniaOPABINIA"; // 128 bits long
+    char keys[] = "anomalocarisanomalocarisanomalocarisanomalocaris";
+    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
+
+    test_blowfish_expand_state_parallel(state_actual, states, &salt, &keys, keybytes, DWORDS_PER_XMM);
+
     return 0;
 }
