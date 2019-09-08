@@ -17,15 +17,10 @@ global blowfish_encipher_asm
 global blowfish_encrypt_asm
 global bcrypt_hashpass_asm
 
-global variant
-
 
 section .data
 
 %define BCRYPT_WORDS 6
-
-; unrolled loops, P-array in YMM registers, etc
-variant: dw 0
 
 
 section .text

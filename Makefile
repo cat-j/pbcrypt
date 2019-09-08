@@ -32,28 +32,28 @@ OBJS_TESTING=bcrypt-macro-testing.o
 
 all: clean cracker encrypt
 
-cracker: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(OBJS)
+cracker: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt.o $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(OBJS_NO_UNROLLING)
+cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o $(OBJS_NO_UNROLLING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS) $(OBJS_TESTING)
+test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt.o $(OBJS) $(OBJS_TESTING)
 	$(CC) $(FIXED_REGS) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test
 
-test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_NO_UNROLLING) $(OBJS_TESTING)
+test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-no-unrolling.o $(OBJS_NO_UNROLLING) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-no-unrolling
 
-test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) $(OBJS_LOADED_P) $(OBJS_TESTING)
+test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P) $(OBJS_TESTING)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
-test-parallel: $(TEST)parallel.c $(TEST_SOURCES) $(OBJS_PARALLEL) $(OBJS_TESTING)
+test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL) $(OBJS_TESTING)
 	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 
@@ -76,6 +76,18 @@ loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt.o: $(CORE)/variant/variant-bcrypt.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-no-unrolling.o: $(CORE)/variant/variant-bcrypt-no-unrolling.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-loaded-p.o: $(CORE)/variant/variant-bcrypt-loaded-p.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-parallel.o: $(CORE)/variant/variant-bcrypt-parallel.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:

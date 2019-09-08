@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "bcrypt.h"
 #include "bcrypt-constants.h"
 #include "bcrypt-macro-testing.h"
 #include "bcrypt-parallel.h"

@@ -23,14 +23,6 @@ global blowfish_round_asm
 global reverse_bytes
 global copy_ctext_asm
 
-global variant
-
-
-section .data
-
-; unrolled loops, P-array in YMM registers, etc
-variant: dw 1
-
 
 section .text
 
