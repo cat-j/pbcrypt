@@ -387,6 +387,8 @@
     .key_loop_%6:
         cmp %5, 4 ; four iterations, one for each byte
         je  .end_key_loop_%6
+        ; leave space for next bytes
+        pslld %1, 8
 
         .extract_key_bytes_%6:
             cmp %2, %4
@@ -409,13 +411,12 @@
             sub %3, %4
             shr %4, 2
 
-            ; leave space for next bytes
-            psrld %1, 8
 
             ; loop
             inc %2
             inc %5
-            
+            jmp .key_loop_%6
+
     .end_key_loop_%6:
 %endmacro
 

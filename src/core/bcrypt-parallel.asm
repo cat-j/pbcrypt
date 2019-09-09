@@ -112,13 +112,13 @@ blowfish_expand_state_parallel:
 
         ; initialise registers
         xor loop_ctr, loop_ctr
-        xor key_data_ctr, key_data_ctr
 
         %assign i 0
         %rep 18
+            xor loop_ctr, loop_ctr
             READ_4_KEY_BYTES_PARALLEL key_data, key_data_ctr, key_ptr, \
                 key_len, loop_ctr, i
-            movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], tmp
+            movdqa tmp, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
             pxor   tmp, key_data
             movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], tmp
             %assign i i+1

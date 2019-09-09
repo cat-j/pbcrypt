@@ -156,7 +156,7 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
 
         for (size_t j = 0; j < 4; ++j) {
             for (size_t k = 0; k < S_BOX_LENGTH; ++k) {
-                current_actual = p_state->S[j][k+i];
+                current_actual = p_state->S[j][scale*k + i];
                 current_expected = current_state->S[j][k];
                 if (current_actual != current_expected) {
                     test_fail("States in test %s differ. "
@@ -167,7 +167,7 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
             }
 
             for (size_t j = 0; j < P_ARRAY_LENGTH; ++j) {
-                current_actual = p_state->P[j+i];
+                current_actual = p_state->P[scale*j + i];
                 current_expected = current_state->P[j];
                 if (current_actual != current_expected) {
                     test_fail("States in test %s differ. "
@@ -178,6 +178,8 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
             }
         }
     }
+
+    test_pass("Success: states in %s are equal.\n", test_name);
 }
 
 int main(int argc, char const *argv[]) {
@@ -215,10 +217,11 @@ int main(int argc, char const *argv[]) {
     }
 
     char salt[] = "opabiniaOPABINIA"; // 128 bits long
-    char keys[] = "anomalocarisanomalocarisanomalocarisanomalocaris";
+    char keys[] = "anomalocarisGoLandcrabs!ANOMALOCARISgoLANDCRABS!";
     uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
 
-    test_blowfish_expand_state_parallel(state_actual, states, &salt, &keys, keybytes, DWORDS_PER_XMM);
+    test_blowfish_expand_state_parallel(state_actual, states,
+        &salt, &keys, keybytes, DWORDS_PER_XMM);
 
     return 0;
 }

@@ -243,60 +243,60 @@ blowfish_expand_state_asm:
             %assign j j+2
         %endrep
 
-    .p_array_salt:
-        %define data   r13
-        %define salt_l r10
-        %define salt_r r14
-        %define tmp1   rbx
-        %define tmp2   r9
-        %define tmp1l  ebx
+    ; .p_array_salt:
+    ;     %define data   r13
+    ;     %define salt_l r10
+    ;     %define salt_r r14
+    ;     %define tmp1   rbx
+    ;     %define tmp2   r9
+    ;     %define tmp1l  ebx
 
-        xor data, data        ; 0
-        mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
-        mov salt_r, [rsi + 8] ; rightmost 64 bits of salt = Xl | Xr
+    ;     xor data, data        ; 0
+    ;     mov salt_l, [rsi]     ; leftmost 64 bits of salt =  Xl | Xr
+    ;     mov salt_r, [rsi + 8] ; rightmost 64 bits of salt = Xl | Xr
 
-        REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
-        REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
+    ;     REVERSE_8_BYTES salt_l, tmp1, tmp2, tmp1l
+    ;     REVERSE_8_BYTES salt_r, tmp1, tmp2, tmp1l
 
-        ; Write to P[0], ... , P[15]
-        %assign i 0
-        %rep 4
-            xor  data, salt_l
-            call blowfish_encipher_register
-            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
+    ;     ; Write to P[0], ... , P[15]
+    ;     %assign i 0
+    ;     %rep 4
+    ;         xor  data, salt_l
+    ;         call blowfish_encipher_register
+    ;         mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+    ;         rol  data, 32
+    ;         %assign i i+2
 
-            xor  data, salt_r
-            call blowfish_encipher_register
-            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
-        %endrep
+    ;         xor  data, salt_r
+    ;         call blowfish_encipher_register
+    ;         mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+    ;         rol  data, 32
+    ;         %assign i i+2
+    ;     %endrep
 
-        ; Write to P[16] and P[17]
-        xor  data, salt_l
-        call blowfish_encipher_register
-        mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
-        rol  data, 32
+    ;     ; Write to P[16] and P[17]
+    ;     xor  data, salt_l
+    ;     call blowfish_encipher_register
+    ;     mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
+    ;     rol  data, 32
 
-    .s_boxes_salt:
-        ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
-        ; Two accesses per repetition -> 256 repetitions
-        %assign i 0
-        %rep 256
-            xor  data, salt_r
-            call blowfish_encipher_register
-            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
+    ; .s_boxes_salt:
+    ;     ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
+    ;     ; Two accesses per repetition -> 256 repetitions
+    ;     %assign i 0
+    ;     %rep 256
+    ;         xor  data, salt_r
+    ;         call blowfish_encipher_register
+    ;         mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+    ;         rol  data, 32
+    ;         %assign i i+2
 
-            xor  data, salt_l
-            call blowfish_encipher_register
-            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-            rol  data, 32
-            %assign i i+2
-        %endrep
+    ;         xor  data, salt_l
+    ;         call blowfish_encipher_register
+    ;         mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+    ;         rol  data, 32
+    ;         %assign i i+2
+    ;     %endrep
     
     .end:
         pop r14
