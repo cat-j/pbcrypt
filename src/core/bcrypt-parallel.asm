@@ -118,11 +118,27 @@ blowfish_expand_state_parallel:
             xor loop_ctr, loop_ctr
             READ_4_KEY_BYTES_PARALLEL key_data, key_data_ctr, key_ptr, \
                 key_len, loop_ctr, i
-            movdqa tmp, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
-            pxor   tmp, key_data
-            movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], tmp
+            pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
+            movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], key_data
             %assign i i+1
         %endrep
+
+    .p_array_salt:
+        %define salt_0    xmm3
+        %define salt_1    xmm4
+        %define salt_2    xmm5
+        %define salt_3    xmm6
+        %define salt_data xmm7
+
+        ; copy each 32-bit block four times
+        vpbroadcastd salt_0, [rsi]
+        vpbroadcastd salt_1, [rsi + 4]
+        vpbroadcastd salt_2, [rsi + 8]
+        vpbroadcastd salt_3, [rsi + 12]
+
+        movdqa salt, salt_0
+        pxor   salt, [rdi + P_BLF_CTX_P_OFFSET]
+        movdqa [rdi + P_BLF_CTX_P_OFFSET], salt
 
     .end:
         pop rbp
