@@ -21,6 +21,20 @@ section .text
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
+blowfish_encipher_parallel:
+    ; rdi -> parallel blowfish state (4 keys)
+    ; ymm0: | 4 Xls | 4 Xrs |
+    ; ymm3: | 4 s0s | 4 s1s |
+    ; ymm5: | 4 s2s | 4 s3s |
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .end:
+        pop rbp
+        ret
+
 ; void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src)
 
 blowfish_parallelise_state:
@@ -124,11 +138,13 @@ blowfish_expand_state_parallel:
         %endrep
 
     .p_array_salt:
+        %define data      ymm0
         %define salt_0    xmm3
         %define salt_1    xmm4
         %define salt_2    xmm5
         %define salt_3    xmm6
-        %define salt_data xmm7
+        %define salt_0_1  ymm3
+        %define salt_2_3  ymm5
 
         ; copy each 32-bit block four times
         vpbroadcastd salt_0, [rsi]
@@ -136,9 +152,23 @@ blowfish_expand_state_parallel:
         vpbroadcastd salt_2, [rsi + 8]
         vpbroadcastd salt_3, [rsi + 12]
 
-        movdqa salt, salt_0
-        pxor   salt, [rdi + P_BLF_CTX_P_OFFSET]
-        movdqa [rdi + P_BLF_CTX_P_OFFSET], salt
+        ; initialise variables
+        vpxor       data, data ; 0
+        vinserti128 salt_0_1, salt_0, 0
+        vinserti128 salt_0_1, salt_1, 1
+        vinserti128 salt_2_3, salt_2, 0
+        vinserti128 salt_2_3, salt_3, 1
+
+        ; actual enciphering
+        vpxor   data, salt_0_1
+        call    blowfish_encipher_parallel
+        vpxor   data, [rdi + P_BLF_CTX_P_OFFSET]
+        vmovdqa [rdi + P_BLF_CTX_P_OFFSET], data
+
+        vpxor   data, salt_2_3
+        call    blowfish_encipher_parallel
+        vpxor   data, [rdi + P_BLF_CTX_P_OFFSET]
+        vmovdqa [rdi + P_BLF_CTX_P_OFFSET + 32], data
 
     .end:
         pop rbp
