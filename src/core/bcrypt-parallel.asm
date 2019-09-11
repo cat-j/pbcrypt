@@ -12,6 +12,13 @@ global blowfish_expand_state_parallel
 section .data
 
 align 32
+endianness_mask: db \
+0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, \
+0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, \
+0x13, 0x12, 0x11, 0x10, 0x17, 0x16, 0x15, 0x14, \
+0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
+
+align 32
 element_offset: dd 0x0, 0x1, 0x2, 0x3
 
 
@@ -32,11 +39,16 @@ blowfish_encipher_parallel:
         mov  rbp, rsp
     
     .separate_xl_xr:
-        %define x_l xmm0
-        %define x_r xmm8
-        %define p_y ymm9
-        %define p_l xmm9
-        %define p_r xmm10
+        %define x_l   xmm0
+        %define x_r   xmm2
+        %define p_y   ymm4
+        %define p_l   xmm4
+        %define p_r   xmm6
+        %define mask  xmm7
+        %define f_out xmm8
+        %define tmp1  xmm9
+        %define tmp2  xmm10
+        %define mask  xmm11
 
         ROTATE_128(ymm0)
         movdqa x_r, xmm0 ; x_r = 4 Xrs
@@ -48,9 +60,14 @@ blowfish_encipher_parallel:
         movdqa  p_r, p_l ; p_r = 4 P[1]s
         ROTATE_128(p_y)  ; p_l = 4 P[0]s
 
-        pxor x_l, p_l ; Xl <- Xl ^ P[0]
         ; macro parameters: s, p[n], i, j, F outputs, tmp1, tmp2, mask
-        BLOWFISH_ROUND_XMM 
+        pxor x_l, p_l ; Xl <- Xl ^ P[0]
+        BLOWFISH_ROUND_XMM rdi, p_r, x_r, x_l, f_out, tmp1, tmp2, mask
+
+        ; n is even and ranges 2 to 14
+        ; n+1 is odd and ranges 3 to 15
+        ; %rep 7
+        ; %endrep
 
     .end:
         pop rbp
@@ -167,6 +184,9 @@ blowfish_expand_state_parallel:
         %define salt_0_1  ymm3
         %define salt_2_3  ymm5
 
+        ; TODO: remove this and write a test wrapper after moving it to hashpass
+        vmovdqa endianness_mask_ymm, [endianness_mask]
+
         ; copy each 32-bit block four times
         vpbroadcastd salt_0, [rsi]
         vpbroadcastd salt_1, [rsi + 4]
@@ -179,6 +199,8 @@ blowfish_expand_state_parallel:
         vinserti128 salt_0_1, salt_1, 1
         vinserti128 salt_2_3, salt_2, 0
         vinserti128 salt_2_3, salt_3, 1
+        vpshufb     salt_0_1, endianness_mask_ymm
+        vpshufb     salt_2_3, endianness_mask_ymm
 
         ; actual enciphering
         vpxor   data, salt_0_1
