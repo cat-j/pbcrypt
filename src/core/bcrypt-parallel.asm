@@ -75,7 +75,20 @@ blowfish_encipher_parallel:
 
             BLOWFISH_ROUND_XMM rdi, p_l, x_l, x_r, f_out, tmp1, tmp2, mask
             BLOWFISH_ROUND_XMM rdi, p_r, x_r, x_l, f_out, tmp1, tmp2, mask
+            %assign i i+1
         %endrep
+
+        ; Load 4 P[16]s and 4 P[17]s and perform remaining operations
+        vmovdqa p_y, [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE] ; | 4 P[16]s | 4 P[17]s |
+        ROTATE_128(p_y)
+        movdqa  p_r, p_l ; p_r = 4 P[1]s
+        ROTATE_128(p_y)  ; p_l = 4 P[0]s
+
+        BLOWFISH_ROUND_XMM rdi, p_l, x_l, x_r, f_out, tmp1, tmp2, mask
+        pxor x_r, p_r
+
+    .build_output:
+        vinserti128 ymm0, x_r, 1 ; | 4 Xls | 4 Xrs |
 
     .end:
         pop rbp
