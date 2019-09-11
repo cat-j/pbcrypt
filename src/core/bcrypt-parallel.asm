@@ -30,6 +30,27 @@ blowfish_encipher_parallel:
     .build_frame:
         push rbp
         mov  rbp, rsp
+    
+    .separate_xl_xr:
+        %define x_l xmm0
+        %define x_r xmm8
+        %define p_y ymm9
+        %define p_l xmm9
+        %define p_r xmm10
+
+        ROTATE_128(ymm0)
+        movdqa x_r, xmm0 ; x_r = 4 Xrs
+        ROTATE_128(ymm0) ; x_l = 4 Xls
+    
+    .do_encipher:
+        vmovdqa p_y, [rdi + P_BLF_CTX_P_OFFSET] ; | 4 P[0]s | 4 P[1]s |
+        ROTATE_128(p_y)
+        movdqa  p_r, p_l ; p_r = 4 P[1]s
+        ROTATE_128(p_y)  ; p_l = 4 P[0]s
+
+        pxor x_l, p_l ; Xl <- Xl ^ P[0]
+        ; macro parameters: s, p[n], i, j, F outputs, tmp1, tmp2, mask
+        BLOWFISH_ROUND_XMM 
 
     .end:
         pop rbp
