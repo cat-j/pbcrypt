@@ -224,7 +224,6 @@ blowfish_expand_state_parallel:
         vpshufb     salt_0_1, endianness_mask_ymm
         vpshufb     salt_2_3, endianness_mask_ymm
 
-        ; actual enciphering
         ; Write to P[0]s, ... , P[15]s
         %assign i 0
         %rep 4
@@ -238,6 +237,11 @@ blowfish_expand_state_parallel:
             vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
             %assign i i+1
         %endrep
+
+        ; Write to P[16]s and P[17s]
+        vpxor   data, salt_0_1
+        call    blowfish_encipher_parallel
+        vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
 
     .end:
         pop rbp
