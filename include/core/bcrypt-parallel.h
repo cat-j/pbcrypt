@@ -23,4 +23,6 @@ void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
 void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
                                       uint64_t keybytes);
 
+void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const char *salt);
+
 #endif

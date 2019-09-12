@@ -202,6 +202,19 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     compare_p_state_many(p_state, states, scale, test_name);
 }
 
+void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **states,
+                                                const char *salt, size_t scale)
+{
+    char test_name[] = "test_blowfish_expand_0_state_salt_parallel";
+    blowfish_expand_0_state_salt_parallel(p_state, salt);
+
+    for (size_t i = 0; i < scale; ++i) {
+        blowfish_expand_0_state_salt_asm(states[i], salt);
+    }
+
+    compare_p_state_many(p_state, states, scale, test_name);
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
     p_blf_ctx *state_expected;
@@ -244,6 +257,8 @@ int main(int argc, char const *argv[]) {
         &salt, &keys, keybytes, DWORDS_PER_XMM);
     test_blowfish_expand_0_state_parallel(state_actual, states,
         &keys, keybytes, DWORDS_PER_XMM);
+    test_blowfish_expand_0_state_salt_parallel(state_actual, states,
+        salt, DWORDS_PER_XMM);
 
     return 0;
 }

@@ -8,6 +8,7 @@ global blowfish_parallelise_state
 global blowfish_init_state_parallel
 global blowfish_expand_state_parallel
 global blowfish_expand_0_state_parallel
+global blowfish_expand_0_state_salt_parallel
 
 
 section .data
@@ -333,6 +334,7 @@ blowfish_expand_0_state_salt_parallel:
         %define salt_3    xmm6
         %define salt_0_1  ymm3
         %define salt_2_3  ymm5
+        %define tmp_salt  ymm1
 
         ; TODO: remove this and write a test wrapper after moving it to hashpass
         vmovdqa endianness_mask_ymm, [endianness_mask]
@@ -351,12 +353,18 @@ blowfish_expand_0_state_salt_parallel:
         vpshufb     salt_0_1, endianness_mask_ymm
         vpshufb     salt_2_3, endianness_mask_ymm
 
-        ; %assign i 0
-        ; %rep 4
-        ;     pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
-        ;     movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], key_data
-        ;     %assign i i+1
-        ; %endrep
+        %assign i 0
+        %rep 4
+            vmovdqa tmp_salt, salt_0_1
+            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE]
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE], tmp_salt
+            %assign i i+1
+
+            vmovdqa tmp_salt, salt_2_3
+            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE]
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE], tmp_salt
+            %assign i i+1
+        %endrep
 
     .end:
         pop rbp
