@@ -347,31 +347,31 @@ blowfish_expand_0_state_asm:
             %assign j j+2
         %endrep
     
-    ; .p_array_data:
-    ;     %define data   r13
-    ;     %define tmp1   rcx
-    ;     %define tmp2   r9
-    ;     %define tmp1l  ecx
+    .p_array_data:
+        %define data   r13
+        %define tmp1   rcx
+        %define tmp2   r9
+        %define tmp1l  ecx
 
-    ;     xor data, data ; 0
+        xor data, data ; 0
 
-    ;     %assign i 0
-    ;     %rep 9
-    ;         call blowfish_encipher_register
-    ;         mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
-    ;         rol  data, 32
-    ;         %assign i i+2
-    ;     %endrep
+        %assign i 0
+        %rep 9
+            call blowfish_encipher_register
+            mov  [rdi + BLF_CTX_P_OFFSET + i*P_VALUE_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
     
-    ; .s_boxes_data:
-    ;     ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
-    ;     %assign i 0
-    ;     %rep 512
-    ;         call blowfish_encipher_register
-    ;         mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-    ;         rol  data, 32
-    ;         %assign i i+2
-    ;     %endrep
+    .s_boxes_data:
+        ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
+        %assign i 0
+        %rep 512
+            call blowfish_encipher_register
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
 
     .end:
         pop r13
