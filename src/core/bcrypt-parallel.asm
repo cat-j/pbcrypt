@@ -186,7 +186,7 @@ blowfish_expand_state_parallel:
         %define tmp          xmm2
 
         ; initialise registers
-        xor loop_ctr, loop_ctr
+        xor key_data_ctr, key_data_ctr
 
         %assign i 0
         %rep 18
@@ -283,7 +283,7 @@ blowfish_expand_0_state_parallel:
         %define tmp          xmm2
 
         ; initialise registers
-        xor loop_ctr, loop_ctr
+        xor key_data_ctr, key_data_ctr
 
         %assign i 0
         %rep 18

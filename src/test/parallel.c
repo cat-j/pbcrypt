@@ -192,7 +192,7 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
                                            const char *keys, uint64_t keybytes,
                                            size_t scale)
 {
-    char test_name[] = "test_blowfish_expand_state_parallel";
+    char test_name[] = "test_blowfish_expand_0_state_parallel";
     blowfish_expand_0_state_parallel(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
