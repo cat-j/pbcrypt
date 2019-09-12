@@ -287,7 +287,7 @@ blowfish_expand_0_state_parallel:
 
         %assign i 0
         %rep 18
-            xor loop_ctr, loop_ctr
+            xor    loop_ctr, loop_ctr
             READ_4_KEY_BYTES_PARALLEL key_data, key_data_ctr, key_ptr, \
                 key_len, loop_ctr, i
             pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
@@ -302,7 +302,7 @@ blowfish_expand_0_state_parallel:
 
         %assign i 0
         %rep 9
-            call blowfish_encipher_parallel
+            call    blowfish_encipher_parallel
             vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
             %assign i i+1
         %endrep
@@ -310,10 +310,53 @@ blowfish_expand_0_state_parallel:
     .s_boxes_data:
         %assign i 0
         %rep 512
-            call blowfish_encipher_parallel
+            call    blowfish_encipher_parallel
             vmovdqa [rdi + i*YMM_SIZE], data
             %assign i i+1
         %endrep
+
+    .end:
+        pop rbp
+        ret
+
+blowfish_expand_0_state_salt_parallel:
+    ; rdi -> parallel blowfish state
+    ; rsi -> salt
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .p_array_salt:
+        %define salt_0    xmm3
+        %define salt_1    xmm4
+        %define salt_2    xmm5
+        %define salt_3    xmm6
+        %define salt_0_1  ymm3
+        %define salt_2_3  ymm5
+
+        ; TODO: remove this and write a test wrapper after moving it to hashpass
+        vmovdqa endianness_mask_ymm, [endianness_mask]
+
+        ; copy each 32-bit block four times
+        vpbroadcastd salt_0, [rsi]
+        vpbroadcastd salt_1, [rsi + 4]
+        vpbroadcastd salt_2, [rsi + 8]
+        vpbroadcastd salt_3, [rsi + 12]
+
+        ; initialise variables
+        vinserti128 salt_0_1, salt_0, 0
+        vinserti128 salt_0_1, salt_1, 1
+        vinserti128 salt_2_3, salt_2, 0
+        vinserti128 salt_2_3, salt_3, 1
+        vpshufb     salt_0_1, endianness_mask_ymm
+        vpshufb     salt_2_3, endianness_mask_ymm
+
+        ; %assign i 0
+        ; %rep 4
+        ;     pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
+        ;     movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], key_data
+        ;     %assign i i+1
+        ; %endrep
 
     .end:
         pop rbp
