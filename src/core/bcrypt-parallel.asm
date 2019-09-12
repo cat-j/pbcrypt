@@ -89,6 +89,7 @@ blowfish_encipher_parallel:
 
     .build_output:
         vinserti128 ymm0, x_r, 1 ; | 4 Xls | 4 Xrs |
+        ROTATE_128(ymm0)
 
     .end:
         pop rbp
@@ -224,15 +225,19 @@ blowfish_expand_state_parallel:
         vpshufb     salt_2_3, endianness_mask_ymm
 
         ; actual enciphering
-        vpxor   data, salt_0_1
-        call    blowfish_encipher_parallel
-        vpxor   data, [rdi + P_BLF_CTX_P_OFFSET]
-        vmovdqa [rdi + P_BLF_CTX_P_OFFSET], data
+        ; Write to P[0]s, ... , P[15]s
+        %assign i 0
+        %rep 4
+            vpxor   data, salt_0_1
+            call    blowfish_encipher_parallel
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
+            %assign i i+1
 
-        vpxor   data, salt_2_3
-        call    blowfish_encipher_parallel
-        vpxor   data, [rdi + P_BLF_CTX_P_OFFSET]
-        vmovdqa [rdi + P_BLF_CTX_P_OFFSET + 32], data
+            vpxor   data, salt_2_3
+            call    blowfish_encipher_parallel
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
+            %assign i i+1
+        %endrep
 
     .end:
         pop rbp
