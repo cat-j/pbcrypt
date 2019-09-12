@@ -7,6 +7,7 @@ extern initstate_asm
 global blowfish_parallelise_state
 global blowfish_init_state_parallel
 global blowfish_expand_state_parallel
+global blowfish_expand_0_state_parallel
 
 
 section .data
@@ -261,7 +262,13 @@ blowfish_expand_state_parallel:
         pop rbp
         ret
 
+; void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
+;                                       uint64_t keybytes)
+
 blowfish_expand_0_state_parallel:
+    ; rdi -> parallel blowfish state
+    ; rsi -> array of four 4 to 56 byte keys
+    ; rdx:   key length
     .build_frame:
         push rbp
         mov  rbp, rsp
@@ -270,8 +277,8 @@ blowfish_expand_0_state_parallel:
         ; read four bytes from each key and XOR
         %define key_data     xmm1
         %define key_data_ctr r8
-        %define key_ptr      rdx
-        %define key_len      rcx
+        %define key_ptr      rsi
+        %define key_len      rdx
         %define loop_ctr     r9
         %define tmp          xmm2
 

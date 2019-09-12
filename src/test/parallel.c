@@ -67,7 +67,7 @@ void compare_parallelised_state(p_blf_ctx *state_actual, blf_ctx *src,
 }
 
 void compare_p_states(p_blf_ctx *state_actual, p_blf_ctx *state_expected,
-                    size_t scale, const char *test_name) {
+                      size_t scale, const char *test_name) {
     uint32_t *p_actual = state_actual->P, *p_expected = state_expected->P;
     uint32_t current_actual, current_expected;
 
@@ -92,6 +92,43 @@ void compare_p_states(p_blf_ctx *state_actual, p_blf_ctx *state_expected,
                     "S-box: %d, element: %d, "
                     "expected value: 0x%08x, actual value: 0x%08x\n",
                     test_name, i, j, current_expected, current_actual);
+            }
+        }
+    }
+
+    test_pass("Success: states in %s are equal.\n", test_name);
+}
+
+void compare_p_state_many(p_blf_ctx *p_state, blf_ctx **states, size_t scale,
+                          const char *test_name)
+{
+    uint32_t current_actual, current_expected;
+    blf_ctx *current_state;
+
+    for (size_t i = 0; i < scale; ++i) {
+        current_state = states[i];
+
+        for (size_t j = 0; j < 4; ++j) {
+            for (size_t k = 0; k < S_BOX_LENGTH; ++k) {
+                current_actual = p_state->S[j][scale*k + i];
+                current_expected = current_state->S[j][k];
+                if (current_actual != current_expected) {
+                    test_fail("States in test %s differ. "
+                        "State: %d, S-box: %d, element: %d, "
+                        "expected value: 0x%08x, actual value: 0x%08x\n",
+                        test_name, i, j, k, current_expected, current_actual);
+                }
+            }
+
+            for (size_t j = 0; j < P_ARRAY_LENGTH; ++j) {
+                current_actual = p_state->P[scale*j + i];
+                current_expected = current_state->P[j];
+                if (current_actual != current_expected) {
+                    test_fail("States in test %s differ. "
+                        "State: %d, P-element: %d, "
+                        "expected value: 0x%08x, actual value: 0x%08x\n",
+                        test_name, i, j, current_expected, current_actual);
+                }
             }
         }
     }
@@ -148,38 +185,21 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
         blowfish_expand_state_asm(states[i], salt, &keys[i*keybytes], keybytes);
     }
 
-    uint32_t current_actual, current_expected;
-    blf_ctx *current_state;
+    compare_p_state_many(p_state, states, scale, test_name);
+}
+
+void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
+                                           const char *keys, uint64_t keybytes,
+                                           size_t scale)
+{
+    char test_name[] = "test_blowfish_expand_state_parallel";
+    blowfish_expand_0_state_parallel(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
-        current_state = states[i];
-
-        for (size_t j = 0; j < 4; ++j) {
-            for (size_t k = 0; k < S_BOX_LENGTH; ++k) {
-                current_actual = p_state->S[j][scale*k + i];
-                current_expected = current_state->S[j][k];
-                if (current_actual != current_expected) {
-                    test_fail("States in test %s differ. "
-                        "State: %d, S-box: %d, element: %d, "
-                        "expected value: 0x%08x, actual value: 0x%08x\n",
-                        test_name, i, j, k, current_expected, current_actual);
-                }
-            }
-
-            for (size_t j = 0; j < P_ARRAY_LENGTH; ++j) {
-                current_actual = p_state->P[scale*j + i];
-                current_expected = current_state->P[j];
-                if (current_actual != current_expected) {
-                    test_fail("States in test %s differ. "
-                        "State: %d, P-element: %d, "
-                        "expected value: 0x%08x, actual value: 0x%08x\n",
-                        test_name, i, j, current_expected, current_actual);
-                }
-            }
-        }
+        blowfish_expand_0_state_asm(states[i], &keys[i*keybytes], keybytes);
     }
 
-    test_pass("Success: states in %s are equal.\n", test_name);
+    compare_p_state_many(p_state, states, scale, test_name);
 }
 
 int main(int argc, char const *argv[]) {
@@ -222,6 +242,8 @@ int main(int argc, char const *argv[]) {
 
     test_blowfish_expand_state_parallel(state_actual, states,
         &salt, &keys, keybytes, DWORDS_PER_XMM);
+    test_blowfish_expand_0_state_parallel(state_actual, states,
+        &keys, keybytes, DWORDS_PER_XMM);
 
     return 0;
 }
