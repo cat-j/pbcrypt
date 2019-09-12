@@ -280,23 +280,23 @@ blowfish_expand_state_asm:
         mov  [rdi + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], data
         rol  data, 32
 
-    ; .s_boxes_salt:
-    ;     ; Encrypt 1024 P-elements, two per memory access -> 512 accesses
-    ;     ; Two accesses per repetition -> 256 repetitions
-    ;     %assign i 0
-    ;     %rep 256
-    ;         xor  data, salt_r
-    ;         call blowfish_encipher_register
-    ;         mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-    ;         rol  data, 32
-    ;         %assign i i+2
+    .s_boxes_salt:
+        ; Encrypt 1024 S-elements, two per memory access -> 512 accesses
+        ; Two accesses per repetition -> 256 repetitions
+        %assign i 0
+        %rep 256
+            xor  data, salt_r
+            call blowfish_encipher_register
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
 
-    ;         xor  data, salt_l
-    ;         call blowfish_encipher_register
-    ;         mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
-    ;         rol  data, 32
-    ;         %assign i i+2
-    ;     %endrep
+            xor  data, salt_l
+            call blowfish_encipher_register
+            mov  [rdi + i*S_ELEMENT_MEMORY_SIZE], data
+            rol  data, 32
+            %assign i i+2
+        %endrep
     
     .end:
         pop r14

@@ -243,6 +243,20 @@ blowfish_expand_state_parallel:
         call    blowfish_encipher_parallel
         vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], data
 
+    .s_boxes_salt:
+        %assign i 0
+        %rep 256
+            vpxor   data, salt_2_3
+            call    blowfish_encipher_parallel
+            vmovdqa [rdi + i*YMM_SIZE], data
+            %assign i i+1
+
+            vpxor   data, salt_0_1
+            call    blowfish_encipher_parallel
+            vmovdqa [rdi + i*YMM_SIZE], data
+            %assign i i+1
+        %endrep
+
     .end:
         pop rbp
         ret
