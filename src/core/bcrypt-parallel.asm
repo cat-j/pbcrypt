@@ -353,18 +353,24 @@ blowfish_expand_0_state_salt_parallel:
         vpshufb     salt_0_1, endianness_mask_ymm
         vpshufb     salt_2_3, endianness_mask_ymm
 
+        ; P[0]s to P[15]s
         %assign i 0
         %rep 4
             vmovdqa tmp_salt, salt_0_1
-            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE]
-            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE], tmp_salt
+            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE]
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], tmp_salt
             %assign i i+1
 
             vmovdqa tmp_salt, salt_2_3
-            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE]
-            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + YMM_SIZE], tmp_salt
+            vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE]
+            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], tmp_salt
             %assign i i+1
         %endrep
+
+        ; P[16]s and P[17]s
+        vmovdqa tmp_salt, salt_0_1
+        vpxor   tmp_salt, [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE]
+        vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*YMM_SIZE], tmp_salt
 
     .end:
         pop rbp
