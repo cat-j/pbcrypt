@@ -395,3 +395,35 @@ blowfish_expand_0_state_salt_parallel:
     .end:
         pop rbp
         ret
+
+bcrypt_hashpass_parallel:
+    ; rdi -> parallel state (modified)
+    ; rsi -> 128-bit salt
+    ; rdx -> keys
+    ; rcx:   key length in bytes
+    ; r8 ->  hashes (modified)
+    ; r9:    rounds
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .key_setup:
+        ; Save these values because blowfish_expand_state would modify them
+        ; rbx -> salt
+        ; r12 -> hash
+        ; r13 -> key
+        ; r14:   key length in bytes
+        ; r15:   rounds
+        mov rbx, rsi
+        mov r12, r8
+        mov r13, rdx
+        mov r14, rcx
+        mov r15, r9
+
+        call blowfish_init_state_parallel
+
+        call blowfish_expand_state_parallel
+
+    .end:
+        pop rbp
+        ret
