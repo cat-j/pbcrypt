@@ -2,6 +2,7 @@
 
 ; variables
 extern initstate_asm
+extern initstate_parallel
 
 ; exported functions for bcrypt implementation
 global blowfish_parallelise_state
@@ -425,7 +426,7 @@ bcrypt_hashpass_parallel:
         mov r14, rcx
         mov r15, r9
 
-        mov  rsi, initstate_asm
+        mov  rsi, initstate_parallel
         call blowfish_init_state_parallel
 
         mov  rsi, rbx

@@ -235,8 +235,9 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
 
 void test_bcrypt_hashpass() {
     // Parallel state
-    p_blf_ctx *p_state;
-    posix_memalign((void**) &p_state, 32, sizeof(p_blf_ctx));
+    p_blf_ctx *p_state_actual;
+    posix_memalign((void**) &p_state_actual, 32, sizeof(p_blf_ctx));
+    blowfish_parallelise_state(&initstate_parallel, &initstate_asm);
     
     // Single-data states
     blf_ctx **states = malloc(DWORDS_PER_XMM * sizeof(blf_ctx *)); // expected single-data states
@@ -256,10 +257,10 @@ void test_bcrypt_hashpass() {
 
     uint64_t rounds = 8;
 
-    test_bcrypt_hashpass_parallel(p_state, states, hashes_actual, hashes_expected,
+    test_bcrypt_hashpass_parallel(p_state_actual, states, hashes_actual, hashes_expected,
         keys, keybytes, salt, rounds, DWORDS_PER_XMM);
 
-    free(p_state);
+    free(p_state_actual);
     for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
         free(states[i]);
     }
