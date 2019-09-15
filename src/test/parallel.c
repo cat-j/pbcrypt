@@ -215,6 +215,24 @@ void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **st
     compare_p_state_many(p_state, states, scale, test_name);
 }
 
+void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
+                                   uint8_t *hashes_actual, uint8_t **hashes_expected,
+                                   const char *keys, uint64_t keybytes,
+                                   const char *salt, uint64_t rounds,
+                                   size_t scale)
+{
+    char test_name[] = "test_bcrypt_hashpass_parallel";
+    // test_start(test_name)
+    bcrypt_hashpass_parallel(p_state, salt, keys, keybytes, hashes_actual, rounds);
+
+    for (size_t i = 0; i < scale; ++i) {
+        bcrypt_hashpass_asm(states[i], salt, &keys[i*keybytes],
+            keybytes, hashes_expected[i], rounds);
+    }
+
+    compare_p_state_many(p_state, states, scale, test_name);
+}
+
 int main(int argc, char const *argv[]) {
     blf_ctx *src;
     p_blf_ctx *state_expected;

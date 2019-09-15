@@ -9,6 +9,7 @@ global blowfish_init_state_parallel
 global blowfish_expand_state_parallel
 global blowfish_expand_0_state_parallel
 global blowfish_expand_0_state_salt_parallel
+global bcrypt_hashpass_parallel
 
 
 section .data
@@ -395,6 +396,10 @@ blowfish_expand_0_state_salt_parallel:
     .end:
         pop rbp
         ret
+
+; void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
+;                               const char *keys, uint16_t keybytes,
+;                               uint8_t *hashes, uint64_t rounds)
 
 bcrypt_hashpass_parallel:
     ; rdi -> parallel state (modified)

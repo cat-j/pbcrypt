@@ -25,4 +25,8 @@ void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
 
 void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const char *salt);
 
+void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
+                              const char *keys, uint16_t keybytes,
+                              uint8_t *hashes, uint64_t rounds);
+
 #endif
