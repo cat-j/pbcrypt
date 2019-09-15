@@ -425,8 +425,10 @@ bcrypt_hashpass_parallel:
         mov r14, rcx
         mov r15, r9
 
+        mov  rsi, initstate_asm
         call blowfish_init_state_parallel
 
+        mov  rsi, rbx
         call blowfish_expand_state_parallel
 
     .end:

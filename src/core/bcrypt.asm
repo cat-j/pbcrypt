@@ -531,54 +531,54 @@ bcrypt_hashpass_asm:
 
         call blowfish_expand_state_asm
 
-        .expand_0_state:
-            %define salt_ptr  rbx
-            %define hash_ptr  r12
-            %define key_ptr   r13
-            %define key_len   r14
-            %define rounds    r15
-            %define round_ctr r8
+    ;     .expand_0_state:
+    ;         %define salt_ptr  rbx
+    ;         %define hash_ptr  r12
+    ;         %define key_ptr   r13
+    ;         %define key_len   r14
+    ;         %define rounds    r15
+    ;         %define round_ctr r8
 
-            xor round_ctr, round_ctr
+    ;         xor round_ctr, round_ctr
             
-            .round_loop:
-                cmp  round_ctr, rounds
-                je   .encrypt
+    ;         .round_loop:
+    ;             cmp  round_ctr, rounds
+    ;             je   .encrypt
 
-                mov  rsi, key_ptr
-                mov  rdx, key_len
-                call blowfish_expand_0_state_asm
+    ;             mov  rsi, key_ptr
+    ;             mov  rdx, key_len
+    ;             call blowfish_expand_0_state_asm
 
-                mov  rsi, salt_ptr
-                call blowfish_expand_0_state_salt_asm
+    ;             mov  rsi, salt_ptr
+    ;             call blowfish_expand_0_state_salt_asm
 
-                inc  round_ctr
-                jmp  .round_loop
+    ;             inc  round_ctr
+    ;             jmp  .round_loop
 
-    .encrypt:
-        ; %1 -> ciphertext buffer
-        ; %2: temporary register
-        ; %3: temporary register
-        ; %4: temporary register
-        ; %5: lower 32 bits of %3
-        ; %6 -> 24-byte ciphertext to be copied
-        COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
+    ; .encrypt:
+    ;     ; %1 -> ciphertext buffer
+    ;     ; %2: temporary register
+    ;     ; %3: temporary register
+    ;     ; %4: temporary register
+    ;     ; %5: lower 32 bits of %3
+    ;     ; %6 -> 24-byte ciphertext to be copied
+    ;     COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
 
-        %rep 64
-            mov  rsi, hash_ptr
-            call blowfish_encrypt_asm
-        %endrep
+    ;     %rep 64
+    ;         mov  rsi, hash_ptr
+    ;         call blowfish_encrypt_asm
+    ;     %endrep
 
-        %assign i 0
-        %rep 3
-            xor rdx, rdx
-            xor rcx, rcx
-            mov rax, [hash_ptr + i*8]
-            rol rax, 32
-            REVERSE_8_BYTES rax, rdx, rcx, edx
-            mov [hash_ptr + i*8], rax
-            %assign i i+1
-        %endrep
+    ;     %assign i 0
+    ;     %rep 3
+    ;         xor rdx, rdx
+    ;         xor rcx, rcx
+    ;         mov rax, [hash_ptr + i*8]
+    ;         rol rax, 32
+    ;         REVERSE_8_BYTES rax, rdx, rcx, edx
+    ;         mov [hash_ptr + i*8], rax
+    ;         %assign i i+1
+    ;     %endrep
     
     .end:
         add rbp, 8
