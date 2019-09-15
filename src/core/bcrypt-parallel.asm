@@ -432,6 +432,31 @@ bcrypt_hashpass_parallel:
         mov  rsi, rbx
         call blowfish_expand_state_parallel
 
+        .expand_0_state:
+            %define salt_ptr  rbx
+            %define hash_ptr  r12
+            %define key_ptr   r13
+            %define key_len   r14
+            %define rounds    r15
+            %define round_ctr r10
+
+            xor round_ctr, round_ctr
+
+            .round_loop:
+                cmp  round_ctr, rounds
+                je   .end
+
+                mov  rsi, key_ptr
+                mov  rdx, key_len
+                call blowfish_expand_0_state_parallel
+
+                mov  rsi, salt_ptr
+                call blowfish_expand_0_state_salt_parallel
+
+                inc  round_ctr
+                jmp  .round_loop
+
+
     .end:
         pop rbp
         ret
