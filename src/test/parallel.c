@@ -216,7 +216,7 @@ void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **st
 }
 
 void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
-                                   uint8_t *hashes_actual, uint8_t **hashes_expected,
+                                   uint8_t *hashes_actual, uint8_t *hashes_expected,
                                    const char *keys, uint64_t keybytes,
                                    const char *salt, uint64_t rounds,
                                    size_t scale)
@@ -227,10 +227,43 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
 
     for (size_t i = 0; i < scale; ++i) {
         bcrypt_hashpass_asm(states[i], salt, &keys[i*keybytes],
-            keybytes, hashes_expected[i], rounds);
+            keybytes, &hashes_expected[i*BCRYPT_HASH_BYTES], rounds);
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
+}
+
+void test_bcrypt_hashpass() {
+    // Parallel state
+    p_blf_ctx *p_state;
+    posix_memalign((void**) &p_state, 32, sizeof(p_blf_ctx));
+    
+    // Single-data states
+    blf_ctx **states = malloc(DWORDS_PER_XMM * sizeof(blf_ctx *)); // expected single-data states
+    blf_ctx *current;
+    // Align single-data states
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
+        posix_memalign((void**) &current, 32, sizeof(blf_ctx));
+        states[i] = current;
+    }
+
+    char salt[] = "opabiniaOPABINIA";
+    char keys[] = "anomalocarisGoLandcrabs!ANOMALOCARISgoLANDCRABS!";
+    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
+
+    uint8_t hashes_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
+    uint8_t hashes_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
+
+    uint64_t rounds = 8;
+
+    test_bcrypt_hashpass_parallel(p_state, states, hashes_actual, hashes_expected,
+        keys, keybytes, salt, rounds, DWORDS_PER_XMM);
+
+    free(p_state);
+    for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
+        free(states[i]);
+    }
+    free(states);
 }
 
 int main(int argc, char const *argv[]) {
@@ -277,6 +310,8 @@ int main(int argc, char const *argv[]) {
         &keys, keybytes, DWORDS_PER_XMM);
     test_blowfish_expand_0_state_salt_parallel(state_actual, states,
         salt, DWORDS_PER_XMM);
+
+    test_bcrypt_hashpass();
 
     return 0;
 }
