@@ -9,6 +9,7 @@ global copy_ctext_asm
 ; multi-data
 global f_xmm
 global blowfish_round_xmm
+global copy_ctext_xmm
 
 
 section .data
@@ -137,6 +138,17 @@ copy_ctext_asm:
     mov  rbp, rsp
 
     COPY_CTEXT rdi, rdx, rcx, r8, ecx, rsi
+
+    pop rbp
+    ret
+
+copy_ctext_xmm:
+    ; rdi -> destination ciphertext
+    ; rsi -> source ciphertext
+    push rbp
+    mov  rbp, rsp
+
+    COPY_CTEXT_XMM rdi, rsi, ymm0
 
     pop rbp
     ret

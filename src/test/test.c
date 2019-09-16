@@ -85,3 +85,45 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
 
     test_pass("Success: states in %s are equal.\n", test_name);
 }
+
+// TODO: look into refactoring the following two functions
+
+void compare_ciphertexts(const char *actual, const char *expected,
+                         const char *test_name, size_t ctext_bytes)
+{
+    uint32_t *dwords_actual = (uint32_t *) actual;
+    uint32_t *dwords_expected = (uint32_t *) expected;
+    uint32_t current_actual, current_expected;
+    size_t len = ctext_bytes >> 2;
+
+    for (size_t i = 0; i < len; ++i) {
+        current_actual = dwords_actual[i];
+        current_expected = dwords_expected[i];
+
+        if (current_actual != current_expected) {
+            test_fail("Ciphertexts in test %s differ. "
+                "Index: %d, expected value: 0x%08x, actual value: 0x%08x\n",
+                test_name, i, current_expected, current_actual);
+        }
+    }
+
+    test_pass("Success: ciphertexts in %s are equal.\n", test_name);
+}
+
+void compare_strings(const char *actual, const char *expected,
+                     const char *test_name, size_t length)
+{
+    char current_actual, current_expected;
+    for (size_t i = 0; i < length; ++i) {
+        current_actual = actual[i];
+        current_expected = expected[i];
+
+        if (current_actual != current_expected) {
+            test_fail("Strings in test %s differ. "
+                "Index: %d, expected value: %c, actual value: %c\n",
+                test_name, i, current_expected, current_actual);
+        }
+    }
+
+    test_pass("Success: strings in %s are equal.\n", test_name);
+}

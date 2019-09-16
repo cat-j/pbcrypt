@@ -949,9 +949,9 @@ void blf_enc(const blf_ctx *c, uint32_t *data, uint16_t blocks) {
     }
 }
 
-void copy_ctext_openbsd(uint32_t *cdata, const char *ctext) {
+void copy_ctext_openbsd(uint32_t *cdata, const char *ctext, size_t scale) {
     uint16_t j = 0;
-    for (size_t i = 0; i < BCRYPT_WORDS; i++)
+    for (size_t i = 0; i < BCRYPT_WORDS*scale; i++)
         cdata[i] = Blowfish_stream2word((const uint8_t *) ctext,
             4 * BCRYPT_WORDS, &j);
 }

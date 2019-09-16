@@ -488,6 +488,7 @@
     .end_key_loop_%8:
 %endmacro
 
+; copy single-data ciphertext
 ; %1 -> ciphertext buffer
 ; %2: temporary register
 ; %3: temporary register
@@ -501,6 +502,19 @@
         REVERSE_8_BYTES %2, %3, %4, %5
         rol %2, 32
         mov [%1 + j*8], %2
+        %assign j j+1
+    %endrep
+%endmacro
+
+; copy x4 parallel ciphertext
+; %1 -> ciphertext buffer
+; %2 -> ciphertext to be copied
+; %3: temporary YMM register
+%macro COPY_CTEXT_XMM 3
+    %assign j 0
+    %rep BCRYPT_WORDS / 2
+        vmovdqa %3, [%2 + j*YMM_SIZE]
+        vmovdqa [%1 + j*YMM_SIZE], %3
         %assign j j+1
     %endrep
 %endmacro

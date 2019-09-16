@@ -276,6 +276,9 @@ const blf_ctx initstate_asm =
 
 const char initial_ctext[] = "OrpheanBeholderScryDoubt";
 
+const char initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanB"
+    "eholeholeholeholderSderSderSderScryDcryDcryDcryDoubtoubtoubtoubt";
+
 /* IMPORTANT: this must be initialised with initstate_asm
    before calling blowfish_init_state_parallel
    or any functions that use it, such as bcrypt itself */

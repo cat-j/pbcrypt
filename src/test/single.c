@@ -65,49 +65,6 @@ void test_blowfish_encipher_asm(const blf_ctx *state, uint64_t data,
     do_test(data_actual, data_expected, test_name);
 }
 
-// TODO: look into refactoring the following two functions
-
-void compare_ciphertexts(const char *actual, const char *expected,
-                         const char *test_name, size_t ctext_bytes)
-{
-    uint32_t *dwords_actual = (uint32_t *) actual;
-    uint32_t *dwords_expected = (uint32_t *) expected;
-    uint32_t current_actual, current_expected;
-    size_t len = ctext_bytes >> 2;
-
-    for (size_t i = 0; i < len; ++i) {
-        current_actual = dwords_actual[i];
-        current_expected = dwords_expected[i];
-
-        if (current_actual != current_expected) {
-            test_fail("Ciphertexts in test %s differ. "
-                "Index: %d, expected value: 0x%08x, actual value: 0x%08x\n",
-                test_name, i, current_expected, current_actual);
-        }
-    }
-
-    test_pass("Success: ciphertexts in %s are equal.\n", test_name);
-}
-
-void compare_strings(const char *actual, const char *expected,
-                     const char *test_name, size_t length)
-{
-    char current_actual, current_expected;
-    for (size_t i = 0; i < length; ++i) {
-        current_actual = actual[i];
-        current_expected = expected[i];
-
-        if (current_actual != current_expected) {
-            test_fail("Strings in test %s differ. "
-                "Index: %d, expected value: %c, actual value: %c\n",
-                test_name, i, current_expected, current_actual);
-        }
-    }
-
-    test_pass("Success: strings in %s are equal.\n", test_name);
-}
-
-
 void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expected,
                                     const char *salt, uint16_t saltbytes,
                                     const char *key, uint16_t keybytes,
@@ -122,6 +79,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
     } else {
         blowfish_expand_state_wrapper(state_actual, salt, key, keybytes);
     }
+
     Blowfish_expandstate(state_expected, (uint8_t *) salt, saltbytes,
                          (uint8_t *) key, keybytes);
 
@@ -141,6 +99,7 @@ void test_blowfish_expand_0_state_asm(blf_ctx *state_actual, blf_ctx *state_expe
     } else {
         blowfish_expand_0_state_wrapper(state_actual, salt, key, keybytes);
     }
+
     Blowfish_expand0state(state_expected, (uint8_t *) key, keybytes);
 
     compare_states(state_actual, state_expected, test_name);
@@ -158,6 +117,7 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
     } else {
         blowfish_expand_0_state_salt_wrapper(state_actual, salt, key, keybytes);
     }
+
     Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
 
     compare_states(state_actual, state_expected, test_name);
@@ -196,7 +156,7 @@ void test_copy_ctext_asm(char *data_actual, char *data_expected, const char *cte
     test_start(test_name, "ciphertext: %s", ctext);
 
     copy_ctext_asm((uint64_t *) data_actual, ctext);
-    copy_ctext_openbsd((uint32_t *) data_expected, ctext);
+    copy_ctext_openbsd((uint32_t *) data_expected, ctext, 1);
 
     compare_ciphertexts(data_actual, data_expected, test_name, BCRYPT_HASH_BYTES);
 }
