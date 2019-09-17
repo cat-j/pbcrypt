@@ -99,6 +99,7 @@ void compare_ciphertexts(const char *actual, const char *expected,
     for (size_t i = 0; i < len; ++i) {
         current_actual = dwords_actual[i];
         current_expected = dwords_expected[i];
+        // printf("actual: 0x%08x\texpected: 0x%08x\n", current_actual, current_expected);
 
         if (current_actual != current_expected) {
             test_fail("Ciphertexts in test %s differ. "

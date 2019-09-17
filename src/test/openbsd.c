@@ -803,6 +803,7 @@ Blowfish_stream2word(const uint8_t *data, uint16_t databytes,
         if (j >= databytes)
             j = 0;
         temp = (temp << 8) | data[j];
+        // printf("0x%08x\n", temp);
     }
 
     *current = j;
@@ -953,7 +954,7 @@ void copy_ctext_openbsd(uint32_t *cdata, const char *ctext, size_t scale) {
     uint16_t j = 0;
     for (size_t i = 0; i < BCRYPT_WORDS*scale; i++)
         cdata[i] = Blowfish_stream2word((const uint8_t *) ctext,
-            4 * BCRYPT_WORDS, &j);
+            4*BCRYPT_WORDS*scale, &j);
 }
 
 // static int

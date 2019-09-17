@@ -513,8 +513,9 @@
 %macro COPY_CTEXT_XMM 3
     %assign j 0
     %rep BCRYPT_WORDS / 2
-        vmovdqa %3, [%2 + j*YMM_SIZE]
-        vmovdqa [%1 + j*YMM_SIZE], %3
+        vmovdqu %3, [%2 + j*YMM_SIZE]
+        vpshufb %3, endianness_mask_ymm
+        vmovdqu [%1 + j*YMM_SIZE], %3
         %assign j j+1
     %endrep
 %endmacro

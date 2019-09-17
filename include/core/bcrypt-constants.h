@@ -276,8 +276,8 @@ const blf_ctx initstate_asm =
 
 const char initial_ctext[] = "OrpheanBeholderScryDoubt";
 
-const char initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanB"
-    "eholeholeholeholderSderSderSderScryDcryDcryDcryDoubtoubtoubtoubt";
+const char initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanBeholeholeholehol"
+    "derSderSderSderScryDcryDcryDcryDoubtoubtoubtoubt";
 
 /* IMPORTANT: this must be initialised with initstate_asm
    before calling blowfish_init_state_parallel

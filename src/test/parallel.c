@@ -319,6 +319,12 @@ int main(int argc, char const *argv[]) {
     char keys[] = "anomalocarisGoLandcrabs!ANOMALOCARISgoLANDCRABS!";
     uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
 
+    char data_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
+    char data_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
+
+    char final_data_actual[BCRYPT_HASH_BYTES];
+    char final_data_expected[BCRYPT_HASH_BYTES];
+
     test_blowfish_expand_state_parallel(state_actual, states,
         &salt, &keys, keybytes, DWORDS_PER_XMM);
     test_blowfish_expand_0_state_parallel(state_actual, states,
@@ -327,6 +333,8 @@ int main(int argc, char const *argv[]) {
         salt, DWORDS_PER_XMM);
 
     test_bcrypt_hashpass();
+
+    test_copy_ctext_xmm(data_actual, data_expected, (const char *) &initial_p_ctext);
 
     return 0;
 }
