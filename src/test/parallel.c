@@ -229,6 +229,32 @@ void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **st
     compare_p_state_many(p_state, states, scale, test_name);
 }
 
+void compare_p_ciphertexts(const char *actual, const char *expected,
+                           const char *test_name, size_t ctext_bytes,
+                           size_t scale)
+{
+    uint32_t *dwords_actual = (uint32_t *) actual;
+    uint32_t *dwords_expected = (uint32_t *) expected;
+    uint32_t current_actual, current_expected;
+    size_t len = ctext_bytes >> 2; // dwords in single-data ciphertext
+
+    for (size_t i = 0; i < scale; ++i) {
+        for (size_t j = 0; j < len; ++j) {
+            current_actual = actual[i+j];
+            current_expected = expected[j*scale + i];
+            
+            if (current_actual != current_expected) {
+                test_fail("Ciphertexts in test %s differ. "
+                    "Ciphertext: %d, index: %d, "
+                    "expected value: 0x%08x, actual value: 0x%08x\n",
+                    test_name, i, j, current_expected, current_actual);
+            }
+        }
+    }
+
+    test_pass("Success: ciphertexts in %s are equal.\n", test_name);
+}
+
 void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
                                    uint8_t *hashes_actual, uint8_t *hashes_expected,
                                    const char *keys, uint64_t keybytes,
@@ -245,6 +271,7 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
+
 }
 
 void test_bcrypt_hashpass() {
