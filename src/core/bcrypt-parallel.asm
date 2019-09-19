@@ -3,6 +3,7 @@
 ; variables
 extern initstate_asm
 extern initstate_parallel
+extern initial_p_ctext
 
 ; exported functions for bcrypt implementation
 global blowfish_parallelise_state
@@ -398,6 +399,28 @@ blowfish_expand_0_state_salt_parallel:
         pop rbp
         ret
 
+blowfish_encrypt_parallel:
+    ; rdi -> parallel blowfish state
+    ; rsi -> 96-byte parallel ciphertext
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_encrypt:
+        %define data  ymm0
+        %define ctext rsi
+        
+        %assign i 0
+        %rep BCRYPT_WORDS / 2
+            vmovdqu data, [ctext + i*YMM_SIZE]
+            call    blowfish_encipher_parallel
+            vmovdqu [ctext + i*YMM_SIZE], data
+        %endrep
+    
+    .end:
+        pop rbp
+        ret
+
 ; void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
 ;                               const char *keys, uint16_t keybytes,
 ;                               uint8_t *hashes, uint64_t rounds)
@@ -426,6 +449,8 @@ bcrypt_hashpass_parallel:
         mov r14, rcx
         mov r15, r9
 
+        vmovdqa endianness_mask_ymm, [endianness_mask]
+
         mov  rsi, initstate_parallel
         call blowfish_init_state_parallel
 
@@ -444,7 +469,7 @@ bcrypt_hashpass_parallel:
 
             .round_loop:
                 cmp  round_ctr, rounds
-                je   .end
+                je   .encrypt
 
                 mov  rsi, key_ptr
                 mov  rdx, key_len
@@ -455,7 +480,14 @@ bcrypt_hashpass_parallel:
 
                 inc  round_ctr
                 jmp  .round_loop
+        
+    .encrypt:
+        COPY_CTEXT_XMM hash_ptr, initial_p_ctext, ymm1
 
+        %rep 64
+            mov  rsi, hash_ptr
+            call blowfish_encrypt_parallel
+        %endrep
 
     .end:
         pop rbp

@@ -556,29 +556,29 @@ bcrypt_hashpass_asm:
                 jmp  .round_loop
 
     .encrypt:
-    ;     ; %1 -> ciphertext buffer
-    ;     ; %2: temporary register
-    ;     ; %3: temporary register
-    ;     ; %4: temporary register
-    ;     ; %5: lower 32 bits of %3
-    ;     ; %6 -> 24-byte ciphertext to be copied
-    ;     COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
+        ; %1 -> ciphertext buffer
+        ; %2: temporary register
+        ; %3: temporary register
+        ; %4: temporary register
+        ; %5: lower 32 bits of %3
+        ; %6 -> 24-byte ciphertext to be copied
+        COPY_CTEXT hash_ptr, rdx, rcx, rax, ecx, initial_ctext
 
-    ;     %rep 64
-    ;         mov  rsi, hash_ptr
-    ;         call blowfish_encrypt_asm
-    ;     %endrep
+        %rep 64
+            mov  rsi, hash_ptr
+            call blowfish_encrypt_asm
+        %endrep
 
-    ;     %assign i 0
-    ;     %rep 3
-    ;         xor rdx, rdx
-    ;         xor rcx, rcx
-    ;         mov rax, [hash_ptr + i*8]
-    ;         rol rax, 32
-    ;         REVERSE_8_BYTES rax, rdx, rcx, edx
-    ;         mov [hash_ptr + i*8], rax
-    ;         %assign i i+1
-    ;     %endrep
+        %assign i 0
+        %rep 3
+            xor rdx, rdx
+            xor rcx, rcx
+            mov rax, [hash_ptr + i*8]
+            rol rax, 32
+            REVERSE_8_BYTES rax, rdx, rcx, edx
+            mov [hash_ptr + i*8], rax
+            %assign i i+1
+        %endrep
     
     .end:
         add rbp, 8

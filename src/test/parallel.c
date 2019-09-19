@@ -230,8 +230,8 @@ void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **st
 }
 
 void compare_p_ciphertexts(const char *actual, const char *expected,
-                           const char *test_name, size_t ctext_bytes,
-                           size_t scale)
+                           size_t ctext_bytes, size_t scale,
+                           const char *test_name)
 {
     uint32_t *dwords_actual = (uint32_t *) actual;
     uint32_t *dwords_expected = (uint32_t *) expected;
@@ -271,6 +271,8 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
+    compare_p_ciphertexts(hashes_actual, hashes_expected,
+        BCRYPT_HASH_BYTES, scale, test_name);
 
 }
 
