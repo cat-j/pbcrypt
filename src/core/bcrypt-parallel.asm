@@ -415,6 +415,7 @@ blowfish_encrypt_parallel:
             vmovdqu data, [ctext + i*YMM_SIZE]
             call    blowfish_encipher_parallel
             vmovdqu [ctext + i*YMM_SIZE], data
+            %assign i i+1
         %endrep
     
     .end:
