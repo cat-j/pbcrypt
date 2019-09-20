@@ -29,7 +29,7 @@ base directory.
 ```$ make cracker```
 
 will create the executable `./build/cracker`. For the version without loop unrolling,
-replace `cracker` with `cracker-no-unrolling`.
+replace `cracker` with `cracker-no-unrolling`. Parallel cracking is still under development.
 
 ### Tests
 
