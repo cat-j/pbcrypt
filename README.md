@@ -39,7 +39,7 @@ will test ASM macros and bcrypt components against their counterparts from
 the OpenBSD source code.
 
 To test other variants, replace `test` with `test-no-unrolling`,
-`test-loaded-p` or `test-parallel`.
+`test-loaded-p` or `test-parallel` (the last one is still under development).
 
 ## How to run
 
