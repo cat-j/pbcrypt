@@ -490,6 +490,12 @@ bcrypt_hashpass_parallel:
             call blowfish_encrypt_parallel
         %endrep
 
+        %assign i 0
+        %rep 3
+            
+            %assign i i+1
+        %endrep
+
     .end:
         pop rbp
         ret
