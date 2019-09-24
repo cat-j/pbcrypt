@@ -238,17 +238,18 @@ void compare_p_ciphertexts(const char *actual, const char *expected,
     uint32_t current_actual, current_expected;
     size_t len = ctext_bytes >> 2; // dwords in single-data ciphertext
 
-    for (size_t i = 0; i < scale; ++i) {
-        for (size_t j = 0; j < len; ++j) {
-            current_actual = dwords_actual[i+j];
-            current_expected = dwords_expected[j*scale + i];
-            // printf("%d:\t0x%08x\n", i*scale + j, current_actual);
+    // i is each dword index (0 to 6)
+    // j is each ciphertext (0 to scale)
+    for (size_t i = 0; i < len; ++i) {
+        for (size_t j = 0; j < scale; ++j) {
+            current_actual = dwords_actual[i*scale + j];
+            current_expected = dwords_expected[j*len + i];
             
             if (current_actual != current_expected) {
                 test_fail("Ciphertexts in test %s differ. "
-                    "Ciphertext: %d, index: %d, "
+                    "Ciphertext: %d, index: %d,"
                     "expected value: 0x%08x, actual value: 0x%08x\n",
-                    test_name, i, j, current_expected, current_actual);
+                    test_name, j, i, current_expected, current_actual);
             }
         }
     }
