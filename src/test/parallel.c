@@ -240,8 +240,9 @@ void compare_p_ciphertexts(const char *actual, const char *expected,
 
     for (size_t i = 0; i < scale; ++i) {
         for (size_t j = 0; j < len; ++j) {
-            current_actual = actual[i+j];
-            current_expected = expected[j*scale + i];
+            current_actual = dwords_actual[i+j];
+            current_expected = dwords_expected[j*scale + i];
+            // printf("%d:\t0x%08x\n", i*scale + j, current_actual);
             
             if (current_actual != current_expected) {
                 test_fail("Ciphertexts in test %s differ. "
