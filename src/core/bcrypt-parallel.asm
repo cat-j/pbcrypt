@@ -492,7 +492,9 @@ bcrypt_hashpass_parallel:
 
         %assign i 0
         %rep 3
-            
+            vmovdqu ymm0, [hash_ptr + i*YMM_SIZE]
+            vpshufb ymm0, endianness_mask_ymm
+            vmovdqu [hash_ptr + i*YMM_SIZE], ymm0
             %assign i i+1
         %endrep
 
