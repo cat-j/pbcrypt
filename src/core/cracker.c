@@ -6,26 +6,13 @@
 
 #include "bcrypt.h"
 #include "bcrypt-constants.h"
+#include "cracker-common.h"
 #include "config.h"
 #include "print.h"
-
-
-#define DEFAULT_N_PASSWORDS 1024
-
-#define ERR_ARGS      0x20010
-#define ERR_OPEN_FILE 0x20020
-#define ERR_FILE_DATA 0x20030
 
 // Usage examples:
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
-
-
-/* Configuration variables */
-
-int measure;
-char results_filename[256];
-
 
 /*
  * Main password cracker function.
@@ -39,39 +26,21 @@ int main(int argc, char const *argv[]) {
     load_config();
 
     /////// Process arguments ///////
-    char record[BCRYPT_RECORD_SIZE+1];
-    char filename[256];
-    size_t n_passwords;
-    char *end;
 
-    switch(argc) {
-        case(3):
-            n_passwords = DEFAULT_N_PASSWORDS;
-            break;
-        case(4):
-            n_passwords = strtoul(argv[3], &end, 10);
-            break;
-        default:
-            fprintf(stderr,
-                "Usage: cracker <RECORD> <PATH_TO_WORDLIST> <N_PASSWORDS>\n");
-            return ERR_ARGS;
-            break;
+    int status = process_args(argc, argv);
+    if (status) {
+        fprintf(stderr, "Error: process_args returned status %x.\n",
+                status);
+        return status;
     }
 
-    strncpy(record, argv[1], BCRYPT_RECORD_SIZE);
-    record[BCRYPT_RECORD_SIZE] = 0;
-
-    strncpy(filename, argv[2], strlen(argv[2]));
-    filename[strlen(argv[2])] = 0;
-
-    
     /////// Process record parameters ///////
     
     uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
     char salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
 
-    int status = get_record_data((char *) &record, (uint8_t *) &record_ciphertext,
+    status = get_record_data((char *) &record, (uint8_t *) &record_ciphertext,
         (uint8_t *) &salt, &rounds);
     if (status) {
         // Error processing record
@@ -81,11 +50,7 @@ int main(int argc, char const *argv[]) {
     }
 
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
-    printf("Salt: %s\n", (char *) &salt);
-    printf("Rounds: %ld\n", rounds);
-    printf("Hash to crack: ");
-    print_hex((uint8_t *) &record_ciphertext, BCRYPT_HASH_BYTES-3);
-
+    print_record_info();
 
     // Read info from wordlist file
     size_t pass_length, batch_size, bytes_read;
