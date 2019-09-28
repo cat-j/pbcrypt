@@ -12,10 +12,17 @@
 
 
 void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
-                uint32_t *bytes_actual, uint32_t *bytes_expected)
+                uint32_t *bytes_actual, uint32_t *bytes_expected,
+                const char *state_name)
 {
     char test_name[] = "test_f_xmm";
+    test_start(test_name, "bytes_actual: 0x%08x 0x%08x 0x%08x 0x%08x, "
+        "p_state: %s",
+        bytes_actual[0], bytes_actual[1], bytes_actual[2], bytes_actual[3],
+        state_name);
+
     f_xmm(p_state, bytes_actual);
+    
     uint32_t current_expected;
 
     for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
@@ -27,10 +34,18 @@ void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
 void test_blowfish_round_xmm(p_blf_ctx *p_state, blf_ctx *state,
                              uint32_t *xl_actual, uint32_t *xr_actual,
                              uint32_t *xl_expected, uint32_t *xr_expected,
-                             uint32_t n)
+                             uint32_t n, const char *state_name)
 {
     char test_name[] = "test_blowfish_round_xmm";
+    test_start(test_name, "xl_actual: 0x%08x 0x%08x 0x%08x 0x%08x, "
+        "xr_actual: 0x%08x 0x%08x 0x%08x 0x%08x, "
+        "n: %d, p_state: %s",
+        xl_actual[0], xl_actual[1], xl_actual[2], xl_actual[3],
+        xr_actual[0], xr_actual[1], xr_actual[2], xr_actual[3],
+        n, state_name);
+
     blowfish_round_xmm(p_state, xl_actual, xr_actual, n);
+    
     uint32_t current_expected;
 
     for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
@@ -40,15 +55,17 @@ void test_blowfish_round_xmm(p_blf_ctx *p_state, blf_ctx *state,
     }
 }
 
-void test_blowfish_parallelise_state(p_blf_ctx *state_actual, blf_ctx *src,
-                                     size_t scale)
+void test_blowfish_parallelise_state(p_blf_ctx *p_state, blf_ctx *src,
+                                     size_t scale, const char *p_state_name,
+                                     const char *src_name)
 {
     char test_name[] = "test_blowfish_parallelise_state";
-    test_start(test_name, "");
+    test_start(test_name, "p_state: %s, src: %s, scale: %d",
+        p_state_name, src_name, scale);
 
-    blowfish_parallelise_state(state_actual, src);
+    blowfish_parallelise_state(p_state, src);
 
-    compare_parallelised_state(state_actual, src, scale, test_name);
+    compare_parallelised_state(p_state, src, scale, test_name);
 }
 
 void test_copy_ctext_xmm(char *data_actual, char *data_expected,
@@ -180,19 +197,24 @@ void compare_p_state_many(p_blf_ctx *p_state, blf_ctx **states, size_t scale,
 }
 
 void test_blowfish_init_state_parallel(p_blf_ctx *state_actual,
-                                       p_blf_ctx *state_expected)
+                                       p_blf_ctx *state_expected,
+                                       const char *p_state_name)
 {
     char test_name[] = "test_blowfish_init_state_parallel";
-    test_start(test_name, "");
+    test_start(test_name, "p_state: %s", p_state_name);
     blowfish_init_state_parallel(state_actual, state_expected);
     compare_p_states(state_actual, state_expected, DWORDS_PER_XMM, test_name);
 }
 
 void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
                                          const char *salt, const char *keys,
-                                         uint64_t keybytes, size_t scale)
+                                         uint64_t keybytes, size_t scale,
+                                         const char *p_state_name)
 {
     char test_name[] = "test_blowfish_expand_state_parallel";
+    test_start(test_name, "p_state: %s, salt: %s, keys: %s, keybytes: %d",
+        p_state_name, salt, keys, keybytes);
+
     blowfish_expand_state_parallel(p_state, salt, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
@@ -204,9 +226,12 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
 
 void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
                                            const char *keys, uint64_t keybytes,
-                                           size_t scale)
+                                           size_t scale, const char *p_state_name)
 {
     char test_name[] = "test_blowfish_expand_0_state_parallel";
+    test_start(test_name, "p_state: %s, keys: %s, keybytes: %d",
+        p_state_name, keys, keybytes);
+
     blowfish_expand_0_state_parallel(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
@@ -217,9 +242,13 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
 }
 
 void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **states,
-                                                const char *salt, size_t scale)
+                                                const char *salt, size_t scale,
+                                                const char *p_state_name)
 {
     char test_name[] = "test_blowfish_expand_0_state_salt_parallel";
+    test_start(test_name, "p_state: %s, salt: %s",
+        p_state_name, salt);
+    
     blowfish_expand_0_state_salt_parallel(p_state, salt);
 
     for (size_t i = 0; i < scale; ++i) {
@@ -264,7 +293,8 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
                                    size_t scale)
 {
     char test_name[] = "test_bcrypt_hashpass_parallel";
-    // test_start(test_name)
+    test_start(test_name, "salt: %s, keys: %s, rounds: %d", salt, keys, rounds);
+
     bcrypt_hashpass_parallel(p_state, salt, keys, keybytes, hashes_actual, rounds);
 
     for (size_t i = 0; i < scale; ++i) {
@@ -323,22 +353,27 @@ int main(int argc, char const *argv[]) {
 
     Blowfish_initstate(src);
 
-    test_blowfish_parallelise_state(state_expected, src, DWORDS_PER_XMM);
-    test_blowfish_init_state_parallel(state_actual, state_expected);
+    test_blowfish_parallelise_state(state_expected, src, DWORDS_PER_XMM,
+        "blank", "initial_state");
+
+    test_blowfish_init_state_parallel(state_actual, state_expected, "initial_p_state");
 
     uint32_t bytes_actual[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
     uint32_t bytes_expected[4] = {0xdeadbeef, 0x00c0ffee, 0xfeedbeef, 0x00faece5};
-    test_f_xmm(state_actual, src, &bytes_actual, &bytes_expected);
+    
+    test_f_xmm(state_actual, src, &bytes_actual, &bytes_expected, "initial_p_state");
 
     uint32_t xl_actual[4] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed};
     uint32_t xr_actual[4] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00};
     uint32_t xl_expected[4] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed};
     uint32_t xr_expected[4] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00};
+
     test_blowfish_round_xmm(state_actual, src, &xl_actual, &xr_actual,
-        &xl_expected, &xr_expected, 1);
+        &xl_expected, &xr_expected, 1, "initial_state");
 
     blf_ctx **states = malloc(DWORDS_PER_XMM * sizeof(blf_ctx *)); // expected single-data states
     blf_ctx *current;
+    
     // Initialise single-data states
     for (size_t i = 0; i < DWORDS_PER_XMM; ++i) {
         posix_memalign((void**) &current, 32, sizeof(blf_ctx));
@@ -357,11 +392,13 @@ int main(int argc, char const *argv[]) {
     char final_data_expected[BCRYPT_HASH_BYTES];
 
     test_blowfish_expand_state_parallel(state_actual, states,
-        &salt, &keys, keybytes, DWORDS_PER_XMM);
+        &salt, &keys, keybytes, DWORDS_PER_XMM, "initial_p_state");
+
     test_blowfish_expand_0_state_parallel(state_actual, states,
-        &keys, keybytes, DWORDS_PER_XMM);
+        &keys, keybytes, DWORDS_PER_XMM, "expanded_p_state");
+
     test_blowfish_expand_0_state_salt_parallel(state_actual, states,
-        salt, DWORDS_PER_XMM);
+        salt, DWORDS_PER_XMM, "key_expanded_p_state");
 
     test_bcrypt_hashpass();
 
