@@ -12,6 +12,9 @@ int process_args(int argc, char const *argv[]) {
             break;
         case(4):
             n_passwords = strtoul(argv[3], &end, 10);
+            // Make sure it's divisible by 4
+            if ((n_passwords >> 2) << 2 != n_passwords || n_passwords == 0)
+                return ERR_N_PASSWORDS;
             break;
         default:
             fprintf(stderr,

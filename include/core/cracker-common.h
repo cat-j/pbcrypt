@@ -8,9 +8,10 @@
 
 #define DEFAULT_N_PASSWORDS 1024
 
-#define ERR_ARGS      0x20010
-#define ERR_OPEN_FILE 0x20020
-#define ERR_FILE_DATA 0x20030
+#define ERR_ARGS        0x20010
+#define ERR_N_PASSWORDS 0x20020
+#define ERR_OPEN_FILE   0x20030
+#define ERR_FILE_DATA   0x20040
 
 
 /* Configuration variables */
