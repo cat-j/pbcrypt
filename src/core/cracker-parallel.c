@@ -39,4 +39,6 @@ int main(int argc, char const *argv[]) {
 
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
     print_record_info();
+
+    return 0;
 }
