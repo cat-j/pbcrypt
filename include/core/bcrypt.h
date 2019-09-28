@@ -79,8 +79,15 @@ char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
 
+/* Compare first 21 bytes of two hashes.
+ * Designed for cracking.
+ */
 int hash_match(const uint8_t *hash1, const uint8_t *hash2);
 
+/*
+ * Return a 32-bit aligned pointer to an uninitialised
+ * Blowfish state.
+ */
 blf_ctx *get_aligned_state();
 
 #endif

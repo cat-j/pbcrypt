@@ -3,6 +3,14 @@
 
 #include "bcrypt.h"
 
+/*
+ * Test wrappers for loaded P-array variant.
+ * The reason behind these is that the ASM key schedule functions
+ * require the P-array to be previously loaded into some YMM regs
+ * and there's no non-tedious way to enforce that these are preserved
+ * from within C or through compilation flags.
+ */
+
 void blowfish_expand_state_wrapper(blf_ctx *state, const char *salt,
                                    const char *key, uint16_t keybytes);
 

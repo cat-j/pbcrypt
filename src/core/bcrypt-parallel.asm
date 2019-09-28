@@ -136,6 +136,8 @@ blowfish_parallelise_state:
         pop rbp
         ret
 
+; void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src)
+
 blowfish_init_state_parallel:
     ; rdi -> parallel blowfish state (modified)
     ; rsi -> parallel blowfish state to be copied

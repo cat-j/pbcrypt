@@ -64,9 +64,6 @@ int get_record_data(char *record, uint8_t *ciphertext,
     return 0;
 }
 
-/* Compare first 21 bytes of two hashes.
- * Designed for cracking.
- */
 int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
     for (size_t i = 0; i < BCRYPT_HASH_BYTES - 3; ++i) {
         if (hash1[i] != hash2[i])
@@ -76,7 +73,7 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
     return 1;
 }
 
-// TODO: accept different bcrypt versions#
+// TODO: accept different bcrypt versions
 int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds)
 {

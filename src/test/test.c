@@ -29,7 +29,6 @@ void test_start(const char *test_name, const char *args_format, ...) {
     fprintf(stdout, "\033[0m");
 }
 
-/* Prints success message */
 void test_pass(const char *format, ...) {
     char out[4096];
     va_list args;
@@ -41,7 +40,6 @@ void test_pass(const char *format, ...) {
     va_end(args);
 }
 
-/* Prints red error message and exits */
 void test_fail(const char *format, ...) {
     char out[4096];
     va_list args;

@@ -2,9 +2,14 @@
 #define _OPENBSD_H_
 
 #include <stdint.h>
-#include "bcrypt.h" // TODO: figure out how to make "bcrypt.h" work
+#include "bcrypt.h"
 
 #define BCRYPT_MAXSALT 16     /* Precomputation is just so nice */
+
+/*
+ * Code from OpenBSD implementation of bcrypt,
+ * isolated for easy testing.
+ */
 
 void Blowfish_initstate(blf_ctx *c);
 
@@ -32,9 +37,6 @@ uint32_t blfrnd_wrapper(const blf_ctx *state, uint32_t xl, uint32_t xr,
 
 void copy_ctext_openbsd(uint32_t *cdata, const char *ctext, size_t scale);
 
-// static int
-// bcrypt_hashpass(const char *key, const char *salt, char *encrypted,
-//     size_t encryptedlen);
 int bcrypt_hashpass(blf_ctx *state, const char *key, const char *salt,
                     uint64_t rounds, uint8_t *hash);
 
