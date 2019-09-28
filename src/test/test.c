@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "print.h"
 #include "test.h"
 
 void do_test(uint64_t actual, uint64_t expected, const char *test_name) {
@@ -22,11 +23,8 @@ void test_start(const char *test_name, const char *args_format, ...) {
     vsnprintf(out, sizeof(out), args_format, args);
 
     // Print test info: "Running test test_name with arguments args"
-    fprintf(stdout, "\n");
-    fprintf(stdout, "\033[1;35m");
-    fprintf(stdout, "Running test %s with arguments ", test_name);
-    fprintf(stdout, "%s\n", out);
-    fprintf(stdout, "\033[0m");
+    fprintf(stdout, BOLD_MAGENTA("\nRunning test %s with arguments "), test_name);
+    fprintf(stdout, BOLD_MAGENTA("%s\n"), out);
 }
 
 void test_pass(const char *format, ...) {
@@ -34,9 +32,7 @@ void test_pass(const char *format, ...) {
     va_list args;
     va_start(args, format);
     vsnprintf(out, sizeof(out), format, args);
-    fprintf(stdout, "\033[1;32m");
-    fprintf(stdout, "%s", out);
-    fprintf(stdout, "\033[0m");
+    fprintf(stdout, BOLD_GREEN("%s"), out);
     va_end(args);
 }
 
@@ -45,9 +41,7 @@ void test_fail(const char *format, ...) {
     va_list args;
     va_start(args, format);
     vsnprintf(out, sizeof(out), format, args);
-    fprintf(stderr, "\033[1;31m");
-    fprintf(stderr, "%s", out);
-    fprintf(stderr, "\033[0m");
+    fprintf(stderr, BOLD_RED("%s"), out);
     va_end(args);
     exit(EXIT_FAILURE);
 }

@@ -28,8 +28,8 @@ int is_valid_version(char c) {
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds)
 {
-    printf(MAGENTA("Processing record...\n"));
-    printf(YELLOW("Record: ") "%s\n", record);
+    printf(BOLD_MAGENTA("Processing record...\n"));
+    printf(BOLD_YELLOW("Record: ") "%s\n", record);
     uint8_t log_rounds;
 
     if (strlen(record) != BCRYPT_RECORD_SIZE)
@@ -51,7 +51,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
     log_rounds = (record[1] - '0') + ((record[0] - '0') * 10);
     if (log_rounds < BCRYPT_MIN_LOG_ROUNDS || log_rounds > BCRYPT_MAX_LOG_ROUNDS)
         return ERR_ROUNDS;
-    printf(YELLOW("Rounds log: ") "%d\n", log_rounds);
+    printf(BOLD_YELLOW("Rounds log: ") "%d\n", log_rounds);
     record += 3;
     
     *rounds = 1U << log_rounds;
@@ -60,13 +60,13 @@ int get_record_data(char *record, uint8_t *ciphertext,
     if (decode_base64(salt, BCRYPT_SALT_BYTES, record))
         return ERR_BASE64;
     salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
-    printf(YELLOW("Salt: ") "%s\n", salt);
+    printf(BOLD_YELLOW("Salt: ") "%s\n", salt);
     record += BCRYPT_ENCODED_SALT_SIZE;
 
     // Decode ciphertext
     if (decode_base64(ciphertext, 21, record))
         return ERR_BASE64;
-    printf(YELLOW("Hash to crack: "));
+    printf(BOLD_YELLOW("Hash to crack: "));
     print_hex(ciphertext, BCRYPT_HASH_BYTES-3);
 
     return 0;
