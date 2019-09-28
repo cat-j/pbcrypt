@@ -31,10 +31,3 @@ int process_args(int argc, char const *argv[]) {
 
     return 0;
 }
-
-void print_record_info() {
-    printf("Salt: %s\n", (char *) &salt);
-    printf("Rounds: %ld\n", rounds);
-    printf("Hash to crack: ");
-    print_hex((uint8_t *) &record_ciphertext, BCRYPT_HASH_BYTES-3);
-}

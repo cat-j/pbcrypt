@@ -45,6 +45,4 @@ char flush_newline; // skip first newline for cleaner loops
  */
 int process_args(int argc, char const *argv[]);
 
-void print_record_info();
-
 #endif

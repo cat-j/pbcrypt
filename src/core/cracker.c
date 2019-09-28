@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
 
     int status = process_args(argc, argv);
     if (status) {
-        fprintf(stderr, "Error: process_args returned status 0x%x.\n",
+        fprintf(stderr, BOLD_RED("Error: process_args returned status 0x%x.\n"),
                 status);
         return status;
     }
@@ -44,13 +44,10 @@ int main(int argc, char const *argv[]) {
         (uint8_t *) &salt, &rounds);
     if (status) {
         // Error processing record
-        fprintf(stderr, "Error: get_record_data returned status 0x%x.\n",
+        fprintf(stderr, BOLD_RED("Error: get_record_data returned status 0x%x.\n"),
                 status);
         return status;
     }
-
-    salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
-    print_record_info();
 
     // Read info from wordlist file
     size_t pass_length, batch_size, bytes_read;
@@ -59,19 +56,19 @@ int main(int argc, char const *argv[]) {
     FILE *wl_stream = fopen(filename, "r");
 
     if (!wl_stream) {
-        fprintf(stderr, "Error: unable to open file %s.\n", filename);
+        fprintf(stderr, BOLD_RED("Error: unable to open file %s.\n"), filename);
         return ERR_OPEN_FILE;
     }
 
     status = fscanf(wl_stream, "%lu", &pass_length);
     if (status < 1) {
-        fprintf(stderr, "Error: unable to process password length.\n");
+        fprintf(stderr, BOLD_RED("Error: unable to process password length.\n"));
         return ERR_FILE_DATA;
     }
     fread(&flush_newline, 1, 1, wl_stream);
 
 
-    printf("Password length: %ld\n", pass_length);
+    printf(BOLD_YELLOW("Password length: ") "%ld\n", pass_length);
 
     batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
     current_batch = malloc(batch_size);
@@ -104,7 +101,7 @@ int main(int argc, char const *argv[]) {
         r_stream = fopen(results_filename, "a");
         
         if (!r_stream) {
-            printf("Could not open file %s.\n", (char *) &results_filename);
+            printf(BOLD_RED("Could not open file %s.\n"), (char *) &results_filename);
             return ERR_OPEN_FILE;
         }
 
@@ -160,6 +157,8 @@ int main(int argc, char const *argv[]) {
     if (measure) {
         total_end_time = clock();
     }
+
+    printf(MAGENTA("\nFinished cracking.\n"));
 
     if (!found) {
         printf("No matches found in %s.\n", filename);

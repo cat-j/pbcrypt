@@ -6,6 +6,7 @@
 
 #include "base64.h"
 #include "bcrypt.h"
+#include "print.h"
 
 // #define BCRYPT_MAX_KEY_BYTES 
 
@@ -27,6 +28,8 @@ int is_valid_version(char c) {
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds)
 {
+    printf(MAGENTA("Processing record...\n"));
+    printf(YELLOW("Record: ") "%s\n", record);
     uint8_t log_rounds;
 
     if (strlen(record) != BCRYPT_RECORD_SIZE)
@@ -48,6 +51,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
     log_rounds = (record[1] - '0') + ((record[0] - '0') * 10);
     if (log_rounds < BCRYPT_MIN_LOG_ROUNDS || log_rounds > BCRYPT_MAX_LOG_ROUNDS)
         return ERR_ROUNDS;
+    printf(YELLOW("Rounds log: ") "%d\n", log_rounds);
     record += 3;
     
     *rounds = 1U << log_rounds;
@@ -55,11 +59,15 @@ int get_record_data(char *record, uint8_t *ciphertext,
     // Decode salt
     if (decode_base64(salt, BCRYPT_SALT_BYTES, record))
         return ERR_BASE64;
+    salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
+    printf(YELLOW("Salt: ") "%s\n", salt);
     record += BCRYPT_ENCODED_SALT_SIZE;
 
     // Decode ciphertext
     if (decode_base64(ciphertext, 21, record))
         return ERR_BASE64;
+    printf(YELLOW("Hash to crack: "));
+    print_hex(ciphertext, BCRYPT_HASH_BYTES-3);
 
     return 0;
 }
@@ -105,7 +113,7 @@ char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
     int status;
 
     if ( (status = bcrypt_asm_wrapper(salt, hash, key, keybytes, rounds)) ) {
-        fprintf(stderr, "Error executing bcrypt. Code: 0x%x\n", status);
+        fprintf(stderr, RED("Error executing bcrypt. Code: 0x%x\n"), status);
         return 0;
     }
 
