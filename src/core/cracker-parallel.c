@@ -138,7 +138,7 @@ int main(int argc, char const *argv[]) {
     if (!found) {
         printf("No matches found in %s.\n", filename);
     } else {
-        printf("Found plaintext password \033[1;35m%s\033[0m with matching hash.\n",
+        printf("Found plaintext password " BOLD_MAGENTA("%s") " with matching hash.\n",
                matching_pass);
         free(matching_pass);
     }
