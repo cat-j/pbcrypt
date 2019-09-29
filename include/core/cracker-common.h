@@ -34,6 +34,13 @@ size_t pass_length, batch_size, bytes_read;
 char *current_batch;
 char flush_newline; // skip first newline for cleaner loops
 
+/* Measurement variables */
+FILE *r_stream;
+uint64_t passwords_cracked;
+uint64_t total_time_hashing;
+uint64_t start_time, end_time;
+uint64_t total_start_time, total_end_time;
+
 
 /* Functions */
 
@@ -44,5 +51,19 @@ char flush_newline; // skip first newline for cleaner loops
  * Returns 0 on success and ERR_ARGS on error.
  */
 int process_args(int argc, char const *argv[]);
+
+/*
+ * Process password length from wordlist file
+ * and return a file pointer to it.
+ */
+int process_wordlist(FILE **wl_stream);
+
+/*
+ * If `measure` is enabled, open results file,
+ * write header if necessary and initialise variables.
+ * `start_time` is not initialised, as function context switch
+ * would add a small overhead and affect measurements.
+ */
+int initialise_measure();
 
 #endif

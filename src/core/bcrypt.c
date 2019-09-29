@@ -128,3 +128,9 @@ blf_ctx *get_aligned_state() {
     posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     return state;
 }
+
+p_blf_ctx *get_aligned_p_state() {
+    p_blf_ctx *p_state;
+    posix_memalign((void**) &p_state, 32, sizeof(p_blf_ctx));
+    return p_state;
+}

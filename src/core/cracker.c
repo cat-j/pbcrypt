@@ -6,8 +6,8 @@
 
 #include "bcrypt.h"
 #include "bcrypt-constants.h"
-#include "cracker-common.h"
 #include "config.h"
+#include "cracker-common.h"
 #include "print.h"
 
 // Usage examples:
@@ -50,25 +50,15 @@ int main(int argc, char const *argv[]) {
     }
 
     // Read info from wordlist file
-    size_t pass_length, batch_size, bytes_read;
-    char *current_batch;
-    char flush_newline; // skip first newline for cleaner loops
-    FILE *wl_stream = fopen(filename, "r");
+    FILE *wl_stream;
+    status = process_wordlist(&wl_stream);
 
-    if (!wl_stream) {
-        fprintf(stderr, BOLD_RED("Error: unable to open file %s.\n"), filename);
-        return ERR_OPEN_FILE;
-    }
-
-    status = fscanf(wl_stream, "%lu", &pass_length);
     if (status < 1) {
-        fprintf(stderr, BOLD_RED("Error: unable to process password length.\n"));
-        return ERR_FILE_DATA;
+        // Error processing wordlist
+        fprintf(stderr, BOLD_RED("Error: process_wordlist returned status 0x%x.\n"),
+                status);
+        return status;
     }
-    fread(&flush_newline, 1, 1, wl_stream);
-
-
-    printf(BOLD_YELLOW("Password length: ") "%ld\n", pass_length);
 
     batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
     current_batch = malloc(batch_size);
@@ -76,45 +66,22 @@ int main(int argc, char const *argv[]) {
     
     /////// Crack password ///////
 
-    uint8_t hash[BCRYPT_HASH_BYTES+1];
+    uint8_t hash[BCRYPT_HASH_BYTES];
     blf_ctx *state = get_aligned_state();
     char *current_pass, *matching_pass;
     int found = 0;
-    
-    // Declare variables for measuring
-    FILE *r_stream;
-    uint64_t passwords_cracked;
-    uint64_t total_time_hashing;
-    uint64_t start_time, end_time;
-    uint64_t total_start_time, total_end_time;
-    total_start_time = clock();
 
     if (measure) {
-        // Initialise file for measurements if needed
-        int write_header = 0;
-
-        if (access(results_filename, F_OK) == -1) {
-            // File doesn't exist, header must be written
-            write_header = 1;
-        }
-
-        r_stream = fopen(results_filename, "a");
+        status = initialise_measure();
         
-        if (!r_stream) {
-            printf(BOLD_RED("Could not open file %s.\n"), (char *) &results_filename);
-            return ERR_OPEN_FILE;
+        if (status) {
+            fprintf(stderr, BOLD_RED("Error: initialise_measure returned status 0x%x.\n"),
+                status);
+            return status;
         }
 
-        if (write_header) {
-            fprintf(r_stream, "Passwords;Length;Passwords per batch;"
-                "Variant;Time hashing;Total time\n");
-        }
-
-        passwords_cracked = 0;
-        total_time_hashing = 0;
         total_start_time = clock();
     }
-        
 
 
     // Read several passwords into buffer and hash them
@@ -158,7 +125,7 @@ int main(int argc, char const *argv[]) {
         total_end_time = clock();
     }
 
-    printf(MAGENTA("\nFinished cracking.\n"));
+    printf(BOLD_MAGENTA("\nFinished cracking.\n"));
 
     if (!found) {
         printf("No matches found in %s.\n", filename);

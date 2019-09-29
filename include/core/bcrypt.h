@@ -75,6 +75,8 @@ char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
  * Parse a bcrypt password record as it would be stored
  * in a shadow password file, e.g.
  * "$2b$08$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV".
+ * Whilst parsing record, print information to standard output.
+ * Return 0 on success and corresponding error code otherwise.
  */
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
@@ -89,5 +91,11 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2);
  * Blowfish state.
  */
 blf_ctx *get_aligned_state();
+
+/*
+ * Return a 32-bit aligned pointer to an uninitialised
+ * parallel Blowfish state.
+ */
+p_blf_ctx *get_aligned_p_state();
 
 #endif
