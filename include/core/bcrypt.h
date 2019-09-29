@@ -71,7 +71,8 @@ char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
 
 /* ========== Cracker functions ========== */
 
-/* Compare first 21 bytes of two hashes.
+/*
+ * Compare first 21 bytes of two hashes.
  * Designed for cracking.
  */
 int hash_match(const uint8_t *hash1, const uint8_t *hash2);

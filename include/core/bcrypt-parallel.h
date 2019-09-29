@@ -74,4 +74,11 @@ void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
  */
 p_blf_ctx *get_aligned_p_state();
 
+/*
+ * Compare the first 21 bytes of a hash against
+ * the first 21 bytes of four parallel hashes.
+ * Designed for cracking.
+ */
+int hash_match_parallel(const uint8_t *hashes, const uint8_t *target);
+
 #endif

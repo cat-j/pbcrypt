@@ -71,8 +71,9 @@ int main(int argc, char const *argv[]) {
     uint8_t hashes[BCRYPT_HASH_BYTES*scale];
     p_blf_ctx *p_state = get_aligned_p_state();
     p_blf_ctx *initial_p_state = get_aligned_p_state();
-    char *current_passwords;
+    char *current_passwords, *matching_pass;
     int found = 0;
+    int matching_pass_idx = -1;
 
     if (measure) {
         status = initialise_measure();
@@ -88,12 +89,14 @@ int main(int argc, char const *argv[]) {
 
     // Initialise parallel state
     blowfish_parallelise_state(initial_p_state, &initstate_asm);
+    // printf(BOLD_YELLOW("Current batch:\n"));
+    // printf("%s \n", current_batch);
     
     while (!found &&
            (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
     {
-        printf(BOLD_YELLOW("Current batch:\n"));
-        printf("%s\n", current_batch);
+        // printf(BOLD_YELLOW("Current batch:\n"));
+        // printf("%s", current_batch);
         // Null-terminate each password
         for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
             current_batch[i] = 0;
@@ -116,7 +119,28 @@ int main(int argc, char const *argv[]) {
                 total_time_hashing += end_time - start_time;
                 ++passwords_cracked;
             }
+
+            matching_pass_idx = hash_match_parallel(hashes, record_ciphertext);
+
+            if (matching_pass_idx >= 0) {
+                // Cracked the password!
+                found = 1;
+                matching_pass = malloc(pass_length+1);
+                strncpy(matching_pass, current_passwords[matching_pass_idx * (pass_length+1)],
+                    pass_length);
+                break;
+            }
         }
+    }
+
+    printf(BOLD_MAGENTA("\nFinished cracking.\n"));
+
+    if (!found) {
+        printf("No matches found in %s.\n", filename);
+    } else {
+        printf("Found plaintext password \033[1;35m%s\033[0m with matching hash.\n",
+               matching_pass);
+        free(matching_pass);
     }
 
 
