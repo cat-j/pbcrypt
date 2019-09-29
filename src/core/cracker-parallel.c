@@ -8,6 +8,10 @@
 #include "cracker-common.h"
 #include "print.h"
 
+// Usage examples:
+// ./build/cracker-parallel \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
+// ./build/cracker-parallel \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
+
 /*
  * Main password cracker function.
  * Wordlist passwords must be the same length (in bytes)
@@ -23,7 +27,7 @@ int main(int argc, char const *argv[]) {
 
     int status = process_args(argc, argv);
     if (status) {
-        fprintf(stderr, "Error: process_args returned status 0x%x.\n",
+        fprintf(stderr, BOLD_RED("Error: process_args returned status 0x%x.\n"),
                 status);
         return status;
     }
@@ -38,7 +42,7 @@ int main(int argc, char const *argv[]) {
         (uint8_t *) &salt, &rounds);
     if (status) {
         // Error processing record
-        fprintf(stderr, "Error: get_record_data returned status 0x%x.\n",
+        fprintf(stderr, BOLD_RED("Error: get_record_data returned status 0x%x.\n"),
                 status);
         return status;
     }
@@ -58,7 +62,7 @@ int main(int argc, char const *argv[]) {
     size_t scale = 4; // TODO: move DWORDS_PER_XMM to another file
     size_t password_groups = n_passwords / scale;
     size_t group_length = pass_length*scale;
-    batch_size = n_passwords * scale * (pass_length+1); // add 1 for \n, later \0
+    batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
     current_batch = malloc(batch_size);
 
 
@@ -88,6 +92,8 @@ int main(int argc, char const *argv[]) {
     while (!found &&
            (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
     {
+        printf(BOLD_YELLOW("Current batch:\n"));
+        printf("%s\n", current_batch);
         // Null-terminate each password
         for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
             current_batch[i] = 0;
@@ -117,7 +123,7 @@ int main(int argc, char const *argv[]) {
     /////// Finish ///////
 
     free(p_state);
-    // free(current_batch);
+    free(current_batch);
     fclose(wl_stream);
 
     return 0;
