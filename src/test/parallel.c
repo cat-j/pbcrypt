@@ -218,7 +218,7 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     blowfish_expand_state_parallel(p_state, salt, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
-        blowfish_expand_state_asm(states[i], salt, &keys[i*keybytes], keybytes);
+        blowfish_expand_state_asm(states[i], salt, &keys[i*(keybytes+1)], keybytes);
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
@@ -235,7 +235,7 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     blowfish_expand_0_state_parallel(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
-        blowfish_expand_0_state_asm(states[i], &keys[i*keybytes], keybytes);
+        blowfish_expand_0_state_asm(states[i], &keys[i*(keybytes+1)], keybytes);
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
@@ -298,7 +298,7 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
     bcrypt_hashpass_parallel(p_state, salt, keys, keybytes, hashes_actual, rounds);
 
     for (size_t i = 0; i < scale; ++i) {
-        bcrypt_hashpass_asm(states[i], salt, &keys[i*keybytes],
+        bcrypt_hashpass_asm(states[i], salt, &keys[i*(keybytes+1)],
             keybytes, &hashes_expected[i*BCRYPT_HASH_BYTES], rounds);
     }
 
@@ -324,7 +324,7 @@ void test_bcrypt_hashpass() {
     }
 
     char salt[] = "opabiniaOPABINIA";
-    char keys[] = "anomalocarisGoLandcrabs!ANOMALOCARISgoLANDCRABS!";
+    char keys[] = "anomalocaris0GoLandcrabs!0ANOMALOCARIS0goLANDCRABS!0";
     uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
 
     uint8_t hashes_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
@@ -382,8 +382,8 @@ int main(int argc, char const *argv[]) {
     }
 
     char salt[] = "opabiniaOPABINIA"; // 128 bits long
-    char keys[] = "anomalocarisGoLandcrabs!ANOMALOCARISgoLANDCRABS!";
-    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
+    char keys[] = "anomalocaris0GoLandcrabs!0ANOMALOCARIS0goLANDCRABS!0";
+    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM - 1;
 
     char data_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
     char data_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];

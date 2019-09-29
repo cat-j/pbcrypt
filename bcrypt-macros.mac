@@ -383,7 +383,11 @@
 ; %4: key_len
 ; %5: loop_ctr
 ; %6: iteration number
-%macro READ_4_KEY_BYTES_PARALLEL 6
+; %7: temporary reg for key_len+1
+%macro READ_4_KEY_BYTES_PARALLEL 7
+    mov %7, %4
+    inc %7 ; include terminator
+
     .key_loop_%6:
         cmp %5, 4 ; four iterations, one for each byte
         je  .end_key_loop_%6
@@ -398,19 +402,18 @@
         .continue_extract_%6:
             ; extract a byte from each key
             pinsrb %1, [%3 + %2], 0
-            add    %3, %4
+            add    %3, %7
             pinsrb %1, [%3 + %2], 4
-            add    %3, %4
+            add    %3, %7
             pinsrb %1, [%3 + %2], 8
-            add    %3, %4
+            add    %3, %7
             pinsrb %1, [%3 + %2], 12
-            add    %3, %4
+            add    %3, %7
 
             ; back to first key
-            shl %4, 2
-            sub %3, %4
-            shr %4, 2
-
+            shl %7, 2
+            sub %3, %7
+            shr %7, 2
 
             ; loop
             inc %2

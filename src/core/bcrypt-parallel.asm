@@ -190,6 +190,7 @@ blowfish_expand_state_parallel:
         %define key_len      rcx
         %define loop_ctr     r9
         %define tmp          xmm2
+        %define tmp_len      r10
 
         ; initialise registers
         xor key_data_ctr, key_data_ctr
@@ -198,7 +199,7 @@ blowfish_expand_state_parallel:
         %rep 18
             xor loop_ctr, loop_ctr
             READ_4_KEY_BYTES_PARALLEL key_data, key_data_ctr, key_ptr, \
-                key_len, loop_ctr, i
+                key_len, loop_ctr, i, tmp_len
             pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
             movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], key_data
             %assign i i+1
@@ -287,6 +288,7 @@ blowfish_expand_0_state_parallel:
         %define key_len      rdx
         %define loop_ctr     r9
         %define tmp          xmm2
+        %define tmp_len      r10
 
         ; initialise registers
         xor key_data_ctr, key_data_ctr
@@ -295,7 +297,7 @@ blowfish_expand_0_state_parallel:
         %rep 18
             xor    loop_ctr, loop_ctr
             READ_4_KEY_BYTES_PARALLEL key_data, key_data_ctr, key_ptr, \
-                key_len, loop_ctr, i
+                key_len, loop_ctr, i, tmp_len
             pxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE]
             movdqa [rdi + P_BLF_CTX_P_OFFSET + i*4*P_VALUE_MEMORY_SIZE], key_data
             %assign i i+1
@@ -466,7 +468,7 @@ bcrypt_hashpass_parallel:
             %define key_ptr   r13
             %define key_len   r14
             %define rounds    r15
-            %define round_ctr r10
+            %define round_ctr r11
 
             xor round_ctr, round_ctr
 
