@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-/* ========== Constants/variables/types ========== */
+/* ========== Constants ========== */
 
 #define BCRYPT_MIN_LOG_ROUNDS    4
 #define BCRYPT_MAX_LOG_ROUNDS    32
@@ -17,6 +17,8 @@
 #define BCRYPT_SALT_BYTES 16
 #define BCRYPT_HASH_BYTES 24
 
+/* ========== Types ========== */
+
 /* Blowfish context - taken from OpenBSD source code */
 typedef struct BlowfishContext {
     uint32_t S[4][256];    /* S-Boxes */
@@ -28,6 +30,8 @@ typedef struct ParallelBlowfishContext {
     uint32_t S[4][1024];
     uint32_t P[72];
 } p_blf_ctx;
+
+/* ========== Variables ========== */
 
 extern int variant; // unrolled loops, P-array in YMM registers, etc
 

@@ -1,9 +1,12 @@
 #include <stdio.h>
+#include <time.h>
 
 #include "bcrypt.h"
 #include "bcrypt-constants.h"
 #include "bcrypt-parallel.h"
+#include "config.h"
 #include "cracker-common.h"
+#include "print.h"
 
 /*
  * Main password cracker function.

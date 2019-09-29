@@ -14,6 +14,30 @@
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
 
+// TODO: accept different bcrypt versions
+int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
+                       uint16_t keybytes, uint64_t rounds)
+{
+    if (!salt)
+        return ERR_BAD_SALT;
+    
+    if (!key)
+        return ERR_BAD_KEY;
+
+    if (!hash)
+        return ERR_BAD_HASH;
+
+    if (strlen(salt) != BCRYPT_SALT_BYTES)
+        return ERR_SALT_LEN;
+    
+    
+    blf_ctx *state = get_aligned_state();
+    bcrypt_hashpass_asm(state, salt, key, keybytes, hash, rounds);
+    free(state);
+
+    return 0;
+}
+
 /*
  * Main password cracker function.
  * Wordlist passwords must be the same length (in bytes)

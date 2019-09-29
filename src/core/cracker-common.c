@@ -1,8 +1,10 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "base64.h"
 #include "cracker-common.h"
 #include "print.h"
 
@@ -32,6 +34,8 @@ int process_args(int argc, char const *argv[]) {
 
     return 0;
 }
+
+// TODO: return 0 on success
 
 int process_wordlist(FILE **wl_stream) {
     *wl_stream = fopen(filename, "r");
@@ -78,4 +82,55 @@ int initialise_measure() {
     total_time_hashing = 0;
 
     return 0;
+}
+
+int get_record_data(char *record, uint8_t *ciphertext,
+                    uint8_t *salt, uint64_t *rounds)
+{
+    printf(BOLD_MAGENTA("Processing record...\n"));
+    printf(BOLD_YELLOW("Record: ") "%s\n", record);
+    uint8_t log_rounds;
+
+    if (strlen(record) != BCRYPT_RECORD_SIZE)
+        return ERR_RECORD_LEN;
+
+    if (record[0] != '$' || record[3] != '$')
+        return ERR_RECORD_FORMAT;
+    record++;
+
+    if (record[0] != '2' || !is_valid_version(record[1]))
+        return ERR_VERSION;
+    record += 3;
+
+    if (!isdigit((unsigned char)record[0]) ||
+        !isdigit((unsigned char)record[1]) || record[2] != '$')
+        return ERR_ROUNDS;
+
+    // Parse rounds
+    log_rounds = (record[1] - '0') + ((record[0] - '0') * 10);
+    if (log_rounds < BCRYPT_MIN_LOG_ROUNDS || log_rounds > BCRYPT_MAX_LOG_ROUNDS)
+        return ERR_ROUNDS;
+    printf(BOLD_YELLOW("Rounds log: ") "%d\n", log_rounds);
+    record += 3;
+    
+    *rounds = 1U << log_rounds;
+
+    // Decode salt
+    if (decode_base64(salt, BCRYPT_SALT_BYTES, record))
+        return ERR_BASE64;
+    salt[BCRYPT_SALT_BYTES] = 0; // for pretty printing
+    printf(BOLD_YELLOW("Salt: ") "%s\n", salt);
+    record += BCRYPT_ENCODED_SALT_SIZE;
+
+    // Decode ciphertext
+    if (decode_base64(ciphertext, 21, record))
+        return ERR_BASE64;
+    printf(BOLD_YELLOW("Hash to crack: "));
+    print_hex(ciphertext, BCRYPT_HASH_BYTES-3);
+
+    return 0;
+}
+
+int is_valid_version(char c) {
+    return c == 'a' || c == 'b' || c == 'x' || c == 'y';
 }

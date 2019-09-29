@@ -14,7 +14,7 @@
  * from four single-data states (either S elements
  * or P elements).
  */
-void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src);
+void blowfish_parallelise_state(p_blf_ctx *state, const blf_ctx *src);
 
 /*
  * For parallel key schedule.
@@ -67,5 +67,11 @@ void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const char *salt);
 void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
                               const char *keys, uint16_t keybytes,
                               uint8_t *hashes, uint64_t rounds);
+
+/*
+ * Return a 32-bit aligned pointer to an uninitialised
+ * parallel Blowfish state.
+ */
+p_blf_ctx *get_aligned_p_state();
 
 #endif

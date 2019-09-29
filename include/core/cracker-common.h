@@ -8,13 +8,28 @@
 
 #define DEFAULT_N_PASSWORDS 1024
 
-#define ERR_ARGS        0x20010
-#define ERR_N_PASSWORDS 0x20020
-#define ERR_OPEN_FILE   0x20030
-#define ERR_FILE_DATA   0x20040
+/* ========== Error codes ========== */
+
+#define ERR_RECORD_LEN    0x10010
+#define ERR_RECORD_FORMAT 0x10020
+#define ERR_VERSION       0x10030
+#define ERR_ROUNDS        0x10040
+#define ERR_BASE64        0x10050
+
+#define ERR_ARGS          0x20010
+#define ERR_N_PASSWORDS   0x20020
+#define ERR_OPEN_FILE     0x20030
+#define ERR_FILE_DATA     0x20040
+
+#define ERR_BAD_SALT      0x30010
+#define ERR_BAD_KEY       0x30020
+#define ERR_BAD_HASH      0x30030
+#define ERR_SALT_LEN      0x30040
 
 
-/* Configuration variables */
+/* ========== Variables ========== */
+
+/* Configuration */
 int measure;
 char results_filename[256];
 
@@ -29,12 +44,12 @@ uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
 char salt[BCRYPT_SALT_BYTES+1];
 uint64_t rounds;
 
-/* Cracking variables */
+/* Cracking */
 size_t pass_length, batch_size, bytes_read;
 char *current_batch;
 char flush_newline; // skip first newline for cleaner loops
 
-/* Measurement variables */
+/* Measurement */
 FILE *r_stream;
 uint64_t passwords_cracked;
 uint64_t total_time_hashing;
@@ -42,13 +57,13 @@ uint64_t start_time, end_time;
 uint64_t total_start_time, total_end_time;
 
 
-/* Functions */
+/* ========== Functions ========== */
 
 /* Process command line arguments.
  * If successful, overwrites record and n_passwords
  * (the latter falls back to DEFAULT_N_PASSWORDS
  * if no third argument is provided.)
- * Returns 0 on success and ERR_ARGS on error.
+ * Return 0 on success and ERR_ARGS on error.
  */
 int process_args(int argc, char const *argv[]);
 
@@ -63,7 +78,23 @@ int process_wordlist(FILE **wl_stream);
  * write header if necessary and initialise variables.
  * `start_time` is not initialised, as function context switch
  * would add a small overhead and affect measurements.
+ * Return 0 on success and corresponding error code otherwise.
  */
 int initialise_measure();
+
+/*
+ * Parse a bcrypt password record as it would be stored
+ * in a shadow password file, e.g.
+ * "$2b$08$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV".
+ * Whilst parsing record, print information to standard output.
+ * Return 0 on success and corresponding error code otherwise.
+ */
+int get_record_data(char *record, uint8_t *ciphertext,
+                    uint8_t *salt, uint64_t *rounds);
+
+/*
+ * Helper function for parsing record.
+ */
+int is_valid_version(char c);
 
 #endif
