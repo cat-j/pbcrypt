@@ -23,7 +23,7 @@
  */
 int main(int argc, char const *argv[]) {
     load_config();
-
+    
     /////// Process arguments ///////
 
     int status = process_args(argc, argv);
@@ -89,21 +89,18 @@ int main(int argc, char const *argv[]) {
 
     // Initialise parallel state
     blowfish_parallelise_state(&initstate_parallel, &initstate_asm);
-    // printf(BOLD_YELLOW("Current batch:\n"));
-    // printf("%s \n", current_batch);
     
     while (!found &&
            (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
     {
-        // printf(BOLD_YELLOW("Current batch:\n"));
-        // printf("%s\n", current_batch);
+        // Null-terminate each password
+        for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
+            current_batch[i] = 0;
+        }
 
         // Hash passwords currently in the buffer to see if any of them matches
         for (size_t j = 0; j < password_groups; ++j) {
             current_passwords = &current_batch[j*group_length];
-            // current_passwords[group_length] = 0;
-            // printf(BOLD_YELLOW("Current passwords:\n"));
-            // printf("%s\n", current_passwords);
 
             if (measure) {
                 start_time = clock();
@@ -111,10 +108,6 @@ int main(int argc, char const *argv[]) {
         
             bcrypt_hashpass_parallel(p_state, salt, current_passwords,
                 pass_length, (uint8_t *) &hashes, rounds);
-
-            // printf(BOLD_YELLOW("Current hashes: "));
-            // print_hex((uint8_t *) &hashes, BCRYPT_HASH_BYTES*4);
-            // printf("\n");
         
             if (measure) {
                 end_time = clock();
@@ -136,6 +129,10 @@ int main(int argc, char const *argv[]) {
         }
     }
 
+    if (measure) {
+        total_end_time = clock();
+    }
+
     printf(BOLD_MAGENTA("\nFinished cracking.\n"));
 
     if (!found) {
@@ -144,6 +141,23 @@ int main(int argc, char const *argv[]) {
         printf("Found plaintext password " BOLD_MAGENTA("%s") " with matching hash.\n",
                matching_pass);
         free(matching_pass);
+    }
+
+    if (measure) {
+        double seconds = (double) total_time_hashing / CLOCKS_PER_SEC;
+        printf("Time spent hashing: %f seconds.\n", seconds);
+
+        double total_seconds =
+            (double) (total_end_time - total_start_time) / CLOCKS_PER_SEC;
+        printf("Total time elapsed: %f seconds.\n", total_seconds);
+
+        printf("Number of passwords cracked: %lu.\n", passwords_cracked);
+
+        fprintf(r_stream, "%lu;%lu;%lu;%d;%f;%f\n",
+            passwords_cracked, pass_length, n_passwords, variant,
+            seconds, total_seconds);
+
+        fclose(r_stream);
     }
 
 
