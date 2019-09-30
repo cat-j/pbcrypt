@@ -102,8 +102,8 @@ int main(int argc, char const *argv[]) {
         for (size_t j = 0; j < password_groups; ++j) {
             current_passwords = &current_batch[j*group_length];
             // current_passwords[group_length] = 0;
-            printf(BOLD_YELLOW("Current passwords:\n"));
-            printf("%s\n", current_passwords);
+            // printf(BOLD_YELLOW("Current passwords:\n"));
+            // printf("%s\n", current_passwords);
 
             if (measure) {
                 start_time = clock();
@@ -112,9 +112,9 @@ int main(int argc, char const *argv[]) {
             bcrypt_hashpass_parallel(p_state, salt, current_passwords,
                 pass_length, (uint8_t *) &hashes, rounds);
 
-            printf(BOLD_YELLOW("Current hashes: "));
-            print_hex((uint8_t *) &hashes, BCRYPT_HASH_BYTES*4);
-            printf("\n");
+            // printf(BOLD_YELLOW("Current hashes: "));
+            // print_hex((uint8_t *) &hashes, BCRYPT_HASH_BYTES*4);
+            // printf("\n");
         
             if (measure) {
                 end_time = clock();
