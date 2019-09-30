@@ -9,7 +9,7 @@ p_blf_ctx *get_aligned_p_state() {
 }
 
 int hash_match_parallel(const uint8_t *hashes, const uint8_t *target) {
-    uint8_t *current = hashes;
+    const uint8_t *current = hashes;
 
     for (size_t i = 0; i < 4; ++i) {
         for (size_t j = 0; j < BCRYPT_HASH_BYTES - 3; ++j) {
