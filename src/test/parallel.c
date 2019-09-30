@@ -324,8 +324,8 @@ void test_bcrypt_hashpass() {
     }
 
     char salt[] = "opabiniaOPABINIA";
-    char keys[] = "anomalocaris0GoLandcrabs!0ANOMALOCARIS0goLANDCRABS!0";
-    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM;
+    char keys[] = "acknowledgers\nacknowledging\nacquaintances\nGo Landcrabs!\n";
+    uint64_t keybytes = strlen(keys) / DWORDS_PER_XMM - 1;
 
     uint8_t hashes_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
     uint8_t hashes_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
