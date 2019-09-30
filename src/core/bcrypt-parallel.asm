@@ -25,6 +25,7 @@ endianness_mask: db \
 
 align 32
 element_offset: dd 0x0, 0x1, 0x2, 0x3
+gather_mask: times 4 dd 0x80000000
 
 
 section .text
@@ -455,6 +456,8 @@ bcrypt_hashpass_parallel:
         mov r15, r9
 
         vmovdqa endianness_mask_ymm, [endianness_mask]
+        movdqa  element_offset_xmm, [element_offset]
+        movdqa  gather_mask_xmm, [gather_mask]
 
         mov  rsi, initstate_parallel
         call blowfish_init_state_parallel
