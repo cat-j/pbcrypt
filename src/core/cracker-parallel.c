@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #include "bcrypt.h"
@@ -61,7 +62,7 @@ int main(int argc, char const *argv[]) {
 
     size_t scale = 4; // TODO: move DWORDS_PER_XMM to another file
     size_t password_groups = n_passwords / scale;
-    size_t group_length = pass_length*scale;
+    size_t group_length = (pass_length+1) * scale;
     batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
     current_batch = malloc(batch_size);
 
@@ -70,10 +71,9 @@ int main(int argc, char const *argv[]) {
 
     uint8_t hashes[BCRYPT_HASH_BYTES*scale];
     p_blf_ctx *p_state = get_aligned_p_state();
-    p_blf_ctx *initial_p_state = get_aligned_p_state();
     char *current_passwords, *matching_pass;
     int found = 0;
-    int matching_pass_idx = -1;
+    int matching_pass_idx;
 
     if (measure) {
         status = initialise_measure();
@@ -88,7 +88,7 @@ int main(int argc, char const *argv[]) {
     }
 
     // Initialise parallel state
-    blowfish_parallelise_state(initial_p_state, &initstate_asm);
+    blowfish_parallelise_state(&initstate_parallel, &initstate_asm);
     // printf(BOLD_YELLOW("Current batch:\n"));
     // printf("%s \n", current_batch);
     
@@ -96,23 +96,25 @@ int main(int argc, char const *argv[]) {
            (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
     {
         // printf(BOLD_YELLOW("Current batch:\n"));
-        // printf("%s", current_batch);
-        // Null-terminate each password
-        for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
-            current_batch[i] = 0;
-        }
+        // printf("%s\n", current_batch);
 
         // Hash passwords currently in the buffer to see if any of them matches
         for (size_t j = 0; j < password_groups; ++j) {
             current_passwords = &current_batch[j*group_length];
+            // current_passwords[group_length] = 0;
+            printf(BOLD_YELLOW("Current passwords:\n"));
+            printf("%s\n", current_passwords);
 
             if (measure) {
                 start_time = clock();
             }
         
-            blowfish_init_state_parallel(p_state, initial_p_state);
             bcrypt_hashpass_parallel(p_state, salt, current_passwords,
-                pass_length, hashes, rounds);
+                pass_length, (uint8_t *) &hashes, rounds);
+
+            printf(BOLD_YELLOW("Current hashes: "));
+            print_hex((uint8_t *) &hashes, BCRYPT_HASH_BYTES*4);
+            printf("\n");
         
             if (measure) {
                 end_time = clock();
@@ -126,7 +128,8 @@ int main(int argc, char const *argv[]) {
                 // Cracked the password!
                 found = 1;
                 matching_pass = malloc(pass_length+1);
-                strncpy(matching_pass, current_passwords[matching_pass_idx * (pass_length+1)],
+                strncpy(matching_pass,
+                    &current_passwords[matching_pass_idx * (pass_length+1)],
                     pass_length);
                 break;
             }
