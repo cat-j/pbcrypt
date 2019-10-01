@@ -36,7 +36,6 @@ int process_args(int argc, char const *argv[]) {
     return 0;
 }
 
-// TODO: return 0 on success
 
 int process_wordlist(FILE **wl_stream) {
     *wl_stream = fopen(filename, "r");

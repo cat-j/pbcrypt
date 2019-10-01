@@ -5,6 +5,10 @@
 
 #include "bcrypt-common.h"
 
+/* ========== Useful constants ========== */
+
+#define DWORDS_PER_XMM 4
+
 /* ========== Parallelised functions ========== */
 
 /*
@@ -78,6 +82,8 @@ p_blf_ctx *get_aligned_p_state();
  * Compare the first 21 bytes of a hash against
  * the first 21 bytes of four parallel hashes.
  * Designed for cracking.
+ * Return matching hash number (0 to 3) if matched
+ * and -1 otherwise.
  */
 int hash_match_parallel(const uint8_t *hashes, const uint8_t *target);
 

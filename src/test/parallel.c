@@ -10,9 +10,6 @@
 #include "openbsd.h"
 #include "test.h"
 
-#define DWORDS_PER_XMM 4
-
-
 void test_f_xmm(p_blf_ctx *p_state, blf_ctx *state,
                 uint32_t *bytes_actual, uint32_t *bytes_expected,
                 const char *state_name)

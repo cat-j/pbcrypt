@@ -60,14 +60,14 @@ int main(int argc, char const *argv[]) {
     }
 
 
-    size_t scale = 4; // TODO: move DWORDS_PER_XMM to another file
+
+    /////// Crack password ///////
+
+    size_t scale = DWORDS_PER_XMM;
     size_t password_groups = n_passwords / scale;
     size_t group_length = (pass_length+1) * scale;
     batch_size = n_passwords * (pass_length+1); // add 1 for \n, later \0
     current_batch = malloc(batch_size);
-
-
-    /////// Crack password ///////
 
     uint8_t hashes[BCRYPT_HASH_BYTES*scale];
     p_blf_ctx *p_state = get_aligned_p_state();

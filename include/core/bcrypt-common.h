@@ -17,6 +17,8 @@
 #define BCRYPT_SALT_BYTES 16
 #define BCRYPT_HASH_BYTES 24
 
+#define BYTES_PER_DATA_BLOCK 4
+
 /* ========== Types ========== */
 
 /* Blowfish context - taken from OpenBSD source code */
