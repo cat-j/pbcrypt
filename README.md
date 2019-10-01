@@ -20,7 +20,7 @@ base directory.
 ### Requirements
 
 - 64-bit Intel processor with AVX2 capabilities
-- Unix-like operating system
+- Linux kernel
 
 ## How to build
 
@@ -29,7 +29,8 @@ base directory.
 ```$ make cracker```
 
 will create the executable `./build/cracker`. For the version without loop unrolling,
-replace `cracker` with `cracker-no-unrolling`. Parallel cracking is still under development.
+replace `cracker` with `cracker-no-unrolling`. For the parallel version, replace it
+with `cracker-parallel`.
 
 ### Tests
 
@@ -39,7 +40,7 @@ will test ASM macros and bcrypt components against their counterparts from
 the OpenBSD source code.
 
 To test other variants, replace `test` with `test-no-unrolling`,
-`test-loaded-p` or `test-parallel` (the last one is still under development).
+`test-loaded-p` or `test-parallel`.
 
 ## How to run
 
