@@ -38,7 +38,10 @@ cracker: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt.o $(OBJS)
 cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o $(OBJS_NO_UNROLLING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-parallel: $(CORE)cracker-parallel.c $(SOURCES-PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL)
+cracker-loaded-p: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+cracker-parallel: $(CORE)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
