@@ -6,6 +6,7 @@
 #include "bcrypt-constants.h"
 #include "bcrypt-macro-testing.h"
 #include "bcrypt-parallel.h"
+#include "parallel-test-wrappers.h"
 #include "openbsd.h"
 #include "test.h"
 
@@ -217,7 +218,7 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     test_start(test_name, "p_state: %s, salt: %s, keys: %s, keybytes: %d",
         p_state_name, salt, keys, keybytes);
 
-    blowfish_expand_state_parallel(p_state, salt, keys, keybytes);
+    blowfish_expand_state_parallel_wrapper(p_state, salt, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
         blowfish_expand_state_asm(states[i], salt, &keys[i*(keybytes+1)], keybytes);
@@ -251,7 +252,7 @@ void test_blowfish_expand_0_state_salt_parallel(p_blf_ctx *p_state, blf_ctx **st
     test_start(test_name, "p_state: %s, salt: %s",
         p_state_name, salt);
     
-    blowfish_expand_0_state_salt_parallel(p_state, salt);
+    blowfish_expand_0_state_salt_parallel_wrapper(p_state, salt);
 
     for (size_t i = 0; i < scale; ++i) {
         blowfish_expand_0_state_salt_asm(states[i], salt);

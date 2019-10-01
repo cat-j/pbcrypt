@@ -18,13 +18,13 @@ NASMFLAGS=-f elf64 -g -F DWARF
 
 
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CORE)cracker-common.c
-SOURCES-PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
+SOURCES_PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c $(CORE)cracker-common.c
 TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
-OBJS_PARALLEL=bcrypt-parallel.o
+OBJS_PARALLEL=bcrypt-parallel.o parallel-test-wrappers.o
 OBJS_TESTING=bcrypt-macro-testing.o
 
 
@@ -76,6 +76,9 @@ bcrypt-parallel.o: $(CORE)bcrypt-parallel.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+parallel-test-wrappers.o: $(TEST)parallel-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build

@@ -215,9 +215,6 @@ blowfish_expand_state_parallel:
         %define salt_0_1  ymm3
         %define salt_2_3  ymm5
 
-        ; TODO: remove this and write a test wrapper after moving it to hashpass
-        vmovdqa endianness_mask_ymm, [endianness_mask]
-
         ; copy each 32-bit block four times
         vpbroadcastd salt_0, [rsi]
         vpbroadcastd salt_1, [rsi + 4]
@@ -343,9 +340,6 @@ blowfish_expand_0_state_salt_parallel:
         %define salt_0_1  ymm3
         %define salt_2_3  ymm5
         %define tmp_salt  ymm1
-
-        ; TODO: remove this and write a test wrapper after moving it to hashpass
-        vmovdqa endianness_mask_ymm, [endianness_mask]
 
         ; copy each 32-bit block four times
         vpbroadcastd salt_0, [rsi]
