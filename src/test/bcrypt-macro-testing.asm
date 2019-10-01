@@ -135,7 +135,7 @@ reverse_bytes:
     ret
 
 ; Intended exclusively for testing ciphertext copying macro
-; void copy_ctext_asm(uint64_t *data, char *ctext)
+; void copy_ctext_asm(uint64_t *data, const char *ctext)
 
 copy_ctext_asm:
     ; rdi -> destination ciphertext
@@ -147,6 +147,9 @@ copy_ctext_asm:
 
     pop rbp
     ret
+
+; Intended exclusively for testing ciphertext copying macro
+; void copy_ctext_xmm(uint64_t *data, const char *ctext)
 
 copy_ctext_xmm:
     ; rdi -> destination ciphertext

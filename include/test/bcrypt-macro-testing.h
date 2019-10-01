@@ -12,7 +12,9 @@ uint32_t blowfish_round_asm(uint32_t xl, uint32_t xr, const blf_ctx *state,
 
 uint64_t reverse_bytes(uint64_t data);
 
-void copy_ctext_asm(uint64_t *data, const char *ctext);
+void copy_ctext_asm(uint64_t *data, const uint8_t *ctext);
+
+void copy_ctext_xmm(uint64_t *data, const uint8_t *ctext);
 
 void load_salt_and_p(blf_ctx *state, uint8_t *salt);
 

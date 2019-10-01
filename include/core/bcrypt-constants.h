@@ -274,9 +274,9 @@ const blf_ctx initstate_asm =
         0x9216d5d9, 0x8979fb1b
     } };
 
-const char initial_ctext[] = "OrpheanBeholderScryDoubt";
+const uint8_t initial_ctext[] = "OrpheanBeholderScryDoubt";
 
-const char initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanBeholeholeholehol"
+const uint8_t initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanBeholeholeholehol"
     "derSderSderSderScryDcryDcryDcryDoubtoubtoubtoubt";
 
 /* IMPORTANT: this must be initialised with initstate_asm

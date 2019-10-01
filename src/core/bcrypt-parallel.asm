@@ -172,7 +172,7 @@ blowfish_init_state_parallel:
         ret
 
 ; void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
-;                                     const char *keys, uint64_t keybytes)
+;                                     const char *keys, uint16_t keybytes)
 
 blowfish_expand_state_parallel:
     ; rdi -> parallel blowfish state (modified)
@@ -271,7 +271,7 @@ blowfish_expand_state_parallel:
         ret
 
 ; void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
-;                                       uint64_t keybytes)
+;                                       uint16_t keybytes)
 
 blowfish_expand_0_state_parallel:
     ; rdi -> parallel blowfish state

@@ -80,7 +80,7 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
 
 // TODO: look into refactoring the following two functions
 
-void compare_ciphertexts(const char *actual, const char *expected,
+void compare_ciphertexts(const uint8_t *actual, const uint8_t *expected,
                          const char *test_name, size_t ctext_bytes)
 {
     uint32_t *dwords_actual = (uint32_t *) actual;

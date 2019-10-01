@@ -53,7 +53,7 @@ blowfish_expand_state_wrapper:
         ret
 
 ; void blowfish_expand_0_state_wrapper(blf_ctx *state, const char *salt,
-;                                      const char *key, uint64_t keybytes)
+;                                      const char *key, uint16_t keybytes)
 
 blowfish_expand_0_state_wrapper:
     ; rdi -> blowfish state (modified)
@@ -95,7 +95,7 @@ blowfish_expand_0_state_wrapper:
         ret
 
 ; void blowfish_expand_0_state_salt_wrapper(blf_ctx *state, const char *salt,
-;                                           const char *key, uint64_t keybytes)
+;                                           const char *key, uint16_t keybytes)
 
 blowfish_expand_0_state_salt_wrapper:
     ; rdi -> blowfish state (modified)

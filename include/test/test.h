@@ -31,7 +31,7 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
  */
 void do_test(uint64_t actual, uint64_t expected, const char *test_name);
 
-void compare_ciphertexts(const char *actual, const char *expected,
+void compare_ciphertexts(const uint8_t *actual, const uint8_t *expected,
                          const char *test_name, size_t ctext_bytes);
 
 void compare_strings(const char *actual, const char *expected,

@@ -31,8 +31,8 @@ void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src);
  * each jth of which should in turn be encrypted with the jth key.
  * Keys must be terminated (either null or newline).
  */
-void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
-                                    const char *keys, uint64_t keybytes);
+void blowfish_expand_state_parallel(p_blf_ctx *state, const uint8_t *salt,
+                                    const char *keys, uint16_t keybytes);
 
 /*
  * For parallel key schedule.
@@ -44,7 +44,7 @@ void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
  * Keys must be terminated (either null or newline).
  */
 void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
-                                      uint64_t keybytes);
+                                      uint16_t keybytes);
 
 /*
  * For parallel key schedule.
@@ -54,7 +54,7 @@ void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
  * i.e. each 32-bit block is broadcast once into a 128-bit register
  * and no further memory accesses are needed for salt data.
  */
-void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const char *salt);
+void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const uint8_t *salt);
 
 /*
  * Hash four passwords (keys) and store results in hashes.
@@ -64,7 +64,7 @@ void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const char *salt);
  * should contain the nth elements from four single-data hashes.
  * Keys must be terminated (either null or newline).
  */
-void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
+void bcrypt_hashpass_parallel(p_blf_ctx *state, const uint8_t *salt,
                               const char *keys, uint16_t keybytes,
                               uint8_t *hashes, uint64_t rounds);
 

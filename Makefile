@@ -17,7 +17,7 @@ NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
 
 
-SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
+SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CORE)cracker-common.c
 SOURCES-PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c $(CORE)cracker-common.c
 TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
@@ -53,11 +53,11 @@ test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-no-
 	./build/test-no-unrolling
 
 test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P) $(OBJS_TESTING)
-	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
 
 test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS) $(OBJS_PARALLEL) $(OBJS_TESTING)
-	$(CC) $(CFLAGS_NO_WARNINGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
 
 b64encode: $(UTILS)main.c $(UTILS)base64.c
@@ -81,16 +81,16 @@ loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
 bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
-variant-bcrypt.o: $(CORE)/variant/variant-bcrypt.asm build
+variant-bcrypt.o: $(CORE)variant/variant-bcrypt.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
-variant-bcrypt-no-unrolling.o: $(CORE)/variant/variant-bcrypt-no-unrolling.asm build
+variant-bcrypt-no-unrolling.o: $(CORE)variant/variant-bcrypt-no-unrolling.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
-variant-bcrypt-loaded-p.o: $(CORE)/variant/variant-bcrypt-loaded-p.asm build
+variant-bcrypt-loaded-p.o: $(CORE)variant/variant-bcrypt-loaded-p.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
-variant-bcrypt-parallel.o: $(CORE)/variant/variant-bcrypt-parallel.asm build
+variant-bcrypt-parallel.o: $(CORE)variant/variant-bcrypt-parallel.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 build:

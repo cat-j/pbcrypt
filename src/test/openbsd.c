@@ -54,7 +54,7 @@
 #define BLFRND_DEBUG(s,p,i,j,n) \
     printf("F:\t0x%08x\n", F(s,j)); \
     printf("F^p[n]:\t0x%08x\n", F(s,j) ^ p[n]); \
-    i ^= F_DEBUG(c,j) ^ (p)[n];
+    i ^= F_DEBUG(s,j) ^ (p)[n];
 
 #define BLF_N 16              /* Number of Subkeys */
 #define BCRYPT_WORDS 6        /* Ciphertext words */
@@ -63,7 +63,7 @@
 #define BCRYPT_SALTSPACE (7 + (BCRYPT_MAXSALT * 4 + 2) / 3 + 1)
 #define BCRYPT_HASHSPACE 61
 
-uint32_t F_DEBUG(uint32_t *s, uint32_t x) {
+uint32_t F_DEBUG(const uint32_t *s, uint32_t x) {
     printf("\n");
     uint32_t x0 = (s)[(((x)>>24)&0xFF)];
     uint32_t x1 = (s)[0x100 + (((x)>>16)&0xFF)];

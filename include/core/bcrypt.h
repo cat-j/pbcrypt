@@ -15,14 +15,14 @@ void blowfish_init_state_asm(blf_ctx *state);
 /* For key schedule.
  * Encrypt state boxes and P-array with key and salt.
  */
-void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
+void blowfish_expand_state_asm(blf_ctx *state, const uint8_t *salt,
                                const char *key, uint16_t keybytes);
 
 /* For key schedule.
  * Encrypt state boxes and P-array with key and 0s.
  */
 void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
-                                 uint64_t keybytes);
+                                 uint16_t keybytes);
 
 /* For key schedule.
  * Encrypt state boxes and P-array with salt and 0s.
@@ -30,7 +30,7 @@ void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
  * i.e. each half is loaded once into a 64-bit register
  * and no further memory accesses are needed for salt data.
  */
-void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt);
+void blowfish_expand_0_state_salt_asm(blf_ctx *state, const uint8_t *salt);
 
 /*
  * Encrypt data with P-array values.
@@ -52,20 +52,20 @@ void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
  * Variable rounds corresponds to actual number of rounds,
  * not log.
  */
-void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
+void bcrypt_hashpass_asm(blf_ctx *state, const uint8_t *salt,
                          const char *key, uint16_t keybytes,
                          uint8_t *hash, uint64_t rounds);
 
 /*
  * Wrapper for bcrypt_hashpass_asm that also initialises state.
  */
-int bcrypt_asm_wrapper(const char *salt, uint8_t *hash, const char *key,
+int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds);
 
 /*
  *
  */
-char *bcrypt(const char *salt, const char *key, uint16_t keybytes,
+char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
              uint64_t rounds);
 
 

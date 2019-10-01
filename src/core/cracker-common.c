@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "base64.h"
+#include "bcrypt-errors.h"
 #include "cracker-common.h"
 #include "print.h"
 

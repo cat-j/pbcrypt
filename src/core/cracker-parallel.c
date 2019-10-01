@@ -23,7 +23,7 @@
  */
 int main(int argc, char const *argv[]) {
     load_config();
-    
+
     /////// Process arguments ///////
 
     int status = process_args(argc, argv);
@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]) {
     /////// Process record parameters ///////
     
     uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
-    char salt[BCRYPT_SALT_BYTES+1];
+    uint8_t salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
 
     status = get_record_data((char *) &record, (uint8_t *) &record_ciphertext,
