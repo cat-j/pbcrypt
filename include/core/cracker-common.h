@@ -50,7 +50,8 @@ int process_args(int argc, char const *argv[]);
 
 /*
  * Process password length from wordlist file
- * and return a file pointer to it.
+ * and write a file pointer to it in `*wl_stream`.
+ * Return 0 on success and corresponding error code otherwise.
  */
 int process_wordlist(FILE **wl_stream);
 

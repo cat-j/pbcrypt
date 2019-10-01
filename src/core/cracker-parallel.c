@@ -52,7 +52,7 @@ int main(int argc, char const *argv[]) {
     FILE *wl_stream;
     status = process_wordlist(&wl_stream);
 
-    if (status < 1) {
+    if (status) {
         // Error processing wordlist
         fprintf(stderr, BOLD_RED("Error: process_wordlist returned status 0x%x.\n"),
                 status);

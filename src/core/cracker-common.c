@@ -55,7 +55,7 @@ int process_wordlist(FILE **wl_stream) {
 
     printf(BOLD_YELLOW("Password length: ") "%ld\n", pass_length);
 
-    return status;
+    return 0;
 }
 
 int initialise_measure() {
