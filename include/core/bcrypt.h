@@ -66,7 +66,7 @@ int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
  *
  */
 char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
-             uint64_t rounds);
+             uint8_t log_rounds);
 
 
 /* ========== Cracker functions ========== */

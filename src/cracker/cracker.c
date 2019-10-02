@@ -12,7 +12,7 @@
 
 // Usage examples:
 // ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./wordlists/test_wordlist
-// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO40KV54lhKyb96cCVfrBZ0rw6Z.525GW ./wordlists/wordlist
+// ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO8teovZ6X0RqncKXcWJgyOQPIM4LEG2w ./wordlists/wordlist
 
 /*
  * Main password cracker function.
@@ -96,13 +96,14 @@ int main(int argc, char const *argv[]) {
         // Hash passwords currently in the buffer to see if any of them matches
         for (size_t j = 0; j < n_passwords; ++j) {
             current_pass = &current_batch[j*(pass_length+1)];
+            printf(BOLD_CYAN("Current password: ") "%s\n", current_pass);
 
             if (measure) {
                 start_time = clock();
             }
         
             blowfish_init_state_asm(state);
-            bcrypt_hashpass_asm(state, salt, current_pass, pass_length,
+            bcrypt_hashpass_asm(state, salt, current_pass, pass_length+1,
                 (uint8_t *) &hash, rounds);
         
             if (measure) {

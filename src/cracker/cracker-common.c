@@ -54,8 +54,6 @@ int process_wordlist(FILE **wl_stream) {
 
     printf(BOLD_YELLOW("Password length: ") "%ld\n", pass_length);
 
-    pass_length++; // include null terminator for hashing
-
     return 0;
 }
 

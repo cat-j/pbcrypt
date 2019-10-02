@@ -12,8 +12,7 @@ int main(int argc, char const *argv[]) {
     }
 
     char password[72];
-    char salt[BCRYPT_SALT_BYTES+1];
-    uint64_t rounds;
+    uint8_t salt[BCRYPT_SALT_BYTES+1];
     uint8_t log_rounds;
     size_t length = strlen(argv[1]);
 
@@ -24,14 +23,13 @@ int main(int argc, char const *argv[]) {
     salt[BCRYPT_SALT_BYTES] = 0;
     
     log_rounds = atoi(argv[3]);
-    rounds = 1U << log_rounds;
 
     printf("Password: %s\n", password);
-    printf("Rounds: %lu\n", rounds);
+    printf("Rounds: %lu\n", 1L << log_rounds);
     printf("Length: %lu\n", length);
 
-    char *encrypted = bcrypt((char *) &salt, (char *) &password,
-        length, rounds);
+    char *encrypted = bcrypt((uint8_t *) &salt, (char *) &password,
+        length+1, log_rounds);
     if (encrypted) {
         printf("%s\n", encrypted);
         free(encrypted);

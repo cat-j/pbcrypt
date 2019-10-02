@@ -107,7 +107,7 @@ int main(int argc, char const *argv[]) {
             }
         
             bcrypt_hashpass_parallel(p_state, salt, current_passwords,
-                pass_length, (uint8_t *) &hashes, rounds);
+                pass_length+1, (uint8_t *) &hashes, rounds);
         
             if (measure) {
                 end_time = clock();
