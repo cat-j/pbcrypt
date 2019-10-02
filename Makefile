@@ -3,6 +3,7 @@
 # Directory names
 BUILD=build/
 CORE=core/
+CRACKER=cracker/
 INCLUDE=include/
 TEST=test/
 UTILS=utils/
@@ -11,15 +12,15 @@ UTILS=utils/
 CC=gcc
 CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
-INC_DIRS=$(CORE) $(TEST) $(UTILS)
+INC_DIRS=$(CORE) $(CRACKER) $(TEST) $(UTILS)
 INC_PARAMS=$(foreach d, $(INC_DIRS), -I$(INCLUDE)$d)
 NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
 
 
-SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CORE)cracker-common.c
+SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CRACKER)cracker-common.c
 SOURCES_PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
-CRACKER_SOURCES=$(UTILS)config.c $(CORE)cracker-common.c
+CRACKER_SOURCES=$(UTILS)config.c $(CRACKER)cracker-common.c
 TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
@@ -32,16 +33,16 @@ OBJS_TESTING=bcrypt-macro-testing.o
 
 all: clean cracker encrypt
 
-cracker: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt.o $(OBJS)
+cracker: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt.o $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-no-unrolling: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o $(OBJS_NO_UNROLLING)
+cracker-no-unrolling: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o $(OBJS_NO_UNROLLING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-loaded-p: $(CORE)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P)
+cracker-loaded-p: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-parallel: $(CORE)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL)
+cracker-parallel: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)

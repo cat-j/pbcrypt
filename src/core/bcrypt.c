@@ -6,7 +6,7 @@
 
 #include "base64.h"
 #include "bcrypt.h"
-#include "bcrypt-errors.h"
+#include "cracker-errors.h"
 #include "print.h"
 
 // #define BCRYPT_MAX_KEY_BYTES 

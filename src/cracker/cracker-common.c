@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 #include "base64.h"
-#include "bcrypt-errors.h"
 #include "cracker-common.h"
+#include "cracker-errors.h"
 #include "print.h"
 
 int process_args(int argc, char const *argv[]) {
