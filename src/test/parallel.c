@@ -218,7 +218,7 @@ void test_blowfish_expand_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     blowfish_expand_state_parallel_wrapper(p_state, salt, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
-        blowfish_expand_state_asm(states[i], salt, &keys[i*(keybytes+1)], keybytes);
+        blowfish_expand_state_asm(states[i], salt, &keys[i*(keybytes)], keybytes);
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
@@ -235,7 +235,7 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     blowfish_expand_0_state_parallel(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
-        blowfish_expand_0_state_asm(states[i], &keys[i*(keybytes+1)], keybytes);
+        blowfish_expand_0_state_asm(states[i], &keys[i*(keybytes)], keybytes);
     }
 
     compare_p_state_many(p_state, states, scale, test_name);
@@ -298,7 +298,7 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
     bcrypt_hashpass_parallel(p_state, salt, keys, keybytes, hashes_actual, rounds);
 
     for (size_t i = 0; i < scale; ++i) {
-        bcrypt_hashpass_asm(states[i], salt, &keys[i*(keybytes+1)],
+        bcrypt_hashpass_asm(states[i], salt, &keys[i*keybytes],
             keybytes, &hashes_expected[i*BCRYPT_HASH_BYTES], rounds);
     }
 
@@ -384,8 +384,8 @@ int main(int argc, char const *argv[]) {
     }
 
     uint8_t salt[] = "opabiniaOPABINIA"; // 128 bits long
-    char keys[] = "anomalocaris0GoLandcrabs!0ANOMALOCARIS0goLANDCRABS!0";
-    uint16_t keybytes = strlen(keys) / DWORDS_PER_XMM - 1;
+    char keys[] = "anomalocaris\0GoLandcrabs!\0ANOMALOCARIS\0goLANDCRABS!";
+    uint16_t keybytes = strlen(keys) + 1;
 
     uint8_t data_actual[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
     uint8_t data_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];

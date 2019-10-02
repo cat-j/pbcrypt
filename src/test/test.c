@@ -78,8 +78,6 @@ void compare_states(blf_ctx *state_actual, blf_ctx *state_expected,
     test_pass("Success: states in %s are equal.\n", test_name);
 }
 
-// TODO: look into refactoring the following two functions
-
 void compare_ciphertexts(const uint8_t *actual, const uint8_t *expected,
                          const char *test_name, size_t ctext_bytes)
 {
@@ -91,7 +89,6 @@ void compare_ciphertexts(const uint8_t *actual, const uint8_t *expected,
     for (size_t i = 0; i < len; ++i) {
         current_actual = dwords_actual[i];
         current_expected = dwords_expected[i];
-        // printf("actual: 0x%08x\texpected: 0x%08x\n", current_actual, current_expected);
 
         if (current_actual != current_expected) {
             test_fail("Ciphertexts in test %s differ. "

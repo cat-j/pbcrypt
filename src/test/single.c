@@ -299,7 +299,7 @@ int main(int argc, char const *argv[]) {
     
     uint8_t salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
-    uint16_t keybytes = strlen(key);
+    uint16_t keybytes = strlen(key) + 1; // null terminator
 
     uint8_t data_actual[BCRYPT_HASH_BYTES];
     uint8_t data_expected[BCRYPT_HASH_BYTES];
