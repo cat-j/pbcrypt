@@ -6,6 +6,7 @@
 
 #include "base64.h"
 #include "bcrypt.h"
+#include "bcrypt-common.h"
 #include "cracker-errors.h"
 #include "print.h"
 
@@ -20,22 +21,36 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
     return 1;
 }
 
-// TODO: return the whole record, not just the hash
 char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
              uint64_t rounds)
 {
     uint8_t hash[BCRYPT_HASH_BYTES];
     int status;
+    char version = 'b'; // TODO: accept other versions
 
     if ( (status = bcrypt_asm_wrapper(salt, hash, key, keybytes, rounds)) ) {
         fprintf(stderr, RED("Error executing bcrypt. Code: 0x%x\n"), status);
         return 0;
     }
 
-    char *encoded = malloc(BCRYPT_ENCODED_HASH_SIZE+2);
-    encode_base64(encoded, hash, BCRYPT_HASH_BYTES);
+    char *record = malloc(BCRYPT_RECORD_SIZE+1);
+    char *ptr = record;
 
-    return encoded;
+    sprintf(ptr, "$2%c$", version);
+    ptr += 4;
+
+    sprintf(ptr, "%02d$", rounds);
+    ptr += 3;
+
+    encode_base64(ptr, salt, BCRYPT_SALT_BYTES);
+    ptr += BCRYPT_ENCODED_SALT_SIZE;
+
+    encode_base64(ptr, hash, BCRYPT_ENCODED_HASH_SIZE+2);
+    ptr += BCRYPT_ENCODED_HASH_SIZE;
+
+    *ptr = 0; // null terminate
+
+    return record;
 }
 
 // TODO: accept different bcrypt versions
