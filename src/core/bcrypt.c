@@ -70,8 +70,7 @@ int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
     if (strlen((char *) salt) != BCRYPT_SALT_BYTES)
         return ERR_SALT_LEN;
     
-    
-    blf_ctx *state = get_aligned_state();
+    blf_ctx *state = malloc(sizeof(blf_ctx));
     bcrypt_hashpass_asm(state, salt, key, keybytes, hash, rounds);
     free(state);
 
