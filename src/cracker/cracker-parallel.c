@@ -108,7 +108,7 @@ int main(int argc, char const *argv[]) {
             if (measure) {
                 end_time = clock();
                 total_time_hashing += end_time - start_time;
-                ++passwords_cracked;
+                passwords_cracked += scale;
             }
 
             matching_pass_idx = hash_match_parallel(hashes, record_ciphertext);
