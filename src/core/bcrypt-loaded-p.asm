@@ -135,7 +135,7 @@ blowfish_encipher_register:
         push rbp
         mov  rbp, rsp
         push r8
-        sub  rbp, 8
+        sub  rsp, 8
 
     .separate_xl_xr:
         mov rdx, r13 ; rdx: | Xr | Xl |
@@ -250,7 +250,7 @@ blowfish_encipher_register:
         mov r13, x_l_64
 
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r8
         pop rbp
         ret
@@ -309,7 +309,7 @@ blowfish_expand_state_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
     
     .p_array_key:
         ; key_data: 32 bytes of key, wrapping
@@ -434,7 +434,7 @@ blowfish_expand_state_asm:
         %endrep
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13
@@ -722,7 +722,7 @@ bcrypt_hashpass_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
 
     .key_setup:
         %define key_ptr   rbx
@@ -776,7 +776,7 @@ bcrypt_hashpass_asm:
         STORE_CTEXT hash_ptr, rax
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13

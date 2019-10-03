@@ -243,7 +243,7 @@ blowfish_expand_state_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
     
     .p_array_key:
         ; key_data: a byte from the key
@@ -352,7 +352,7 @@ blowfish_expand_state_asm:
             jmp .s_boxes_salt_loop
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13
@@ -472,7 +472,7 @@ blowfish_expand_0_state_salt_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
 
     ; Bespoke variant of blowfish_expand_0_state_asm for optimised
     ; encryption with salt. No expensive key reading needed, as salt
@@ -557,7 +557,7 @@ blowfish_expand_0_state_salt_asm:
             jmp  .s_boxes_data_loop
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13
@@ -626,7 +626,7 @@ bcrypt_hashpass_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
 
     .key_setup:
         ; Save these values because blowfish_expand_state_asm would modify them
@@ -695,7 +695,7 @@ bcrypt_hashpass_asm:
         %endrep
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13

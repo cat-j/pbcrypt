@@ -64,7 +64,7 @@ blowfish_expand_0_state_wrapper:
         push rbp
         mov  rbp, rsp
         push rbx
-        sub  rbp, 8
+        sub  rsp, 8
 
     .do_function:
         ; Save these values because blowfish_expand_state_asm would modify them
@@ -89,7 +89,7 @@ blowfish_expand_0_state_wrapper:
         STORE_P rdi, rax
 
     .end:
-        add rbp, 8
+        add rsp, 8
         pop rbx
         pop rbp
         ret
@@ -106,7 +106,7 @@ blowfish_expand_0_state_salt_wrapper:
         push rbp
         mov  rbp, rsp
         push rbx
-        sub  rbp, 8
+        sub  rsp, 8
 
     .do_function:
         ; Save these values because blowfish_expand_state_asm would modify them
@@ -133,7 +133,7 @@ blowfish_expand_0_state_salt_wrapper:
         STORE_P rdi, rax
 
     .end:
-        add rbp, 8
+        add rsp, 8
         pop rbx
         pop rbp
         ret

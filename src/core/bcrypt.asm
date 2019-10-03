@@ -103,7 +103,7 @@ blowfish_encipher_register:
         push rbp
         mov  rbp, rsp
         push r8
-        sub  rbp, 8
+        sub  rsp, 8
 
     .separate_xl_xr:
         mov rdx, r13 ; rdx: | Xl | Xr |
@@ -159,7 +159,7 @@ blowfish_encipher_register:
         mov r13, x_r
 
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r8
         pop rbp
         ret
@@ -390,7 +390,7 @@ blowfish_expand_0_state_salt_asm:
         push rbx
         push r13
         push r14
-        sub  rbp, 8
+        sub  rsp, 8
 
     ; Bespoke variant of blowfish_expand_0_state_asm for optimised
     ; encryption with salt. No expensive key reading needed, as salt
@@ -451,7 +451,7 @@ blowfish_expand_0_state_salt_asm:
         %endrep
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r14
         pop r13
         pop rbx
@@ -512,7 +512,7 @@ bcrypt_hashpass_asm:
         push r13
         push r14
         push r15
-        sub  rbp, 8
+        sub  rsp, 8
 
     .key_setup:
         ; Save these values because blowfish_expand_state_asm would modify them
@@ -581,7 +581,7 @@ bcrypt_hashpass_asm:
         %endrep
     
     .end:
-        add rbp, 8
+        add rsp, 8
         pop r15
         pop r14
         pop r13
