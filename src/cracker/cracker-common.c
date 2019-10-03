@@ -69,7 +69,7 @@ int initialise_measure() {
     r_stream = fopen(results_filename, "a");
     
     if (!r_stream) {
-        printf(BOLD_RED("Could not open file %s.\n"), (char *) &results_filename);
+        printf(BOLD_RED("Could not open file %s.\n"), results_filename);
         return ERR_OPEN_FILE;
     }
 

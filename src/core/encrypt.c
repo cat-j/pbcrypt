@@ -38,11 +38,7 @@ int main(int argc, char const *argv[]) {
     
     log_rounds = atoi(argv[3]);
 
-    fprintf(stderr, "Password: %s\n", password);
-    fprintf(stderr, "Rounds: %lu\n", 1L << log_rounds);
-    fprintf(stderr, "Length: %lu\n", length);
-
-    char *encrypted = bcrypt((uint8_t *) &salt, (char *) &password,
+    char *encrypted = bcrypt((uint8_t *) salt, (char *) password,
         length+1, log_rounds);
     if (encrypted) {
         printf("%s\n", encrypted);

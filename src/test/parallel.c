@@ -391,17 +391,17 @@ int main(int argc, char const *argv[]) {
     uint8_t data_expected[BCRYPT_HASH_BYTES*DWORDS_PER_XMM];
 
     test_blowfish_expand_state_parallel(state_actual, states,
-        (uint8_t *) &salt, (char *) &keys, keybytes, DWORDS_PER_XMM, "initial_p_state");
+        salt, keys, keybytes, DWORDS_PER_XMM, "initial_p_state");
 
     test_blowfish_expand_0_state_parallel(state_actual, states,
-        (char *) &keys, keybytes, DWORDS_PER_XMM, "expanded_p_state");
+        keys, keybytes, DWORDS_PER_XMM, "expanded_p_state");
 
     test_blowfish_expand_0_state_salt_parallel(state_actual, states,
         salt, DWORDS_PER_XMM, "key_expanded_p_state");
 
     test_bcrypt_hashpass();
 
-    test_copy_ctext_xmm(data_actual, data_expected, (uint8_t *) &initial_p_ctext);
+    test_copy_ctext_xmm(data_actual, data_expected, initial_p_ctext);
 
     return 0;
 }

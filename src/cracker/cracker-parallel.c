@@ -39,8 +39,7 @@ int main(int argc, char const *argv[]) {
     uint8_t salt[BCRYPT_SALT_BYTES+1];
     uint64_t rounds;
 
-    status = get_record_data((char *) &record, (uint8_t *) &record_ciphertext,
-        (uint8_t *) &salt, &rounds);
+    status = get_record_data(record, record_ciphertext, salt, &rounds);
     if (status) {
         // Error processing record
         fprintf(stderr, BOLD_RED("Error: get_record_data returned status 0x%x.\n"),
@@ -51,14 +50,12 @@ int main(int argc, char const *argv[]) {
     // Read info from wordlist file
     FILE *wl_stream;
     status = process_wordlist(&wl_stream);
-
     if (status) {
         // Error processing wordlist
         fprintf(stderr, BOLD_RED("Error: process_wordlist returned status 0x%x.\n"),
                 status);
         return status;
     }
-
 
 
     /////// Crack password ///////
@@ -77,7 +74,6 @@ int main(int argc, char const *argv[]) {
 
     if (measure) {
         status = initialise_measure();
-        
         if (status) {
             fprintf(stderr, BOLD_RED("Error: initialise_measure returned status 0x%x.\n"),
                 status);
@@ -107,7 +103,7 @@ int main(int argc, char const *argv[]) {
             }
         
             bcrypt_hashpass_parallel(p_state, salt, current_passwords,
-                pass_length+1, (uint8_t *) &hashes, rounds);
+                pass_length+1, hashes, rounds);
         
             if (measure) {
                 end_time = clock();

@@ -82,7 +82,7 @@ void test_blowfish_expand_state_asm(blf_ctx *state_actual, blf_ctx *state_expect
         blowfish_expand_state_wrapper(state_actual, salt, key, keybytes);
     }
 
-    Blowfish_expandstate(state_expected, (uint8_t *) salt, BCRYPT_SALT_BYTES,
+    Blowfish_expandstate(state_expected, salt, BCRYPT_SALT_BYTES,
                          (uint8_t *) key, keybytes);
 
     compare_states(state_actual, state_expected, test_name);
@@ -120,7 +120,7 @@ void test_blowfish_expand_0_state_salt_asm(blf_ctx *state_actual, blf_ctx *state
         blowfish_expand_0_state_salt_wrapper(state_actual, salt, key, keybytes);
     }
 
-    Blowfish_expand0statesalt(state_expected, (uint8_t *) salt, BCRYPT_MAXSALT);
+    Blowfish_expand0statesalt(state_expected, salt, BCRYPT_MAXSALT);
 
     compare_states(state_actual, state_expected, test_name);
 }
