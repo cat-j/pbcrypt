@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]) {
     uint8_t log_rounds;
     size_t length = strlen(argv[1]);
 
-    strncpy((char *) &password, argv[1], length);
+    strncpy((char *) &password, argv[1], 72);
     password[length] = 0;
 
     strncpy((char *) &salt, argv[2], BCRYPT_SALT_BYTES);
