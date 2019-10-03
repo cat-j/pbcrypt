@@ -4,6 +4,9 @@
 
 #include "bcrypt.h"
 #include "bcrypt-constants.h"
+#include "print.h"
+
+#define MAX_PASSWORD_LEN 72
 
 int main(int argc, char const *argv[]) {
     if (argc != 4) {
@@ -11,22 +14,33 @@ int main(int argc, char const *argv[]) {
         return 1;
     }
 
-    char password[72];
+    char password[MAX_PASSWORD_LEN+1];
     uint8_t salt[BCRYPT_SALT_BYTES+1];
     uint8_t log_rounds;
     size_t length = strlen(argv[1]);
 
-    strncpy((char *) &password, argv[1], 72);
+    if (strlen(argv[2]) > MAX_PASSWORD_LEN) {
+        fprintf(stderr, BOLD_RED("Error: password cannot be longer than %d bytes.\n"),
+            MAX_PASSWORD_LEN);
+        return 1;
+    }
+
+    strncpy((char *) &password, argv[1], MAX_PASSWORD_LEN);
     password[length] = 0;
+
+    if (strlen(argv[2]) != BCRYPT_SALT_BYTES) {
+        fprintf(stderr, BOLD_RED("Error: salt must be 16 bytes long.\n"));
+        return 1;
+    }
 
     strncpy((char *) &salt, argv[2], BCRYPT_SALT_BYTES);
     salt[BCRYPT_SALT_BYTES] = 0;
     
     log_rounds = atoi(argv[3]);
 
-    printf("Password: %s\n", password);
-    printf("Rounds: %lu\n", 1L << log_rounds);
-    printf("Length: %lu\n", length);
+    fprintf(stderr, "Password: %s\n", password);
+    fprintf(stderr, "Rounds: %lu\n", 1L << log_rounds);
+    fprintf(stderr, "Length: %lu\n", length);
 
     char *encrypted = bcrypt((uint8_t *) &salt, (char *) &password,
         length+1, log_rounds);
