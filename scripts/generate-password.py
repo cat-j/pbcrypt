@@ -26,6 +26,8 @@ def generate_wordlist(password, pass_length, n_passwords):
         dst_f.write("{}\n".format(generate_password(password, pass_length)))
         dst_f.close()
 
+    return
+
 # Get command line arguments
 def get_args():
     parser = ArgumentParser()
@@ -37,6 +39,8 @@ def get_args():
 
 def main():
     (password, length, n_passwords) = get_args()
+    if (length < 1 or n_passwords < 1):
+        raise ValueError("Length and number of passwords must be positive integers.")
     generate_wordlist(password, length, n_passwords)
     return
 
