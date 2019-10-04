@@ -15,7 +15,7 @@ def generate_wordlist(password, pass_length, n_passwords):
         .format(pass_length, n_passwords)
 
     with open(src_filename) as src_f:
-        dst_f = open(dst_filename, "a")
+        dst_f = open(dst_filename, "w")
         line = src_f.readline()
         dst_f.write(line)
 
