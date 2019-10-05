@@ -11,18 +11,23 @@ varying_length() {
 }
 
 generate_varying_length() {
-    for i in {3..12}
+    for i in {3..20}
     do
         varying_length $i
     done
 
-    for i in {13..65..13}
+    for i in {25..70..5}
     do
         varying_length $i
     done
 
     varying_length 72
 }
+
+if [ ! -d ./experiments/test-cases ]
+then
+    mkdir ./experiments/test-cases
+fi
 
 generate_varying_length
 
