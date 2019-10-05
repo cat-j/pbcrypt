@@ -12,7 +12,7 @@
 
 /* Configuration */
 int measure;
-char results_filename[256];
+char *results_filename;
 
 /* Initial arguments */
 char record[BCRYPT_RECORD_SIZE+1];

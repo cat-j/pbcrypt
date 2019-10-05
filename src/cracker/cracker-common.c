@@ -42,7 +42,7 @@ int process_wordlist(FILE **wl_stream) {
 
     if (!(*wl_stream)) {
         fprintf(stderr, BOLD_RED("Error: unable to open file %s.\n"), filename);
-        return ERR_OPEN_FILE;
+        return ERR_OPEN_WL;
     }
 
     int status = fscanf(*wl_stream, "%lu", &pass_length);
@@ -70,7 +70,7 @@ int initialise_measure() {
     
     if (!r_stream) {
         printf(BOLD_RED("Could not open file %s.\n"), results_filename);
-        return ERR_OPEN_FILE;
+        return ERR_OPEN_WL;
     }
 
     if (write_header) {
