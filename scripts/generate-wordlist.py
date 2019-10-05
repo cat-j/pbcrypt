@@ -1,18 +1,16 @@
 from argparse import ArgumentParser
+from password import generate_password
 
-# Given a password, mutate it into another one
-# of a certain length by wrapping around its characters.
-def generate_password(password, length):
-    n = len(password)
-    return password*(length//n) + password[:length%n]
+src_dir = "./wordlists/"
+dst_dir = "./experiments/test-cases/"
 
 # Create a wordlist where the last plaintext
 # is a `pass_length` bytes long mutation of `password`
 # and the total number of plaintexts is `n_passwords`.
 def generate_wordlist(password, pass_length, n_passwords):
-    src_filename = "./wordlists/realhuman_phill.txt-{}".format(pass_length)
-    dst_filename = "./experiments/test-cases/wordlist-{}bytes-{}passwords" \
-        .format(pass_length, n_passwords)
+    src_filename = "{}realhuman_phill.txt-{}".format(src_dir, pass_length)
+    dst_filename = "{}wordlist-{}bytes-{}passwords" \
+        .format(dst_dir, pass_length, n_passwords)
 
     with open(src_filename) as src_f:
         dst_f = open(dst_filename, "w")
