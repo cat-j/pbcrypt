@@ -10,3 +10,4 @@ KeccakTools/
 build/
 wordlists/
 experiments/test-cases/
+*__pycache__
