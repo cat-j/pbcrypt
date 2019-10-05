@@ -2,7 +2,22 @@
 
 PASSWORD="Go Landcrabs!"
 
-for i in {4..65540..4}
+varying_length() {
+    local length=$1
+    for i in {4..65540..4}
+    do
+        python ./scripts/generate-wordlist.py "$PASSWORD" $length $i
+    done
+}
+
+for i in {1..12}
 do
-    python ./scripts/generate-wordlist.py "$PASSWORD" 13 $i
+    varying_length $i
 done
+
+for i in {39, 52, 65}
+do
+    varying_length $i
+done
+
+varying_length 72
