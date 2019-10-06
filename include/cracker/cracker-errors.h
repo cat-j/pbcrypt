@@ -12,7 +12,7 @@
 
 #define ERR_ARGS          0x30010
 #define ERR_N_PASSWORDS   0x30020
-#define ERR_OPEN_WL       0x30030
+#define ERR_OPEN_FILE     0x30030
 #define ERR_FILE_DATA     0x30040
 
 #define ERR_BAD_SALT      0x40010
