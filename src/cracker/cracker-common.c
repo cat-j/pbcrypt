@@ -9,8 +9,6 @@
 #include "cracker-errors.h"
 #include "print.h"
 
-/* Functions */
-
 int process_args(int argc, char const *argv[]) {
     switch(argc) {
         case(3):
@@ -88,7 +86,7 @@ int initialise_measure() {
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds)
 {
-    printf(BOLD_MAGENTA("Processing record...\n"));
+    printf(BOLD_MAGENTA("\nProcessing record...\n"));
     printf(BOLD_YELLOW("Record: ") "%s\n", record);
 
     if (strlen(record) != BCRYPT_RECORD_SIZE)

@@ -147,7 +147,7 @@ int main(int argc, char const *argv[]) {
             (double) (total_end_time - total_start_time) / CLOCKS_PER_SEC;
         printf("Total time elapsed: %f seconds.\n", total_seconds);
 
-        printf("Number of passwords cracked: %lu.\n", passwords_cracked);
+        printf("Number of passwords cracked: %lu.\n\n", passwords_cracked);
 
         PRINT_MEASUREMENTS;
 
