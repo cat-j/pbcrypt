@@ -6,7 +6,22 @@
 
 #include "bcrypt-common.h"
 
+
+/* ========== Macros ========== */
+
 #define DEFAULT_N_PASSWORDS 1024
+
+/* Macros for experiment measurements */
+
+#define PRINT_HEADER \
+fprintf(r_stream, "Passwords;Length;Passwords per batch;" \
+    "Rounds log;Variant;Time hashing;Total time\n")
+
+#define PRINT_MEASUREMENTS \
+fprintf(r_stream, "%lu;%lu;%lu;%u;%d;%f;%f\n", \
+    passwords_cracked, pass_length, n_passwords, \
+    rounds_log, variant, seconds, total_seconds)
+    
 
 /* ========== Variables ========== */
 
@@ -23,6 +38,7 @@ char *end;
 /* Record data */
 uint8_t record_ciphertext[BCRYPT_HASH_BYTES-3];
 char salt[BCRYPT_SALT_BYTES+1];
+uint8_t rounds_log;
 uint64_t rounds;
 
 /* Cracking */

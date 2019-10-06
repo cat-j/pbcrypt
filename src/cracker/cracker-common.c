@@ -9,6 +9,8 @@
 #include "cracker-errors.h"
 #include "print.h"
 
+/* Functions */
+
 int process_args(int argc, char const *argv[]) {
     switch(argc) {
         case(3):
@@ -74,8 +76,7 @@ int initialise_measure() {
     }
 
     if (write_header) {
-        fprintf(r_stream, "Passwords;Length;Passwords per batch;"
-            "Variant;Time hashing;Total time\n");
+        PRINT_HEADER;
     }
 
     passwords_cracked = 0;
@@ -89,7 +90,6 @@ int get_record_data(char *record, uint8_t *ciphertext,
 {
     printf(BOLD_MAGENTA("Processing record...\n"));
     printf(BOLD_YELLOW("Record: ") "%s\n", record);
-    uint8_t log_rounds;
 
     if (strlen(record) != BCRYPT_RECORD_SIZE)
         return ERR_RECORD_LEN;
@@ -107,13 +107,13 @@ int get_record_data(char *record, uint8_t *ciphertext,
         return ERR_ROUNDS;
 
     // Parse rounds
-    log_rounds = (record[1] - '0') + ((record[0] - '0') * 10);
-    if (log_rounds < BCRYPT_MIN_LOG_ROUNDS || log_rounds > BCRYPT_MAX_LOG_ROUNDS)
+    rounds_log = (record[1] - '0') + ((record[0] - '0') * 10);
+    if (rounds_log < BCRYPT_MIN_ROUNDS_LOG || rounds_log > BCRYPT_MAX_ROUNDS_LOG)
         return ERR_ROUNDS;
-    printf(BOLD_YELLOW("Rounds log: ") "%d\n", log_rounds);
+    printf(BOLD_YELLOW("Rounds log: ") "%d\n", rounds_log);
     record += 3;
     
-    *rounds = 1U << log_rounds;
+    *rounds = 1U << rounds_log;
 
     // Decode salt
     if (decode_base64(salt, BCRYPT_SALT_BYTES, record))

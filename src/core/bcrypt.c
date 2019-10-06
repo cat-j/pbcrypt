@@ -22,12 +22,12 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
 }
 
 char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
-             uint8_t log_rounds)
+             uint8_t rounds_log)
 {
     uint8_t hash[BCRYPT_HASH_BYTES];
     int status;
     char version = 'b'; // TODO: accept other versions
-    uint64_t rounds = 1L << log_rounds;
+    uint64_t rounds = 1L << rounds_log;
 
     if ( (status = bcrypt_asm_wrapper(salt, hash, key, keybytes, rounds)) ) {
         fprintf(stderr, BOLD_RED("Error executing bcrypt. Code: 0x%x\n"), status);
@@ -40,7 +40,7 @@ char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
     sprintf(ptr, "$2%c$", version);
     ptr += 4;
 
-    sprintf(ptr, "%02u$", log_rounds);
+    sprintf(ptr, "%02u$", rounds_log);
     ptr += 3;
 
     encode_base64(ptr, salt, BCRYPT_SALT_BYTES);

@@ -63,7 +63,7 @@ static int decode_base64(u_int8_t *, size_t, const char *);
  * Generates a salt for this version of crypt.
  */
 static int
-bcrypt_initsalt(int log_rounds, uint8_t *salt, size_t saltbuflen)
+bcrypt_initsalt(int rounds_log, uint8_t *salt, size_t saltbuflen)
 {
     uint8_t csalt[BCRYPT_MAXSALT];
 
@@ -74,12 +74,12 @@ bcrypt_initsalt(int log_rounds, uint8_t *salt, size_t saltbuflen)
 
     arc4random_buf(csalt, sizeof(csalt));
 
-    if (log_rounds < 4)
-        log_rounds = 4;
-    else if (log_rounds > 31)
-        log_rounds = 31;
+    if (rounds_log < 4)
+        rounds_log = 4;
+    else if (rounds_log > 31)
+        rounds_log = 31;
 
-    snprintf(salt, saltbuflen, "$2b$%2.2u$", log_rounds);
+    snprintf(salt, saltbuflen, "$2b$%2.2u$", rounds_log);
     encode_base64(salt + 7, csalt, sizeof(csalt));
 
     return 0;
@@ -203,11 +203,11 @@ inval:
  * user friendly functions
  */
 int
-bcrypt_newhash(const char *pass, int log_rounds, char *hash, size_t hashlen)
+bcrypt_newhash(const char *pass, int rounds_log, char *hash, size_t hashlen)
 {
     char salt[BCRYPT_SALTSPACE];
 
-    if (bcrypt_initsalt(log_rounds, salt, sizeof(salt)) != 0)
+    if (bcrypt_initsalt(rounds_log, salt, sizeof(salt)) != 0)
         return -1;
 
     if (bcrypt_hashpass(pass, salt, hash, hashlen) != 0)
@@ -375,11 +375,11 @@ encode_base64(char *b64buffer, const u_int8_t *data, size_t len)
  * classic interface
  */
 char *
-bcrypt_gensalt(u_int8_t log_rounds)
+bcrypt_gensalt(u_int8_t rounds_log)
 {
     static char    gsalt[BCRYPT_SALTSPACE];
 
-    bcrypt_initsalt(log_rounds, gsalt, sizeof(gsalt));
+    bcrypt_initsalt(rounds_log, gsalt, sizeof(gsalt));
 
     return gsalt;
 }

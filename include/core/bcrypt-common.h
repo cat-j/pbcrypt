@@ -5,8 +5,8 @@
 
 /* ========== Constants ========== */
 
-#define BCRYPT_MIN_LOG_ROUNDS    4
-#define BCRYPT_MAX_LOG_ROUNDS    32
+#define BCRYPT_MIN_ROUNDS_LOG    4
+#define BCRYPT_MAX_ROUNDS_LOG    32
 #define BCRYPT_ENCODED_SALT_SIZE 22
 #define BCRYPT_ENCODED_HASH_SIZE 31
 #define BCRYPT_RECORD_SIZE       60

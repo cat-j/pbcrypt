@@ -149,9 +149,7 @@ int main(int argc, char const *argv[]) {
 
         printf("Number of passwords cracked: %lu.\n", passwords_cracked);
 
-        fprintf(r_stream, "%lu;%lu;%lu;%d;%f;%f\n",
-            passwords_cracked, pass_length, n_passwords, variant,
-            seconds, total_seconds);
+        PRINT_MEASUREMENTS;
 
         fclose(r_stream);
     }

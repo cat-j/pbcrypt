@@ -37,7 +37,6 @@ encrypt_and_crack() {
     done
 }
 
-# TODO: change this to an actual value after fixing variant bug
 export RESULTS_FILENAME="./experiments/measurements/test.csv"
 
 if [ ! -d ./experiments/measurements ]
