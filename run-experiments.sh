@@ -1,7 +1,7 @@
 #!/usr/bin/sh
 
 PASSWORD="Go Landcrabs!"
-SALT="Better Call Saul"
+SALT="Better Call Salt"
 CRACKERS=(cracker cracker-no-unrolling cracker-loaded-p cracker-parallel)
 
 for i in "${CRACKERS[@]}"
