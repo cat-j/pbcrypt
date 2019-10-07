@@ -6,7 +6,7 @@ varying_length() {
     local length=$1
     for i in {16..65536..16}
     do
-        python ./scripts/generate-wordlist.py "$PASSWORD" $length $i
+        python ./generate-wordlist.py "$PASSWORD" $length $i
     done
 }
 

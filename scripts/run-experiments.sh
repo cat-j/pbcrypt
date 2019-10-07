@@ -4,13 +4,6 @@ PASSWORD="Go Landcrabs!"
 SALT="Better Call Salt"
 CRACKERS=(cracker cracker-no-unrolling cracker-loaded-p cracker-parallel)
 
-for i in "${CRACKERS[@]}"
-do
-    make "$i"
-done
-
-make encrypt
-
 # $1: password byte length
 generate_password() {
     cd scripts
@@ -41,30 +34,43 @@ encrypt_and_crack() {
     done
 }
 
-export RESULTS_FILENAME="./experiments/measurements/test.csv"
+
+# Create executables
+
+for i in "${CRACKERS[@]}"
+do
+    make "$i"
+done
+
+make encrypt
+
+
+# Run experiments
 
 if [ ! -d ./experiments/measurements ]
 then
     mkdir ./experiments/measurements
 fi
 
+export RESULTS_FILENAME="./experiments/measurements/pepe.csv"
+
 for i in {3..20}
 do
-    for j in {16..32..16}
+    for j in {16..65536..16}
     do
-        encrypt_and_crack $i $j 8 24
+        encrypt_and_crack $i $j 8 16
     done
 done
 
-# for i in {25..70..5}
-# do
-#     for j in {16..65536..16}
-#     do
-#         encrypt_and_crack $i $j 8 16
-#     done
-# done
+for i in {25..70..5}
+do
+    for j in {16..65536..16}
+    do
+        encrypt_and_crack $i $j 8 16
+    done
+done
 
-# for j in {16..65536..16}
-# do
-#     encrypt_and_crack 72 $j 8 16
-# done
+for j in {16..65536..16}
+do
+    encrypt_and_crack 72 $j 8 16
+done
