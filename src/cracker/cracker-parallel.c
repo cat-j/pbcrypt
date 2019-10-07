@@ -85,10 +85,18 @@ int main(int argc, char const *argv[]) {
 
     // Initialise parallel state
     blowfish_parallelise_state(&initstate_parallel, &initstate_asm);
+
+    // Read several passwords into buffer and hash them
+    bytes_read = fread(current_batch, 1, batch_size, wl_stream);
     
-    while (!found &&
-           (bytes_read = fread(current_batch, 1, batch_size, wl_stream) > 0))
-    {
+    while (!found && bytes_read > 0) {
+        // Handle cases where the data read is smaller than the batch
+        if (bytes_read < batch_size) {
+            batch_size = bytes_read;
+            n_passwords = bytes_read / pass_length;
+            password_groups = n_passwords / scale;
+        }
+        
         // Null-terminate each password
         for (size_t i = pass_length; i < batch_size; i += pass_length+1) {
             current_batch[i] = 0;
@@ -123,6 +131,8 @@ int main(int argc, char const *argv[]) {
                 break;
             }
         }
+
+        bytes_read = fread(current_batch, 1, batch_size, wl_stream);
     }
 
     if (measure) {
