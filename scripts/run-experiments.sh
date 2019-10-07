@@ -29,7 +29,6 @@ encrypt_and_crack() {
 
     for k in "${CRACKERS[@]}"
     do
-        echo "====== Cracker: $k, wordlist length: $2, batch size: $4 ======"
         ./build/$k "$RECORD" "$WORDLIST" $4
     done
 }
@@ -52,7 +51,7 @@ then
     mkdir ./experiments/measurements
 fi
 
-export RESULTS_FILENAME="./experiments/measurements/pepe.csv"
+export RESULTS_FILENAME="./experiments/measurements/varying-length-8rounds.csv"
 
 for i in {3..20}
 do
