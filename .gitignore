@@ -10,4 +10,5 @@ KeccakTools/
 build/
 wordlists/
 experiments/test-cases/
+data-processing/
 *__pycache__
