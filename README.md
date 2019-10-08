@@ -1,6 +1,6 @@
 # simd-crypto
 
-Final project for Computer Organisation II course, MSc Computer Science,
+Final project for my Computer Organisation II course, MSc Computer Science,
 University of Buenos Aires (UBA).
 
 This is basically research into different methods for optimising a
@@ -21,6 +21,7 @@ base directory.
 
 - 64-bit Intel processor with AVX2 capabilities
 - Linux kernel
+- Python 3 (exclusively for generating test cases)
 
 ## How to build
 
@@ -44,6 +45,8 @@ To test other variants, replace `test` with `test-no-unrolling`,
 
 ## How to run
 
+### Cracker
+
 ```$ ./build/cracker <PASSWORD_RECORD> <PATH_TO_WORDLIST> <PASSWORDS_PER_BATCH>```
 
 where `<PATH_TO_WORDLIST>` is the **absolute path** to a list of **newline-separated
@@ -52,6 +55,27 @@ the **length of the passwords** in base 10.
 The optional argument `<PASSWORDS_PER_BATCH>` is the number of passwords read
 into each batch for hashing and it defaults to 1024.
 
-### Example:
+#### Example:
 
 ```$ ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./my_wordlist```
+
+### Test case generation
+
+Unfortunately, I downloaded my wordlist from a site whose CDN is now broken.
+I'll put it up on Mega or something as soon as I have the time but you'll
+have to do without the original wordlist for a bit. Sorry!
+
+```$ python3 ./scripts/split-wordlist.py```
+
+will split the wordlist into many different files that satisfy the cracker's
+preconditions: all passwords are the same length in bytes and said length is
+the first line in the file.
+
+```$ ./scripts/generate-test-cases.sh```
+
+will use the files created by the previous command to generate wordlists
+of increasing size and password byte length.
+
+### Experiments
+
+```$ python3 ./scripts/run-experiments.sh```
