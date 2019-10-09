@@ -53,7 +53,8 @@ where `<PATH_TO_WORDLIST>` is the **absolute path** to a list of **newline-separ
 plaintext passwords** of the **same length**. The **first line** should be
 the **length of the passwords** in base 10.
 The optional argument `<PASSWORDS_PER_BATCH>` is the number of passwords read
-into each batch for hashing and it defaults to 1024.
+into each batch for hashing and it defaults to 1024. For experiment design reasons,
+the batch size must be a multiple of 4.
 
 #### Example:
 
