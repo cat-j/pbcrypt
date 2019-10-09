@@ -79,3 +79,8 @@ of increasing size and password byte length.
 ### Experiments
 
 ```$ python3 ./scripts/run-experiments.sh```
+
+will measure all four crackers' performance at cracking wordlists of sizes
+16 to 8192 in steps of 16 passwords, with password lengths 3, 13 and 72.
+This is under development right now though, so it... won't actually do that
+just yet. Be warned: it takes _four days_ on my computer.
