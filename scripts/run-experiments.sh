@@ -12,24 +12,31 @@ generate_password() {
 }
 
 # $1: password byte length
-# $2: number of passwords in wordlist
-get_wordlist_filename() {
-    local wordlist="./experiments/test-cases/wordlist-$1bytes-$2passwords"
-    echo $wordlist
+# $2: encryption rounds log
+generate_record() {
+    NEW_PASSWORD=`generate_password $1`
+    echo `./build/encrypt "$NEW_PASSWORD" "$SALT" $2`
+}
+
+# $1: record
+# $2: wordlist
+# $3: batch size
+crack_all() {
+    for k in "${CRACKERS[@]}"
+    do
+        ./build/$k "$1" "$2" $3
+    done
 }
 
 # $1: password byte length
-# $2: number of passwords in wordlist
-# $3: encryption rounds log
-# $4: batch size
-encrypt_and_crack() {
-    NEW_PASSWORD=`generate_password $1`
-    RECORD=`./build/encrypt "$NEW_PASSWORD" "$SALT" $3`
-    WORDLIST=`get_wordlist_filename $1 $2`
-
-    for k in "${CRACKERS[@]}"
+# $2: encryption rounds log
+# $3: batch size
+experiment_growing_wordlist() {
+    for j in {32..8192..32}
     do
-        ./build/$k "$RECORD" "$WORDLIST" $4
+        RECORD=`generate_record $1 $2`
+        WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
+        crack_all $RECORD $WORDLIST $3
     done
 }
 
@@ -51,25 +58,6 @@ then
     mkdir ./experiments/measurements
 fi
 
-export RESULTS_FILENAME="./experiments/measurements/varying-length-8rounds.csv"
+export RESULTS_FILENAME="./experiments/measurements/varying-length-8roundsTEST.csv"
 
-for i in {3..20}
-do
-    for j in {16..65536..16}
-    do
-        encrypt_and_crack $i $j 8 16
-    done
-done
-
-for i in {25..70..5}
-do
-    for j in {16..65536..16}
-    do
-        encrypt_and_crack $i $j 8 16
-    done
-done
-
-for j in {16..65536..16}
-do
-    encrypt_and_crack 72 $j 8 16
-done
+experiment_growing_wordlist 13 8 16
