@@ -4,6 +4,12 @@ from password import generate_password
 src_dir = "./wordlists/"
 dst_dir = "./experiments/test-cases/"
 
+# Create a filler password for generating bigger files
+# if there's not enough data in the source.
+def generate_filler(password, pass_length):
+    filler = chr( ord(password[0]) + 1 ) + password[1:]
+    return generate_password(filler, pass_length)
+
 # Create a wordlist where the last plaintext
 # is a `pass_length` bytes long mutation of `password`
 # and the total number of plaintexts is `n_passwords`.
@@ -11,6 +17,8 @@ def generate_wordlist(password, pass_length, n_passwords):
     src_filename = "{}realhuman_phill.txt-{}".format(src_dir, pass_length)
     dst_filename = "{}wordlist-{}bytes-{}passwords" \
         .format(dst_dir, pass_length, n_passwords)
+
+    filler = generate_filler(password, pass_length)
 
     with open(src_filename) as src_f:
         dst_f = open(dst_filename, "w")
@@ -20,6 +28,8 @@ def generate_wordlist(password, pass_length, n_passwords):
         for i in range(n_passwords-1):
             line = src_f.readline()
             dst_f.write(line)
+            if not line:
+                dst_f.write("{}\n".format(filler))
         
         dst_f.write("{}\n".format(generate_password(password, pass_length)))
         dst_f.close()
