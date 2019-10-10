@@ -19,7 +19,7 @@ generate_record() {
 }
 
 # $1: record
-# $2: wordlist
+# $2: wordlist filename
 # $3: batch size
 crack_all() {
     for k in "${CRACKERS[@]}"
@@ -43,9 +43,9 @@ experiment_growing_wordlist() {
 
 # Create executables
 
-for i in "${CRACKERS[@]}"
+for k in "${CRACKERS[@]}"
 do
-    make "$i"
+    make "$k"
 done
 
 make encrypt
@@ -58,6 +58,6 @@ then
     mkdir ./experiments/measurements
 fi
 
-export RESULTS_FILENAME="./experiments/measurements/varying-length-8roundsTEST.csv"
+export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-8roundsTEST2.csv"
 
 experiment_growing_wordlist 13 8 16
