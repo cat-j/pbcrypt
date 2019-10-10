@@ -35,7 +35,7 @@ experiment_growing_wordlist() {
     for j in {32..8192..32}
     do
         RECORD=`generate_record $1 $2`
-        WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
+        WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
         crack_all $RECORD $WORDLIST $3
     done
 }
@@ -60,4 +60,4 @@ fi
 
 export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-8roundsTEST2.csv"
 
-experiment_growing_wordlist 13 8 16
+experiment_growing_wordlist 72 8 16
