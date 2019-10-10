@@ -11,7 +11,7 @@
 #include "bcrypt-constants.h"
 #include "bcrypt-macro-testing.h"
 #include "cracker-common.h"
-#include "loaded-p-test-wrappers.h" // TODO: make this optional
+#include "loaded-p-test-wrappers.h"
 #include "openbsd.h"
 #include "test.h"
 
