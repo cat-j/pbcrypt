@@ -1,4 +1,4 @@
-# simd-crypto
+# pbcrypt
 
 Final project for my Computer Organisation II course, MSc Computer Science,
 University of Buenos Aires (UBA).
