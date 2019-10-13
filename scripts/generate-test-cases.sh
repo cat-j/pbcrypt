@@ -2,7 +2,7 @@
 
 PASSWORD="Go Landcrabs!"
 
-varying_length() {
+growing_wordlist() {
     local length=$1
     for i in {32..8192..32}
     do
@@ -10,10 +10,10 @@ varying_length() {
     done
 }
 
-generate_varying_length() {
-    varying_length 3
-    varying_length 13
-    varying_length 72
+generate_growing_wordlist() {
+    growing_wordlist 3
+    growing_wordlist 13
+    growing_wordlist 72
 }
 
 if [ ! -d ./experiments/test-cases/ ]
@@ -22,4 +22,4 @@ then
     mkdir ./experiments/test-cases
 fi
 
-generate_varying_length
+generate_growing_wordlist
