@@ -40,6 +40,18 @@ experiment_growing_wordlist() {
     done
 }
 
+# $1: password byte length
+# $2: wordlist length
+# $3: batch size
+experiment_rounds() {
+    for j in {4..16}
+    do
+        RECORD=`generate_record $1 $j`
+        WORDLIST="./experiments/test-cases/wordlist-$1bytes-$2passwords"
+        crack_all $RECORD $WORDLIST $3
+    done
+}
+
 
 # Create executables
 
@@ -58,8 +70,14 @@ then
     mkdir ./experiments/measurements
 fi
 
+
 export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-8rounds.csv"
 
 experiment_growing_wordlist 72 8 16
 experiment_growing_wordlist 13 8 16
 experiment_growing_wordlist 3 8 16
+
+
+export RESULTS_FILENAME="./experiments/measurements/growing-rounds-13-1024.csv"
+
+experiment_rounds 13 1024 16
