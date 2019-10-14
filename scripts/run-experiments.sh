@@ -2,7 +2,8 @@
 
 PASSWORD="Go Landcrabs!"
 SALT="Better Call Salt"
-CRACKERS=(cracker cracker-no-unrolling cracker-loaded-p cracker-parallel)
+CRACKERS=("cracker" "cracker-no-unrolling" "cracker-loaded-p" "cracker-parallel")
+CRACKERS_ALIGNED=("cracker-aligned" "cracker-no-unrolling-aligned" "cracker-loaded-p-aligned" "cracker-parallel-aligned")
 
 # $1: password byte length
 generate_password() {
@@ -21,8 +22,10 @@ generate_record() {
 # $1: record
 # $2: wordlist filename
 # $3: batch size
+# $4: cracker array
 crack_all() {
-    for k in "${CRACKERS[@]}"
+    declare -a crackers=("${!4}")
+    for k in "${crackers[@]}"
     do
         ./build/$k "$1" "$2" $3
     done
@@ -36,7 +39,7 @@ experiment_growing_wordlist() {
     do
         RECORD=`generate_record $1 $2`
         WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
-        crack_all $RECORD $WORDLIST $3
+        crack_all $RECORD $WORDLIST $3 CRACKERS[@]
     done
 }
 
@@ -48,7 +51,7 @@ experiment_rounds() {
     do
         RECORD=`generate_record $1 $j`
         WORDLIST="./experiments/test-cases/wordlist-$1bytes-$2passwords"
-        crack_all $RECORD $WORDLIST $3
+        crack_all $RECORD $WORDLIST $3 CRACKERS[@]
     done
 }
 
@@ -62,7 +65,7 @@ experiment_growing_password() {
         local length=$(($i - 1))
         RECORD=`generate_record ${length} $2`
         WORDLIST="./experiments/test-cases/wordlist-${length}bytes-${passwords}passwords"
-        crack_all $RECORD $WORDLIST $3
+        crack_all $RECORD $WORDLIST $3 CRACKERS[@]
     done
 }
 
@@ -76,13 +79,30 @@ experiment_growing_batch() {
     
     for i in $(eval echo {4..$2..4})
     do
-        crack_all $RECORD $WORDLIST $i
+        crack_all $RECORD $WORDLIST $i CRACKERS[@]
+    done
+}
+
+# $1: password byte length
+# $2: encryption rounds log
+# $3: batch size
+experiment_growing_wordlist_aligned() {
+    for j in {32..8192..32}
+    do
+        RECORD=`generate_record $1 $2`
+        WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
+        crack_all $RECORD $WORDLIST $3 CRACKERS_ALIGNED[@]
     done
 }
 
 # Create executables
 
 for k in "${CRACKERS[@]}"
+do
+    make "$k"
+done
+
+for k in "${CRACKERS_ALIGNED[@]}"
 do
     make "$k"
 done
@@ -119,3 +139,10 @@ experiment_growing_password $WL_BYTES 8 16
 export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-16384.csv"
 
 experiment_growing_batch 13 16384 8
+
+
+export RESULTS_FILENAME="./experiments/measurements/pepe.csv"
+
+experiment_growing_wordlist 72 8 16
+experiment_growing_wordlist 13 8 16
+experiment_growing_wordlist 3 8 16
