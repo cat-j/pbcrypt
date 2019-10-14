@@ -79,8 +79,9 @@ int hash_match(const uint8_t *hash1, const uint8_t *hash2);
 
 /*
  * Return a 32-bit aligned pointer to an uninitialised
- * Blowfish state.
+ * Blowfish state for variants 0 to 3, and a 64-bit
+ * aligned pointer for variants 4 to 7.
  */
-blf_ctx *get_aligned_state();
+blf_ctx *get_aligned_state(int variant);
 
 #endif

@@ -65,7 +65,7 @@ int main(int argc, char const *argv[]) {
     /////// Crack password ///////
 
     uint8_t hash[BCRYPT_HASH_BYTES];
-    blf_ctx *state = get_aligned_state();
+    blf_ctx *state = get_aligned_state(variant);
     char *current_pass, *matching_pass;
     int found = 0;
 
