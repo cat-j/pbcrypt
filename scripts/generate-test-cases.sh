@@ -23,6 +23,11 @@ growing_password() {
     done
 }
 
+# $1: password length
+growing_batch() {
+    python ./scripts/generate-wordlist.py "$PASSWORD" $1 16384
+}
+
 generate_growing_wordlist() {
     growing_wordlist 3
     growing_wordlist 13
@@ -30,9 +35,13 @@ generate_growing_wordlist() {
 }
 
 generate_growing_password() {
-    # make sure it's divisible by 6, 12, ... , 72 and fairly big
-    WL_SIZE=$((5*7*11*72*72))
+    # make sure it's divisible by 6, 12, ... , 72
+    WL_SIZE=$((5*7*11*72*2))
     growing_password $WL_SIZE
+}
+
+generate_growing_batch() {
+    growing_batch 13
 }
 
 
@@ -44,6 +53,8 @@ then
     mkdir ./experiments/test-cases
 fi
 
-generate_growing_wordlist
+# generate_growing_wordlist
 
 generate_growing_password
+
+generate_growing_batch

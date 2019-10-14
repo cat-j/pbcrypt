@@ -52,6 +52,33 @@ experiment_rounds() {
     done
 }
 
+# $1: wordlist size in bytes
+# $2: encryption rounds log
+# $3: batch size
+experiment_growing_password() {
+    for i in {6..72..6}
+    do
+        local passwords=$(($1 / $i))
+        local length=$(($i - 1))
+        RECORD=`generate_record ${length} $2`
+        WORDLIST="./experiments/test-cases/wordlist-${length}bytes-${passwords}passwords"
+        crack_all $RECORD $WORDLIST $3
+    done
+}
+
+# $1: wordlist size in bytes
+# $2: password list length (must be a multiple of 4)
+# $3: encryption rounds log
+experiment_growing_batch() {
+    RECORD=`generate_record $1 $3`
+    WORDLIST="./experiments/test-cases/wordlist-$1bytes-$2passwords"
+    echo $WORDLIST
+    
+    for i in $(eval echo {4..$2..4})
+    do
+        crack_all $RECORD $WORDLIST $i
+    done
+}
 
 # Create executables
 
@@ -81,3 +108,14 @@ experiment_growing_wordlist 3 8 16
 export RESULTS_FILENAME="./experiments/measurements/growing-rounds-13-1024.csv"
 
 experiment_rounds 13 1024 16
+
+
+export RESULTS_FILENAME="./experiments/measurements/growing-password-2mb.csv"
+
+WL_BYTES=$((5*7*11*72*2))
+experiment_growing_password $WL_BYTES 8 16
+
+
+export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-16384.csv"
+
+experiment_growing_batch 13 16384 8
