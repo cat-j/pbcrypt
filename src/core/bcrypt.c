@@ -80,8 +80,8 @@ int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
 blf_ctx *get_aligned_state(int variant) {
     blf_ctx *state;
 
-    // Variants 0 to 3 are not necessarily cache-aligned
-    if (variant < 4) {
+    // Variants 0 to 4 are not necessarily cache-aligned
+    if (variant < 5) {
         posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     } else {
         posix_memalign((void**) &state, 64, sizeof(blf_ctx));

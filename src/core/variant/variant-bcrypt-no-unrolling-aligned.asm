@@ -2,4 +2,5 @@ section .data
 
 global variant
 
-variant: dw 5
+align 64
+variant: dw 6
