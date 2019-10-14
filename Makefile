@@ -33,6 +33,9 @@ OBJS_TESTING=bcrypt-macro-testing.o
 
 all: clean cracker encrypt
 
+
+# Crackers
+
 cracker: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt.o $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
@@ -44,6 +47,24 @@ cracker-loaded-p: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcry
 
 cracker-parallel: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o $(OBJS_PARALLEL)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+
+# Aligned crackers
+
+cracker-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-aligned.o bcrypt-aligned.o
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+cracker-no-unrolling-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o bcrypt-no-unrolling-aligned.o
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+cracker-loaded-p-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p.o bcrypt-loaded-p-aligned.o
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+cracker-parallel-aligned: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o bcrypt-parallel-aligned.o
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+
+# Utilities and tests
 
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
@@ -67,6 +88,9 @@ test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJ
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
+
+# Basic bcrypt object code
+
 bcrypt.o: $(CORE)bcrypt.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
@@ -77,15 +101,6 @@ bcrypt-loaded-p.o: $(CORE)bcrypt-loaded-p.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-parallel.o: $(CORE)bcrypt-parallel.asm build
-	$(NASM) $(NASMFLAGS) $< -o $@
-
-loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
-	$(NASM) $(NASMFLAGS) $< -o $@
-
-parallel-test-wrappers.o: $(TEST)parallel-test-wrappers.asm build
-	$(NASM) $(NASMFLAGS) $< -o $@
-
-bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 variant-bcrypt.o: $(CORE)variant/variant-bcrypt.asm build
@@ -99,6 +114,48 @@ variant-bcrypt-loaded-p.o: $(CORE)variant/variant-bcrypt-loaded-p.asm build
 
 variant-bcrypt-parallel.o: $(CORE)variant/variant-bcrypt-parallel.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
+
+
+# Aligned object code
+
+bcrypt-aligned.o: $(CORE)bcrypt-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-no-unrolling-aligned.o: $(CORE)bcrypt-no-unrolling-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-loaded-p-aligned.o: $(CORE)bcrypt-loaded-p-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-parallel-aligned.o: $(CORE)bcrypt-parallel-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-aligned.o: $(CORE)variant/variant-bcrypt-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-no-unrolling-aligned.o: $(CORE)variant/variant-bcrypt-no-unrolling-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-loaded-p-aligned.o: $(CORE)variant/variant-bcrypt-loaded-p-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-parallel-aligned.o: $(CORE)variant/variant-bcrypt-parallel-aligned.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+
+# Wrapper object code
+
+loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+parallel-test-wrappers.o: $(TEST)parallel-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+
+# Commands
 
 build:
 	if [ ! -d "./build" ]; then mkdir build; fi
