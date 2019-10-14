@@ -94,7 +94,7 @@ int main(int argc, char const *argv[]) {
         if (bytes_read < batch_size) {
             batch_size = bytes_read;
             n_passwords = bytes_read / pass_length;
-            password_groups = n_passwords / scale;
+            password_groups = n_passwords / scale + (n_passwords%scale != 0);
         }
         
         // Null-terminate each password
