@@ -125,6 +125,10 @@ make cracker-loaded-p-no-penalties
 
 make encrypt
 
+make benchmark
+
+rm -f *.o
+
 
 # Run experiments
 
@@ -133,6 +137,7 @@ then
     mkdir ./experiments/measurements
 fi
 
+# Growing wordlist
 
 export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-8rounds.csv"
 
@@ -140,22 +145,26 @@ experiment_growing_wordlist 72 8 16
 experiment_growing_wordlist 13 8 16
 experiment_growing_wordlist 3 8 16
 
+# Rounds
 
 export RESULTS_FILENAME="./experiments/measurements/growing-rounds-13-1024.csv"
 
 experiment_rounds 13 1024 16
 
+# Growing password
 
 export RESULTS_FILENAME="./experiments/measurements/growing-password-2mb.csv"
 
 WL_BYTES=$((5*7*11*72*2))
 experiment_growing_password $WL_BYTES 8 16
 
+# Growing batch
 
 export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-16384.csv"
 
 experiment_growing_batch 13 16384 8
 
+# No AVX-SSE penalties
 
 export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-no-penalties-8rounds.csv"
 
@@ -167,3 +176,9 @@ experiment_no_penalties 13 16 $RECORD
 
 RECORD=`generate_record 3 8`
 experiment_no_penalties 3 16 $RECORD
+
+# Instruction benchmark
+
+export RESULTS_FILENAME="./experiments/measurements/instruction-benchmark.csv"
+
+./build/benchmark "$RESULTS_FILENAME"

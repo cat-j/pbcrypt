@@ -1,6 +1,7 @@
 .POSIX:
 
 # Directory names
+BENCHMARK=benchmark/
 BUILD=build/
 CORE=core/
 CRACKER=cracker/
@@ -12,7 +13,7 @@ UTILS=utils/
 CC=gcc
 CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
-INC_DIRS=$(CORE) $(CRACKER) $(TEST) $(UTILS)
+INC_DIRS=$(BENCHMARK) $(CORE) $(CRACKER) $(TEST) $(UTILS)
 INC_PARAMS=$(foreach d, $(INC_DIRS), -I$(INCLUDE)$d)
 NASM=nasm
 NASMFLAGS=-f elf64 -g -F DWARF
@@ -175,6 +176,15 @@ bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 loaded-p-no-penalties-test-wrappers.o: $(TEST)loaded-p-no-penalties-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+
+# Benchmarks
+
+benchmark: $(BENCHMARK)benchmark.c instructions.o
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+instructions.o: $(BENCHMARK)instructions.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 
