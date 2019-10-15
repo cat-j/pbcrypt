@@ -26,6 +26,7 @@ OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
 OBJS_PARALLEL=bcrypt-parallel.o parallel-test-wrappers.o
+OBJS_LOADED_P_NO_PENALTIES=bcrypt-loaded-p-no-penalties.o loaded-p-no-penalties-test-wrappers.o
 OBJS_TESTING=bcrypt-macro-testing.o
 
 
@@ -64,6 +65,12 @@ cracker-parallel-aligned: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRA
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 
+# No AVX-SSE penalties cracker
+
+cracker-loaded-p-no-penalties: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p-no-penalties.o $(OBJS_LOADED_P)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+
 # Utilities and tests
 
 encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
@@ -80,6 +87,10 @@ test-no-unrolling: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-no-
 test-loaded-p: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-loaded-p.o $(OBJS_LOADED_P) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-loaded-p
+
+test-loaded-p-no-penalties: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt-loaded-p-no-penalties.o $(OBJS_LOADED_P_NO_PENALTIES) $(OBJS_TESTING)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-loaded-p-no-penalties
 
 test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS) $(OBJS_PARALLEL) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
@@ -143,6 +154,15 @@ variant-bcrypt-parallel-aligned.o: $(CORE)variant/variant-bcrypt-parallel-aligne
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 
+# No AVX-SSE penalties object code
+
+bcrypt-loaded-p-no-penalties.o: $(CORE)bcrypt-loaded-p-no-penalties.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-loaded-p-no-penalties.o: $(CORE)variant/variant-bcrypt-loaded-p-no-penalties.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+
 # Wrapper object code
 
 loaded-p-test-wrappers.o: $(TEST)loaded-p-test-wrappers.asm build
@@ -152,6 +172,9 @@ parallel-test-wrappers.o: $(TEST)parallel-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+loaded-p-no-penalties-test-wrappers.o: $(TEST)loaded-p-no-penalties-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 
