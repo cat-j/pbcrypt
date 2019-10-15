@@ -155,83 +155,72 @@ blowfish_encipher_register:
     
     .do_encipher:
         ; Encrypt with P[0]
-        vpextrd p_value, p_0_7x, 0
+        vpextrd p_value, p_0_3, 0
         xor     x_l, p_value
 
         ; Blowfish rounds with P[1], ..., P[3]
-        vpextrd p_value, p_0_7x, 1
+        vpextrd p_value, p_0_3, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_0_7x, 2
+        vpextrd p_value, p_0_3, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_0_7x, 3
+        vpextrd p_value, p_0_3, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
-
-        ; Move P[4], ..., P[7] to lower part of the YMM register
-        ROTATE_128(p_0_7)
 
         ; Blowfish rounds with P[4], ..., P[7]
-        vpextrd p_value, p_0_7x, 0
+        vpextrd p_value, p_4_7, 0
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_0_7x, 1
+        vpextrd p_value, p_4_7, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_0_7x, 2
+        vpextrd p_value, p_4_7, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_0_7x, 3
+        vpextrd p_value, p_4_7, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
-
-        ROTATE_128(p_0_7)
 
         ; Blowfish rounds with P[8], ..., P[11]
-        vpextrd p_value, p_8_15x, 0
+        vpextrd p_value, p_8_11, 0
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_8_15x, 1
+        vpextrd p_value, p_8_11, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_8_15x, 2
+        vpextrd p_value, p_8_11, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_8_15x, 3
+        vpextrd p_value, p_8_11, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
-
-        ; Move P[12], ..., P[15] to lower part of the YMM register
-        ROTATE_128(p_8_15)
 
         ; Blowfish rounds with P[12], ..., P[15]
-        vpextrd p_value, p_8_15x, 0
+        vpextrd p_value, p_12_15, 0
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_8_15x, 1
+        vpextrd p_value, p_12_15, 1
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
 
-        vpextrd p_value, p_8_15x, 2
+        vpextrd p_value, p_12_15, 2
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_l_64, x_r_64, tmp1, tmp2, tmp3
             
-        vpextrd p_value, p_8_15x, 3
+        vpextrd p_value, p_12_15, 3
         BLOWFISH_ROUND_BIG_ENDIAN blf_state, p_value_64, \
             x_r_64, x_l_64, tmp1, tmp2, tmp3
-
-        ; Rotate 128 bits back
-        ROTATE_128(p_8_15)
 
         ; Blowfish round with P[16]
         vpextrd p_value, p_16_17, 0
@@ -378,46 +367,38 @@ blowfish_expand_state_asm:
         ; Write to P[0], ... , P[3]
         xor     data, salt_l
         call    blowfish_encipher_register
-        vpinsrq p_0_7x, data, 0 ; 0 and 1
+        vpinsrq p_0_3, data, 0 ; 0 and 1
 
         xor    data, salt_r
         call   blowfish_encipher_register
-        vpinsrq p_0_7x, data, 1 ; 2 and 3
+        vpinsrq p_0_3, data, 1 ; 2 and 3
 
         ; Write to P[4], ... , P[7]
         xor    data, salt_l
         call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 0 ; 4 and 5
-        ROTATE_128(p_0_7)
+        pinsrq p_4_7, data, 0 ; 4 and 5
 
         xor    data, salt_r
         call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 1 ; 6 and 7
-        ROTATE_128(p_0_7)
+        pinsrq p_4_7, data, 1 ; 6 and 7
 
         ; Write to P[8], ... , P[11]
         xor    data, salt_l
         call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 0 ; 8 and 9
+        pinsrq p_8_11, data, 0 ; 8 and 9
 
         xor    data, salt_r
         call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 1 ; 10 and 11
+        pinsrq p_8_11, data, 1 ; 10 and 11
 
         ; Write to P[12], ... , P[15]
         xor    data, salt_l
         call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 0 ; 12 and 13
-        ROTATE_128(p_8_15)
+        pinsrq p_12_15, data, 0 ; 12 and 13
 
         xor    data, salt_r
         call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 1 ; 14 and 15
-        ROTATE_128(p_8_15)
+        pinsrq p_12_15, data, 1 ; 14 and 15
 
         ; Write to P[16] and P[17]
         xor    data, salt_l
