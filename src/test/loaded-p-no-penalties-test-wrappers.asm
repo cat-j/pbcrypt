@@ -46,7 +46,7 @@ blowfish_expand_state_wrapper:
         call blowfish_init_state_asm
         LOAD_SALT_AND_P_NO_PENALTIES rdi, rsi
         call blowfish_expand_state_asm
-        STORE_P rdi, rax
+        STORE_P_NO_PENALTIES rdi, rax
 
     .end:
         pop rbp
@@ -86,7 +86,7 @@ blowfish_expand_0_state_wrapper:
         mov  rsi, key_ptr
         mov  rdx, key_len
         call blowfish_expand_0_state_asm
-        STORE_P rdi, rax
+        STORE_P_NO_PENALTIES rdi, rax
 
     .end:
         add rsp, 8
@@ -130,7 +130,7 @@ blowfish_expand_0_state_salt_wrapper:
         call blowfish_expand_0_state_asm
 
         call blowfish_expand_0_state_salt_asm
-        STORE_P rdi, rax
+        STORE_P_NO_PENALTIES rdi, rax
 
     .end:
         add rsp, 8
@@ -147,7 +147,7 @@ fix_state_endianness:
         mov  rbp, rsp
 
     .do_function:
-        STORE_P rdi, rax
+        STORE_P_NO_PENALTIES rdi, rax
 
         %assign i 0
         ; 4 256-element boxes => 1024 elements

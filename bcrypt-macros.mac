@@ -561,6 +561,23 @@
     mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
 %endmacro
 
+; %1 -> state
+; %2: helper general-purpose reg for extracting P[16] and P[17]
+%macro STORE_P_NO_PENALTIES 2
+    vpshufb p_0_7, endianness_mask_ymm
+    vpshufb p_4_7y, endianness_mask_ymm
+    vpshufb p_8_15, endianness_mask_ymm
+    vpshufb p_12_15y, endianness_mask_ymm
+    vpshufb ymm3, endianness_mask_ymm
+
+    vmovdqa [%1 + BLF_CTX_P_OFFSET], p_0_3
+    vmovdqa [%1 + BLF_CTX_P_OFFSET + 4*P_VALUE_MEMORY_SIZE], p_4_7
+    vmovdqa [%1 + BLF_CTX_P_OFFSET + 8*P_VALUE_MEMORY_SIZE], p_8_11
+    vmovdqa [%1 + BLF_CTX_P_OFFSET + 12*P_VALUE_MEMORY_SIZE], p_12_15
+    vpextrq %2, p_16_17, 0
+    mov     [%1 + BLF_CTX_P_OFFSET + 16*P_VALUE_MEMORY_SIZE], %2
+%endmacro
+
 ; %1 -> initial ciphertext
 %macro LOAD_CTEXT 1
     vpxor   ctext_y, ctext_y

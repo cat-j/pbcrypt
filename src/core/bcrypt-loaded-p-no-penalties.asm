@@ -306,9 +306,10 @@ blowfish_expand_state_asm:
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
-        %define key_data     xmm4
-        %define key_data_1   xmm4
-        %define key_data_2   xmm5
+        ; key_data_1 and key_data_2 are leftovers from old implementation
+        %define key_data     xmm7
+        %define key_data_1   xmm7
+        %define key_data_2   xmm8
         %define key_data_ctr r10
         %define key_ptr      rdx
         %define key_len      rcx
@@ -369,41 +370,41 @@ blowfish_expand_state_asm:
         call    blowfish_encipher_register
         vpinsrq p_0_3, data, 0 ; 0 and 1
 
-        xor    data, salt_r
-        call   blowfish_encipher_register
+        xor     data, salt_r
+        call    blowfish_encipher_register
         vpinsrq p_0_3, data, 1 ; 2 and 3
 
         ; Write to P[4], ... , P[7]
-        xor    data, salt_l
-        call   blowfish_encipher_register
-        pinsrq p_4_7, data, 0 ; 4 and 5
+        xor     data, salt_l
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 0 ; 4 and 5
 
-        xor    data, salt_r
-        call   blowfish_encipher_register
-        pinsrq p_4_7, data, 1 ; 6 and 7
+        xor     data, salt_r
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 1 ; 6 and 7
 
         ; Write to P[8], ... , P[11]
-        xor    data, salt_l
-        call   blowfish_encipher_register
-        pinsrq p_8_11, data, 0 ; 8 and 9
+        xor     data, salt_l
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 0 ; 8 and 9
 
-        xor    data, salt_r
-        call   blowfish_encipher_register
-        pinsrq p_8_11, data, 1 ; 10 and 11
+        xor     data, salt_r
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 1 ; 10 and 11
 
         ; Write to P[12], ... , P[15]
-        xor    data, salt_l
-        call   blowfish_encipher_register
-        pinsrq p_12_15, data, 0 ; 12 and 13
+        xor     data, salt_l
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 0 ; 12 and 13
 
-        xor    data, salt_r
-        call   blowfish_encipher_register
-        pinsrq p_12_15, data, 1 ; 14 and 15
+        xor     data, salt_r
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 1 ; 14 and 15
 
         ; Write to P[16] and P[17]
-        xor    data, salt_l
-        call   blowfish_encipher_register
-        pinsrq p_16_17, data, 0
+        xor     data, salt_l
+        call    blowfish_encipher_register
+        vpinsrq p_16_17, data, 0
 
     .s_boxes_salt:
         %assign i 0
@@ -449,16 +450,16 @@ blowfish_expand_0_state_asm:
         push r15
     
     .p_array_key:
-        ; key_data: 32 bytes of key, wrapping
+        ; key_data: 16 bytes of key, wrapping
         ; key_data_1: lower 16 bytes of key_data
         ; key_data_2: helper for loading into key_data
         ; key_data_ctr: byte index
         ; key_ptr: pointer to key
         ; key_len: key length in bytes
         ; data: all bytes read from the key, wrapping
-        %define key_data     ymm4
-        %define key_data_1   xmm4
-        %define key_data_2   xmm5
+        %define key_data     xmm7
+        %define key_data_1   xmm7
+        %define key_data_2   xmm8
         %define key_data_ctr r10
         %define key_ptr      rsi
         %define key_len      rdx
@@ -466,29 +467,40 @@ blowfish_expand_0_state_asm:
         %define data         r13
 
         ; Initialise registers
-        pxor key_data_1, key_data_1
-        pxor key_data_2, key_data_2
-        xor  key_data_ctr, key_data_ctr
-        xor  loop_ctr, loop_ctr
-
-        .p_0_7:
-        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
-            key_data_ctr, key_ptr, key_len, loop_ctr, 1
-        vpxor p_0_7, key_data
+        vpxor key_data, key_data
+        xor   key_data_ctr, key_data_ctr
         xor   loop_ctr, loop_ctr
 
-        .p_8_15:
-        READ_32_KEY_BYTES key_data, key_data_1, key_data_2, \
-            key_data_ctr, key_ptr, key_len, loop_ctr, 2
-        vpxor p_8_15, key_data
+        .p_0_3:
+        READ_16_KEY_BYTES key_data, key_data_ctr, key_ptr, \
+            key_len, loop_ctr, 1
+        vpxor p_0_3, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_4_7:
+        READ_16_KEY_BYTES key_data, key_data_ctr, key_ptr, \
+            key_len, loop_ctr, 2
+        vpxor p_4_7, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_8_11:
+        READ_16_KEY_BYTES key_data, key_data_ctr, key_ptr, \
+            key_len, loop_ctr, 3
+        vpxor p_8_11, key_data
+        xor   loop_ctr, loop_ctr
+
+        .p_12_15:
+        READ_16_KEY_BYTES key_data, key_data_ctr, key_ptr, \
+            key_len, loop_ctr, 4
+        vpxor p_12_15, key_data
         xor   loop_ctr, loop_ctr
 
         .p_16_17:
-        pxor key_data_1, key_data_1
+        vpxor key_data_1, key_data_1
         READ_8_KEY_BYTES key_data, key_data_1, key_data_2, \
-            key_data_ctr, key_ptr, key_len, loop_ctr, 3
-        pxor  p_16_17, key_data_1
-        xor   loop_ctr, loop_ctr
+            key_data_ctr, key_ptr, key_len, loop_ctr, 5
+        vpxor  p_16_17, key_data_1
+        xor    loop_ctr, loop_ctr
     
     .p_array_data:
         %define data   r13
@@ -496,44 +508,36 @@ blowfish_expand_0_state_asm:
         xor data, data ; 0
 
         ; Write to P[0], ... , P[3]
-        call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 0 ; 0 and 1
+        call    blowfish_encipher_register
+        vpinsrq p_0_3, data, 0 ; 0 and 1
 
-        call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 1 ; 2 and 3
+        call    blowfish_encipher_register
+        vpinsrq p_0_3, data, 1 ; 2 and 3
 
         ; Write to P[4], ... , P[7]
-        call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 0 ; 4 and 5
-        ROTATE_128(p_0_7)
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 0 ; 4 and 5
 
-        call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 1 ; 6 and 7
-        ROTATE_128(p_0_7)
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 1 ; 6 and 7
 
         ; Write to P[8], ... , P[11]
-        call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 0 ; 8 and 9
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 0 ; 8 and 9
 
-        call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 1 ; 10 and 11
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 1 ; 10 and 11
 
         ; Write to P[12], ... , P[15]
-        call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 0 ; 12 and 13
-        ROTATE_128(p_8_15)
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 0 ; 12 and 13
 
-        call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 1 ; 14 and 15
-        ROTATE_128(p_8_15)
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 1 ; 14 and 15
 
         ; Write to P[16] and P[17]
-        call   blowfish_encipher_register
-        pinsrq p_16_17, data, 0
+        call    blowfish_encipher_register
+        vpinsrq p_16_17, data, 0
     
     .s_boxes_data:
         %define tmp1  rbx
@@ -577,12 +581,10 @@ blowfish_expand_0_state_salt_asm:
     ; is always 128 bytes and each half can be kept in one register.
 
     .p_array_salt:
-        %define d_salt ymm0
-
-        vinserti128 d_salt, salt, 1 ; two copies of salt
-
-        vpxor p_0_7, d_salt
-        vpxor p_8_15, d_salt
+        vpxor p_0_3, salt
+        vpxor p_4_7, salt
+        vpxor p_8_11, salt
+        vpxor p_12_15, salt
         pxor  p_16_17, salt
     
     .p_array_data:
@@ -591,44 +593,36 @@ blowfish_expand_0_state_salt_asm:
         xor data, data ; 0
 
         ; Write to P[0], ... , P[3]
-        call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 0 ; 0 and 1
+        call    blowfish_encipher_register
+        vpinsrq p_0_3, data, 0 ; 0 and 1
 
-        call   blowfish_encipher_register
-        pinsrq p_0_7x, data, 1 ; 2 and 3
+        call    blowfish_encipher_register
+        vpinsrq p_0_3, data, 1 ; 2 and 3
 
         ; Write to P[4], ... , P[7]
-        call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 0 ; 4 and 5
-        ROTATE_128(p_0_7)
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 0 ; 4 and 5
 
-        call   blowfish_encipher_register
-        ROTATE_128(p_0_7)
-        pinsrq p_0_7x, data, 1 ; 6 and 7
-        ROTATE_128(p_0_7)
+        call    blowfish_encipher_register
+        vpinsrq p_4_7, data, 1 ; 6 and 7
 
         ; Write to P[8], ... , P[11]
-        call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 0 ; 8 and 9
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 0 ; 8 and 9
 
-        call   blowfish_encipher_register
-        pinsrq p_8_15x, data, 1 ; 10 and 11
+        call    blowfish_encipher_register
+        vpinsrq p_8_11, data, 1 ; 10 and 11
 
         ; Write to P[12], ... , P[15]
-        call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 0 ; 12 and 13
-        ROTATE_128(p_8_15)
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 0 ; 12 and 13
 
-        call   blowfish_encipher_register
-        ROTATE_128(p_8_15)
-        pinsrq p_8_15x, data, 1 ; 14 and 15
-        ROTATE_128(p_8_15)
+        call    blowfish_encipher_register
+        vpinsrq p_12_15, data, 1 ; 14 and 15
 
         ; Write to P[16] and P[17]
-        call   blowfish_encipher_register
-        pinsrq p_16_17, data, 0
+        call    blowfish_encipher_register
+        vpinsrq p_16_17, data, 0
     
     .s_boxes_data:
         %define tmp1   rcx
