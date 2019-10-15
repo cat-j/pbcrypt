@@ -95,6 +95,20 @@ experiment_growing_wordlist_aligned() {
     done
 }
 
+# $1: password byte length
+# $2: batch size
+# $3: record
+experiment_no_penalties() {
+    for j in {32..8192..32}
+    do
+        WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
+        ./build/cracker $3 $WORDLIST $2
+        ./build/cracker-loaded-p $3 $WORDLIST $2
+        ./build/cracker-loaded-p-no-penalties $3 $WORDLIST $2
+    done
+}
+
+
 # Create executables
 
 for k in "${CRACKERS[@]}"
@@ -106,6 +120,8 @@ for k in "${CRACKERS_ALIGNED[@]}"
 do
     make "$k"
 done
+
+make cracker-loaded-p-no-penalties
 
 make encrypt
 
@@ -141,8 +157,13 @@ export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-16384.csv"
 experiment_growing_batch 13 16384 8
 
 
-export RESULTS_FILENAME="./experiments/measurements/pepe.csv"
+export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-no-penalties-8rounds.csv"
 
-experiment_growing_wordlist 72 8 16
-experiment_growing_wordlist 13 8 16
-experiment_growing_wordlist 3 8 16
+RECORD=`generate_record 72 8`
+experiment_no_penalties 72 16 $RECORD
+
+RECORD=`generate_record 13 8`
+experiment_no_penalties 13 16 $RECORD
+
+RECORD=`generate_record 3 8`
+experiment_no_penalties 3 16 $RECORD
