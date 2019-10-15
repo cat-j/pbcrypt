@@ -287,8 +287,8 @@ blowfish_expand_state_asm:
     ; rsi -> 128-bit salt
     ; rdx -> 4 to 56 byte key
     ; rcx:   key length in bytes
-    ; ymm0: salt
-    ; ymm1, ymm2, ymm3: P-array
+    ; xmm0: salt
+    ; xmm1, xmm5, xmm2, xmm6, xmm3: P-array
     
     .build_frame:
         push rbp
@@ -660,26 +660,31 @@ blowfish_encrypt_asm:
         push r13
 
     .do_encrypt:
-        %define data     r13
-        %define tmp1     rdx
-        %define tmp2     rcx
-        %define tmp1_low edx
+        %define data        r13
+        %define tmp1        rdx
+        %define tmp2        rcx
+        %define tmp_ctext_y ymm7
+        %define tmp_ctext_x xmm7
 
-        pextrq data, ctext_x, 0 ; two data halves from ciphertext
-        call   blowfish_encipher_register
-        pinsrq ctext_x, data, 0
+        vmovdqa tmp_ctext_y, ctext_y ; back up ciphertext
 
-        pextrq data, ctext_x, 1
-        call   blowfish_encipher_register
-        pinsrq ctext_x, data, 1
+        vpextrq data, ctext_x, 0 ; two data halves from ciphertext
+        call    blowfish_encipher_register
+        vpinsrq ctext_x, data, 0
 
-        ROTATE_128(ctext_y)
+        vpextrq data, ctext_x, 1
+        call    blowfish_encipher_register
+        vpinsrq ctext_x, data, 1
 
-        pextrq data, ctext_x, 0
-        call   blowfish_encipher_register
-        pinsrq ctext_x, data, 0
+        ROTATE_128(tmp_ctext_y) ; to access with vpextrq
 
-        ROTATE_128(ctext_y)
+        vpextrq data, tmp_ctext_x, 0
+        call    blowfish_encipher_register
+        vpinsrq tmp_ctext_x, data, 0
+
+        ROTATE_128(tmp_ctext_y)
+
+        vpor    ctext_y, tmp_ctext_y ; reconstruct
 
     .end:
         pop r13
@@ -750,14 +755,14 @@ bcrypt_hashpass_asm:
         ; %4: temporary register
         ; %5: lower 32 bits of %3
         ; %6 -> 24-byte ciphertext to be copied
-        LOAD_CTEXT initial_ctext
+        LOAD_CTEXT_NO_PENALTIES initial_ctext, ymm7, xmm7
 
         %rep 64
             call blowfish_encrypt_asm
         %endrep
 
-        STORE_P rdi, rax
-        STORE_CTEXT hash_ptr, rax
+        STORE_P_NO_PENALTIES rdi, rax
+        STORE_CTEXT_NO_PENALTIES hash_ptr, rax
     
     .end:
         add rsp, 8

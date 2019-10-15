@@ -586,6 +586,17 @@
     movdqu  ctext_x, [%1]
 %endmacro
 
+; %1 -> initial ciphertext
+; %2 -> helper YMM reg
+; %3 -> lower 16 bytes of %2
+%macro LOAD_CTEXT_NO_PENALTIES 3
+    vpxor   ctext_y, ctext_y
+    vmovdqu ctext_x, [%1 + 8] ; skip 8 bytes
+    vpermq  ctext_y, ctext_y, 0xd2 ; shift loaded bytes
+    vpinsrq %3, [%1], 0 ; insert remaining 8 bytes
+    vpor    ctext_y, %2 ; reconstruct
+%endmacro
+
 ; %1 -> buffer for bcrypt hash
 ; %2: helper general-purpose reg for extracting last 8 bytes
 %macro STORE_CTEXT 2
@@ -593,6 +604,15 @@
     ROTATE_128(ctext_y)
     pextrq %2, ctext_x, 0
     mov    [%1 + 16], %2
+%endmacro
+
+; %1 -> buffer for bcrypt hash
+; %2: helper general-purpose reg for extracting last 8 bytes
+%macro STORE_CTEXT_NO_PENALTIES 2
+    vmovdqu [%1], ctext_x
+    ROTATE_128(ctext_y)
+    vpextrq %2, ctext_x, 0
+    mov     [%1 + 16], %2
 %endmacro
 
 %endif
