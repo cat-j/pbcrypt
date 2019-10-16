@@ -298,7 +298,7 @@ void test_bcrypt_hashpass_parallel(p_blf_ctx *p_state, blf_ctx **states,
     bcrypt_hashpass_parallel(p_state, salt, keys, keybytes, hashes_actual, rounds);
 
     for (size_t i = 0; i < scale; ++i) {
-        bcrypt_hashpass_asm(states[i], salt, &keys[i*keybytes],
+        bcrypt_hashpass(states[i], salt, &keys[i*keybytes],
             keybytes, &hashes_expected[i*BCRYPT_HASH_BYTES], rounds);
     }
 

@@ -108,6 +108,19 @@ experiment_no_penalties() {
     done
 }
 
+# $1: password byte length
+# $2: batch size
+# $3: record
+# $4: optimisation level (0, 1, 2 or 3)
+experiment_openbsd() {
+    for j in {32..512..32}
+    do
+        WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
+        ./build/cracker-openbsd-O$4 $3 $WORDLIST $2
+        ./build/cracker $3 $WORDLIST $2
+    done
+}
+
 
 # Create executables
 
@@ -122,6 +135,11 @@ do
 done
 
 make cracker-loaded-p-no-penalties
+
+for i in {0..3}
+do
+    make "cracker-openbsd-O${i}"
+done
 
 make encrypt
 
@@ -182,3 +200,12 @@ experiment_no_penalties 3 16 $RECORD
 export RESULTS_FILENAME="./experiments/measurements/instruction-benchmark.csv"
 
 ./build/benchmark "$RESULTS_FILENAME"
+
+# # OpenBSD crackers
+
+for i in {0..3}
+do
+    export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-openbsd-O${i}.csv"
+    RECORD=`generate_record 13 8`
+    experiment_openbsd 13 16 $RECORD $i
+done

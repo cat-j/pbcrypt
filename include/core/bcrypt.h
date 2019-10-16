@@ -42,28 +42,30 @@ void blowfish_encipher_asm(const blf_ctx *state, uint64_t *data);
 
 /*
  * Encrypt data by enciphering each of its 64-bit blocks.
- * Calls an optimised, non-exported, non-C-compliant variant
+ * This calls an optimised, non-exported, non-C-compliant variant
  * of blowfish_encipher_asm.
  */
 void blowfish_encrypt_asm(const blf_ctx *state, uint64_t *data);
 
 /*
- * Hash password (key) and store result in hash.
- * Variable rounds corresponds to actual number of rounds,
+ * Hash password (key) and store result in `hash`.
+ * Variable `rounds` corresponds to actual number of rounds,
  * not log.
+ * `keybytes` MUST account for null terminator!
  */
-void bcrypt_hashpass_asm(blf_ctx *state, const uint8_t *salt,
-                         const char *key, uint16_t keybytes,
-                         uint8_t *hash, uint64_t rounds);
+void bcrypt_hashpass(blf_ctx *state, const uint8_t *salt,
+                     const char *key, uint16_t keybytes,
+                     uint8_t *hash, uint64_t rounds);
 
 /*
- * Wrapper for bcrypt_hashpass_asm that also initialises state.
+ * Wrapper for bcrypt_hashpass that also initialises state.
  */
 int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds);
 
 /*
- *
+ * Hash password and produce a bcrypt record.
+ * `keybytes` MUST account for null terminator!
  */
 char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
              uint8_t rounds_log);

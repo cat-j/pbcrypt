@@ -71,7 +71,7 @@ int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
         return ERR_SALT_LEN;
     
     blf_ctx *state = malloc(sizeof(blf_ctx));
-    bcrypt_hashpass_asm(state, salt, key, keybytes, hash, rounds);
+    bcrypt_hashpass(state, salt, key, keybytes, hash, rounds);
     free(state);
 
     return 0;

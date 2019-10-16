@@ -15,7 +15,7 @@ global blowfish_expand_0_state_asm
 global blowfish_expand_0_state_salt_asm
 global blowfish_encipher_asm
 global blowfish_encrypt_asm
-global bcrypt_hashpass_asm
+global bcrypt_hashpass
 
 
 section .text
@@ -504,11 +504,11 @@ blowfish_encrypt_asm:
 
 align 64
 
-; void bcrypt_hashpass_asm(blf_ctx *state, const char *salt,
-;                          const char *key, uint16_t keybytes,
-;                          uint8_t *hash, uint64_t rounds)
+; void bcrypt_hashpass(blf_ctx *state, const char *salt,
+;                      const char *key, uint16_t keybytes,
+;                      uint8_t *hash, uint64_t rounds)
 
-bcrypt_hashpass_asm:
+bcrypt_hashpass:
     ; rdi -> state
     ; rsi -> 128-bit salt
     ; rdx -> key

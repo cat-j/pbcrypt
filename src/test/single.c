@@ -207,22 +207,22 @@ void test_blowfish_encipher_asm_all(blf_ctx *state, const char *state_name) {
     test_blowfish_encipher_asm(state, 0x0123456789abcdef, state_name);
 }
 
-void test_bcrypt_hashpass_asm(blf_ctx *state_actual, blf_ctx *state_expected,
+void test_bcrypt_hashpass(blf_ctx *state_actual, blf_ctx *state_expected,
                               uint8_t *hash_actual, uint8_t *hash_expected,
                               const char *key, uint16_t keybytes,
                               const uint8_t *salt, uint64_t rounds)
 {
-    char test_name[] = "test_bcrypt_hashpass_asm";
+    char test_name[] = "test_bcrypt_hashpass";
     test_start(test_name, "salt: %s, key: %s, rounds: %ld", salt, key, rounds);
 
-    bcrypt_hashpass_asm(state_actual, salt, key, keybytes, hash_actual, rounds);
-    bcrypt_hashpass(state_expected, key, (char *) salt, rounds, hash_expected);
+    bcrypt_hashpass(state_actual, salt, key, keybytes, hash_actual, rounds);
+    bcrypt_hashpass_openbsd(state_expected, key, (char *) salt, rounds, hash_expected);
 
     compare_states(state_actual, state_expected, test_name);
     compare_ciphertexts(hash_actual, hash_expected, test_name, BCRYPT_HASH_BYTES);
 }
 
-void test_bcrypt_hashpass() {
+void test_bcrypt_hashpass_wrapper() {
     blf_ctx *state_actual;
     blf_ctx *state_expected;
 
@@ -231,14 +231,14 @@ void test_bcrypt_hashpass() {
 
     uint8_t salt[] = "opabiniaOPABINIA"; // 128 bits long
     char key[] = "anomalocaris";
-    uint16_t keybytes = strlen(key);
+    uint16_t keybytes = strlen(key) + 1;
 
     uint8_t hash_actual[BCRYPT_HASH_BYTES];
     uint8_t hash_expected[BCRYPT_HASH_BYTES];
 
     uint64_t rounds = 8;
 
-    test_bcrypt_hashpass_asm(state_actual, state_expected,
+    test_bcrypt_hashpass(state_actual, state_expected,
                              hash_actual, hash_expected,
                              key, keybytes, salt, rounds);
 
@@ -330,7 +330,7 @@ int main(int argc, char const *argv[]) {
 
     test_copy_ctext_asm(final_data_actual, final_data_expected, data_actual);
 
-    test_bcrypt_hashpass();
+    test_bcrypt_hashpass_wrapper();
 
     test_get_record_data_all();
     

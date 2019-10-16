@@ -11,7 +11,7 @@ UTILS=utils/
 
 # Command line
 CC=gcc
-CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
+CFLAGS= -ggdb -Wall -Wno-unused-parameter -Wextra -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L -Wno-stringop-truncation -Wno-stringop-overflow
 CFLAGS_NO_WARNINGS= -ggdb -w -std=c99 -pedantic -m64 -no-pie -D_POSIX_C_SOURCE=200112L
 INC_DIRS=$(BENCHMARK) $(CORE) $(CRACKER) $(TEST) $(UTILS)
 INC_PARAMS=$(foreach d, $(INC_DIRS), -I$(INCLUDE)$d)
@@ -66,10 +66,22 @@ cracker-parallel-aligned: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRA
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 
-# No AVX-SSE penalties cracker
+# Other crackers
 
 cracker-loaded-p-no-penalties: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p-no-penalties.o $(OBJS_LOADED_P)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
+cracker-openbsd-O0: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcrypt-openbsd.c $(TEST)openbsd.c
+	$(CC) $(CFLAGS) $(INC_PARAMS) -O0 $^ -o $(BUILD)$@
+
+cracker-openbsd-O1: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcrypt-openbsd.c $(TEST)openbsd.c
+	$(CC) $(CFLAGS) $(INC_PARAMS) -O1 $^ -o $(BUILD)$@
+
+cracker-openbsd-O2: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcrypt-openbsd.c $(TEST)openbsd.c
+	$(CC) $(CFLAGS) $(INC_PARAMS) -O2 $^ -o $(BUILD)$@
+
+cracker-openbsd-O3: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcrypt-openbsd.c $(TEST)openbsd.c
+	$(CC) $(CFLAGS) $(INC_PARAMS) -O3 $^ -o $(BUILD)$@
 
 
 # Utilities and tests

@@ -105,7 +105,7 @@ int main(int argc, char const *argv[]) {
             }
         
             blowfish_init_state_asm(state);
-            bcrypt_hashpass_asm(state, salt, current_pass, pass_length+1,
+            bcrypt_hashpass(state, salt, current_pass, pass_length+1,
                 hash, rounds);
         
             if (measure) {
