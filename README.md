@@ -29,9 +29,16 @@ base directory.
 
 ```$ make cracker```
 
-will create the executable `./build/cracker`. For the version without loop unrolling,
-replace `cracker` with `cracker-no-unrolling`. For the parallel version, replace it
-with `cracker-parallel`.
+will create the executable `./build/cracker`.
+- For the version without loop unrolling, replace `cracker` with
+  `cracker-no-unrolling`.
+- For the version with pre-loaded salt and P-array, replace it
+  with `cracker-loaded-p`.
+- For the parallel version, replace it with `cracker-parallel`.
+- For cache-aligned versions, add `-aligned` to executable name:
+  `cracker-aligned`, `cracker-no-unrolling-aligned`, etc.
+- For the loaded P-array version with no AVX-SSE transition,
+  use `cracker-loaded-p-no-penalties`.
 
 ### Tests
 
@@ -41,7 +48,7 @@ will test ASM macros and bcrypt components against their counterparts from
 the OpenBSD source code.
 
 To test other variants, replace `test` with `test-no-unrolling`,
-`test-loaded-p` or `test-parallel`.
+`test-loaded-p`, `test-parallel` or `test-loaded-p-no-penalties`.
 
 ## How to run
 
