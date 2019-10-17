@@ -81,6 +81,11 @@ of increasing size and password byte length.
 
 ```$ ./scripts/run-experiments.sh```
 
-will measure all four crackers' performance at cracking wordlists of sizes
-32 to 8192 in steps of 32 passwords, with password lengths 72, 13 and 3.
-Be warned: it takes _three days_ on my computer.
+will run all experiments: measure all four crackers' performance at cracking
+with increasingly large wordlists, cracking hashes with an increasing number
+of encryption rounds, cracking passwords of different lengths with wordlists
+of the same size in bytes and cracking a password with the same wordlist and
+varying batch sizes; measure performance improvements when aligning code to
+cache line size and removing AVX-SSE transitions; measure execution time for
+different instructions; compare performance against that of OpenBSD code with
+varying levels of optimisation.
