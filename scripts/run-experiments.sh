@@ -215,3 +215,14 @@ do
     RECORD=`generate_record 13 8`
     experiment_openbsd 13 16 $RECORD $i
 done
+
+# Parallel cracker for comparison with OpenBSD crackers
+
+export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-parallel.csv"
+
+for j in {32..2048..32}
+do
+    WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
+    ./build/cracker-openbsd-O$4 $3 $WORDLIST $2
+    ./build/cracker $RECORD $WORDLIST 16
+done
