@@ -70,14 +70,14 @@ experiment_growing_password() {
 }
 
 # $1: wordlist size in bytes
-# $2: password list length (must be a multiple of 4)
+# $2: password list length (must be a multiple of 64)
 # $3: encryption rounds log
 experiment_growing_batch() {
     RECORD=`generate_record $1 $3`
     WORDLIST="./experiments/test-cases/wordlist-$1bytes-$2passwords"
     echo $WORDLIST
     
-    for i in $(eval echo {4..$2..4})
+    for i in $(eval echo {64..$2..64})
     do
         crack_all $RECORD $WORDLIST $i CRACKERS[@]
     done
@@ -113,7 +113,7 @@ experiment_no_penalties() {
 # $3: record
 # $4: optimisation level (0, 1, 2 or 3)
 experiment_openbsd() {
-    for j in {32..512..32}
+    for j in {32..2048..32}
     do
         WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
         ./build/cracker-openbsd-O$4 $3 $WORDLIST $2
@@ -178,9 +178,15 @@ experiment_growing_password $WL_BYTES 8 16
 
 # Growing batch
 
-export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-16384.csv"
+export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-8192.csv"
 
-experiment_growing_batch 13 16384 8
+experiment_growing_batch 13 8192 8
+
+# Aligned code
+
+export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-aligned-8rounds.csv"
+
+experiment_growing_wordlist_aligned 13 8 16
 
 # No AVX-SSE penalties
 
@@ -201,7 +207,7 @@ export RESULTS_FILENAME="./experiments/measurements/instruction-benchmark.csv"
 
 ./build/benchmark "$RESULTS_FILENAME"
 
-# # OpenBSD crackers
+# OpenBSD crackers
 
 for i in {0..3}
 do
