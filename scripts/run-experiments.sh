@@ -169,13 +169,6 @@ export RESULTS_FILENAME="./experiments/measurements/growing-rounds-13-1024.csv"
 
 experiment_rounds 13 1024 16
 
-# Growing password
-
-export RESULTS_FILENAME="./experiments/measurements/growing-password-2mb.csv"
-
-WL_BYTES=$((5*7*11*72*2))
-experiment_growing_password $WL_BYTES 8 16
-
 # Growing batch
 
 export RESULTS_FILENAME="./experiments/measurements/growing-batch-13-8192.csv"
@@ -220,9 +213,10 @@ done
 
 export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-parallel.csv"
 
+RECORD=`generate_record 13 8`
+
 for j in {32..2048..32}
 do
-    WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
-    ./build/cracker-openbsd-O$4 $3 $WORDLIST $2
-    ./build/cracker $RECORD $WORDLIST 16
+    WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
+    ./build/cracker-parallel $RECORD $WORDLIST 16
 done
