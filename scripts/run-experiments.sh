@@ -87,7 +87,7 @@ experiment_growing_batch() {
 # $2: encryption rounds log
 # $3: batch size
 experiment_growing_wordlist_aligned() {
-    for j in {32..8192..32}
+    for j in {128..8192..128}
     do
         RECORD=`generate_record $1 $2`
         WORDLIST="./experiments/test-cases/wordlist-$1bytes-${j}passwords"
