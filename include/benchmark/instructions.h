@@ -10,5 +10,6 @@ void benchmark_pextrq(uint64_t iterations);
 void benchmark_pinsrq(uint64_t iterations);
 void benchmark_vpermq(uint64_t iterations);
 void benchmark_vpshufb(uint64_t iterations);
+void benchmark_bswap(uint64_t iterations);
 
 #endif

@@ -5,6 +5,7 @@ global benchmark_pextrq
 global benchmark_pinsrq
 global benchmark_vpermq
 global benchmark_vpshufb
+global benchmark_bswap
 
 
 section .data
@@ -171,6 +172,28 @@ benchmark_vpshufb:
             vpshufb ymm0, ymm1
             inc     rcx
             jmp     .execute
+
+    .end:
+        pop rbp
+        ret
+
+; void benchmark_bswap(uint64_t iterations)
+
+benchmark_bswap:
+    ; rdi: iterations
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_benchmark:
+        xor rcx, rcx
+
+        .execute:
+            cmp    rcx, rdi
+            je     .end
+            bswap  edx
+            inc    rcx
+            jmp    .execute
 
     .end:
         pop rbp

@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]) {
     FILE *r_stream = fopen(argv[1], "a");
 
     if (write_header) {
-        fprintf(r_stream, "read;write;vpextrd;pextrq;pinsrq;vpermq;vpshufb;iterations\n");
+        fprintf(r_stream, "read;write;vpextrd;pextrq;pinsrq;vpermq;vpshufb;bswap;iterations\n");
     }
 
     uint64_t t_read = measure_rw(benchmark_read, ITERATIONS);
@@ -51,10 +51,11 @@ int main(int argc, char const *argv[]) {
     uint64_t t_pinsrq = measure(benchmark_pinsrq, ITERATIONS);
     uint64_t t_vpermq = measure(benchmark_vpermq, ITERATIONS);
     uint64_t t_vpshufb = measure(benchmark_vpshufb, ITERATIONS);
+    uint64_t t_bswap = measure(benchmark_bswap, ITERATIONS);
 
     fprintf(r_stream,
-        "%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64"\n",
-        t_read, t_write, t_vpextrd, t_pextrq, t_pinsrq, t_vpermq, t_vpshufb, ITERATIONS);
+        "%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64";%"PRIu64"\n",
+        t_read, t_write, t_vpextrd, t_pextrq, t_pinsrq, t_vpermq, t_vpshufb, t_bswap, ITERATIONS);
 
     fclose(r_stream);
 
