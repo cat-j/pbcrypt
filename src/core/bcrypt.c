@@ -10,8 +10,6 @@
 #include "cracker-errors.h"
 #include "print.h"
 
-// #define BCRYPT_MAX_KEY_BYTES 
-
 int hash_match(const uint8_t *hash1, const uint8_t *hash2) {
     for (size_t i = 0; i < BCRYPT_HASH_BYTES - 3; ++i) {
         if (hash1[i] != hash2[i])
@@ -84,7 +82,7 @@ blf_ctx *get_aligned_state(int variant) {
     if (variant < 5) {
         posix_memalign((void**) &state, 32, sizeof(blf_ctx));
     } else {
-        posix_memalign((void**) &state, 64, sizeof(blf_ctx));
+        posix_memalign((void**) &state, 512, sizeof(blf_ctx));
     }
 
     return state;

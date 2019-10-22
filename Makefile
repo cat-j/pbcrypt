@@ -56,13 +56,13 @@ cracker-parallel: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOU
 cracker-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-aligned.o bcrypt-aligned.o
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-no-unrolling-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling.o bcrypt-no-unrolling-aligned.o
+cracker-no-unrolling-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-no-unrolling-aligned.o bcrypt-no-unrolling-aligned.o
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-loaded-p-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p.o bcrypt-loaded-p-aligned.o
+cracker-loaded-p-aligned: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) variant-bcrypt-loaded-p-aligned.o bcrypt-loaded-p-aligned.o
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-parallel-aligned: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel.o bcrypt-parallel-aligned.o
+cracker-parallel-aligned: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-aligned.o bcrypt-parallel-aligned.o
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 

@@ -16,17 +16,17 @@ global bcrypt_hashpass_parallel
 
 section .data
 
-align 64
+align 512
 endianness_mask: db \
 0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, \
 0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, \
 0x13, 0x12, 0x11, 0x10, 0x17, 0x16, 0x15, 0x14, \
 0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
 
-align 64
+align 512
 element_offset: dd 0x0, 0x1, 0x2, 0x3
 
-align 64
+align 512
 gather_mask: times 4 dd 0x80000000
 
 
@@ -36,7 +36,7 @@ section .text
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-align 64
+align 512
 
 ; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
 blowfish_encipher_parallel:
@@ -105,7 +105,7 @@ blowfish_encipher_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_parallelise_state(p_blf_ctx *state, blf_ctx *src)
 
@@ -143,7 +143,7 @@ blowfish_parallelise_state:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src)
 
@@ -179,7 +179,7 @@ blowfish_init_state_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_expand_state_parallel(p_blf_ctx *state, const char *salt,
 ;                                     const char *keys, uint16_t keybytes)
@@ -276,7 +276,7 @@ blowfish_expand_state_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
 ;                                       uint16_t keybytes)
@@ -335,7 +335,7 @@ blowfish_expand_0_state_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 blowfish_expand_0_state_salt_parallel:
     ; rdi -> parallel blowfish state
@@ -410,7 +410,7 @@ blowfish_expand_0_state_salt_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 blowfish_encrypt_parallel:
     ; rdi -> parallel blowfish state
@@ -435,7 +435,7 @@ blowfish_encrypt_parallel:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void bcrypt_hashpass_parallel(p_blf_ctx *state, const char *salt,
 ;                               const char *keys, uint16_t keybytes,

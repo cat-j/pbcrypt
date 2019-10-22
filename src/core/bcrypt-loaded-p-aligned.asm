@@ -27,7 +27,7 @@ global load_salt_and_p
 
 section .data
 
-align 64
+align 512
 endianness_mask: db \
 0x03, 0x02, 0x01, 0x00, 0x07, 0x06, 0x05, 0x04, \
 0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, \
@@ -61,7 +61,7 @@ load_salt_and_p:
 ; ;;;;;;;;; FUNCTIONS ;;;;;;;;;;
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-align 64
+align 512
 
 ; void blowfish_encipher_asm(blf_ctx *state, uint64_t *data)
 
@@ -129,7 +129,7 @@ blowfish_encipher_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
 blowfish_encipher_register:
@@ -259,7 +259,7 @@ blowfish_encipher_register:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_init_state_asm(blf_ctx *state)
 
@@ -296,7 +296,7 @@ blowfish_init_state_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_expand_state_asm(blf_ctx *state, const char *salt,
 ;                                const char *key, uint16_t keybytes)
@@ -451,7 +451,7 @@ blowfish_expand_state_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_expand_0_state_asm(blf_ctx *state, const char *key,
 ;                                  uint16_t keybytes)
@@ -579,7 +579,7 @@ blowfish_expand_0_state_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_expand_0_state_salt_asm(blf_ctx *state, const char *salt)
 
@@ -676,7 +676,7 @@ blowfish_expand_0_state_salt_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void blowfish_encrypt_asm(blf_ctx *state, uint64_t *data)
 
@@ -717,7 +717,7 @@ blowfish_encrypt_asm:
         pop rbp
         ret
 
-align 64
+align 512
 
 ; void bcrypt_hashpass(blf_ctx *state, const char *salt,
 ;                      const char *key, uint16_t keybytes,
