@@ -12,3 +12,4 @@ wordlists/
 experiments/test-cases/
 data-processing/
 *__pycache__
+*objdump
