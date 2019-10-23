@@ -33,7 +33,7 @@ void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src);
  * When finished, each nth block of four dwords in the parallel state
  * should contain the nth elements from four single-data states,
  * each jth of which should in turn be encrypted with the jth key.
- * Keys must be terminated (either null or newline).
+ * Keys must be null-terminated.
  */
 void blowfish_expand_state_parallel(p_blf_ctx *state, const uint8_t *salt,
                                     const char *keys, uint16_t keybytes);
@@ -45,7 +45,7 @@ void blowfish_expand_state_parallel(p_blf_ctx *state, const uint8_t *salt,
  * When finished, each nth block of four dwords in the parallel state
  * should contain the nth elements from four single-data states,
  * each jth of which should in turn be encrypted with the jth key.
- * Keys must be terminated (either null or newline).
+ * Keys must be null-terminated.
  */
 void blowfish_expand_0_state_parallel(p_blf_ctx *state, const char *keys,
                                       uint16_t keybytes);
@@ -66,7 +66,7 @@ void blowfish_expand_0_state_salt_parallel(p_blf_ctx *state, const uint8_t *salt
  * not log.
  * When finished, each nth block of four dwords in hashes
  * should contain the nth elements from four single-data hashes.
- * Keys must be terminated (either null or newline).
+ * Keys must be null-terminated.
  */
 void bcrypt_hashpass_parallel(p_blf_ctx *state, const uint8_t *salt,
                               const char *keys, uint16_t keybytes,

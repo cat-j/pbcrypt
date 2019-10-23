@@ -33,6 +33,16 @@ typedef struct ParallelBlowfishContext {
     uint32_t P[72];
 } p_blf_ctx;
 
+// Defining a new struct isn't great but it's better
+// than having to modify existing code so it accesses
+// S and P via pointers.
+
+/* Blowfish context with 8 copies of each element */
+typedef struct ParallelDoubleBlowfishContext {
+    uint32_t S[4][2048];
+    uint32_t P[144];
+} pd_blf_ctx;
+
 /* ========== Variables ========== */
 
 extern int variant; // unrolled loops, P-array in YMM registers, etc

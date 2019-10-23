@@ -2,4 +2,4 @@ section .data
 
 global variant
 
-variant: dw 10
+variant: dw 11

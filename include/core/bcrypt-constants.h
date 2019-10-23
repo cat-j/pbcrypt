@@ -279,6 +279,11 @@ const uint8_t initial_ctext[] = "OrpheanBeholderScryDoubt";
 const uint8_t initial_p_ctext[] = "OrphOrphOrphOrpheanBeanBeanBeanBeholeholeholehol"
     "derSderSderSderScryDcryDcryDcryDoubtoubtoubtoubt";
 
+const uint8_t initial_pd_ctext[] = "OrphOrphOrphOrphOrphOrphOrphOrph"
+    "eanBeanBeanBeanBeanBeanBeanBeanBeholeholeholeholeholeholeholehol"
+    "derSderSderSderSderSderSderSderScryDcryDcryDcryDcryDcryDcryDcryD"
+    "oubtoubtoubtoubtoubtoubtoubtoubt";
+
 /* IMPORTANT: this must be initialised with initstate_asm
    before calling blowfish_init_state_parallel
    or any functions that use it, such as bcrypt itself */

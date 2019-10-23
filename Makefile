@@ -28,6 +28,7 @@ OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
 OBJS_PARALLEL=bcrypt-parallel.o parallel-test-wrappers.o
 OBJS_PARALLEL_NO_VPERMQ=bcrypt-parallel-no-vpermq.o parallel-test-wrappers.o
+OBJS_PARALLEL_DOUBLE=bcrypt-parallel-double.o parallel-test-wrappers.o
 OBJS_LOADED_P_NO_PENALTIES=bcrypt-loaded-p-no-penalties.o loaded-p-no-penalties-test-wrappers.o
 OBJS_TESTING=bcrypt-macro-testing.o
 
@@ -87,6 +88,9 @@ cracker-openbsd-O3: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcr
 cracker-parallel-no-vpermq: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-no-vpermq.o $(OBJS_PARALLEL_NO_VPERMQ)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
+cracker-parallel-double: $(CRACKER)cracker-parallel-double.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-double.o $(OBJS_PARALLEL)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
 
 # Utilities and tests
 
@@ -116,6 +120,10 @@ test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJ
 test-parallel-no-vpermq: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel-no-vpermq.o $(OBJS) $(OBJS_PARALLEL_NO_VPERMQ) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel-no-vpermq
+
+test-parallel-double: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel-double.o $(OBJS) $(OBJS_PARALLEL_DOUBLE) $(OBJS_TESTING)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-parallel-double
 
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
@@ -191,6 +199,16 @@ bcrypt-parallel-no-vpermq.o: $(CORE)bcrypt-parallel-no-vpermq.asm build
 
 variant-bcrypt-parallel-no-vpermq.o: $(CORE)variant/variant-bcrypt-parallel-no-vpermq.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
+
+
+# Double parallel object code
+
+bcrypt-parallel-double.o: $(CORE)bcrypt-parallel-double.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-parallel-double.o: $(CORE)variant/variant-bcrypt-parallel-double.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
 
 # Wrapper object code
 
