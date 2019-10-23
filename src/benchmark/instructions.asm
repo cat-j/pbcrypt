@@ -2,7 +2,9 @@ global benchmark_read
 global benchmark_write
 global benchmark_vpextrd
 global benchmark_pextrq
+global benchmark_vpextrq
 global benchmark_pinsrq
+global benchmark_vpinsrq
 global benchmark_vpermq
 global benchmark_vpshufb
 global benchmark_bswap
@@ -110,6 +112,28 @@ benchmark_pextrq:
         pop rbp
         ret
 
+; void benchmark_vpextrq(uint64_t iterations)
+
+benchmark_vpextrq:
+    ; rdi: iterations
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_benchmark:
+        xor rcx, rcx
+
+        .execute:
+            cmp     rcx, rdi
+            je      .end
+            vpextrq rdx, xmm0, 0
+            inc     rcx
+            jmp     .execute
+
+    .end:
+        pop rbp
+        ret
+
 ; void benchmark_pinsrq(uint64_t iterations)
 
 benchmark_pinsrq:
@@ -127,6 +151,28 @@ benchmark_pinsrq:
             pinsrq xmm0, rdx, 0
             inc    rcx
             jmp    .execute
+
+    .end:
+        pop rbp
+        ret
+
+; void benchmark_vpinsrq(uint64_t iterations)
+
+benchmark_vpinsrq:
+    ; rdi: iterations
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_benchmark:
+        xor rcx, rcx
+
+        .execute:
+            cmp     rcx, rdi
+            je      .end
+            vpinsrq xmm0, xmm0, rdx, 0
+            inc     rcx
+            jmp     .execute
 
     .end:
         pop rbp
