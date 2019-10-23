@@ -16,6 +16,9 @@
 ; encryption rounds
 %define ROUNDS 16
 
+; XMM register size in bytes
+%define XMM_SIZE 16
+
 ; YMM register size in bytes
 %define YMM_SIZE 32
 

@@ -27,6 +27,7 @@ OBJS=bcrypt.o loaded-p-test-wrappers.o
 OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
 OBJS_PARALLEL=bcrypt-parallel.o parallel-test-wrappers.o
+OBJS_PARALLEL_NO_VPERMQ=bcrypt-parallel-no-vpermq.o parallel-test-wrappers.o
 OBJS_LOADED_P_NO_PENALTIES=bcrypt-loaded-p-no-penalties.o loaded-p-no-penalties-test-wrappers.o
 OBJS_TESTING=bcrypt-macro-testing.o
 
@@ -83,6 +84,9 @@ cracker-openbsd-O2: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcr
 cracker-openbsd-O3: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcrypt-openbsd.c $(TEST)openbsd.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) -O3 $^ -o $(BUILD)$@
 
+cracker-parallel-no-vpermq: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-no-vpermq.o $(OBJS_PARALLEL_NO_VPERMQ)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+
 
 # Utilities and tests
 
@@ -108,6 +112,10 @@ test-loaded-p-no-penalties: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-b
 test-parallel: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel.o $(OBJS) $(OBJS_PARALLEL) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel
+
+test-parallel-no-vpermq: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel-no-vpermq.o $(OBJS) $(OBJS_PARALLEL_NO_VPERMQ) $(OBJS_TESTING)
+	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
+	./build/test-parallel-no-vpermq
 
 b64encode: $(UTILS)main.c $(UTILS)base64.c
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
@@ -175,6 +183,14 @@ bcrypt-loaded-p-no-penalties.o: $(CORE)bcrypt-loaded-p-no-penalties.asm build
 variant-bcrypt-loaded-p-no-penalties.o: $(CORE)variant/variant-bcrypt-loaded-p-no-penalties.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
+
+# No vpermq parallel object code
+
+bcrypt-parallel-no-vpermq.o: $(CORE)bcrypt-parallel-no-vpermq.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+variant-bcrypt-parallel-no-vpermq.o: $(CORE)variant/variant-bcrypt-parallel-no-vpermq.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
 
 # Wrapper object code
 
