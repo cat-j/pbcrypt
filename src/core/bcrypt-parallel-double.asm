@@ -2,16 +2,16 @@
 
 ; variables
 extern initstate_asm
-extern initstate_parallel
-extern initial_p_ctext
+extern initstate_parallel_double
+extern initial_pd_ctext
 
 ; exported functions for bcrypt implementation
-global blowfish_parallelise_state
-global blowfish_init_state_parallel
-global blowfish_expand_state_parallel
-global blowfish_expand_0_state_parallel
-global blowfish_expand_0_state_salt_parallel
-global bcrypt_hashpass_parallel
+global blowfish_parallelise_state_double
+global blowfish_init_state_parallel_double
+global blowfish_expand_state_parallel_double
+global blowfish_expand_0_state_parallel_double
+global blowfish_expand_0_state_salt_parallel_double
+global bcrypt_hashpass_parallel_double
 
 
 section .data
@@ -24,7 +24,7 @@ endianness_mask: db \
 0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
 
 align 32
-element_offset: dw 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
+element_offset: dd 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
 gather_mask: times 8 dd 0x80000000
 
 
@@ -35,7 +35,7 @@ section .text
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; WARNING: THIS DOES NOT FOLLOW CDECL. For internal use only.
-blowfish_encipher_parallel_double:
+blowfish_encipher_parallel:
     ; rdi -> double parallel blowfish state (8 keys)
     ; xmm0: 8 Xls
     ; xmm1: 8 Xrs
@@ -93,9 +93,9 @@ blowfish_encipher_parallel_double:
         pop rbp
         ret
 
-; void blowfish_parallelise_state(pd_blf_ctx *state, blf_ctx *src)
+; void blowfish_parallelise_state_double(pd_blf_ctx *state, blf_ctx *src)
 
-blowfish_parallelise_state:
+blowfish_parallelise_state_double:
     ; rdi -> double parallel blowfish state (8 keys)
     ; rsi -> single-key blowfish state
     ; address MUST be 32-bit aligned
@@ -476,11 +476,11 @@ bcrypt_hashpass_parallel_double:
         vmovdqa element_offset_ymm, [element_offset]
         vmovdqa gather_mask_ymm, [gather_mask]
 
-        mov  rsi, initstate_parallel
-        call blowfish_init_state_parallel
+        mov  rsi, initstate_parallel_double
+        call blowfish_init_state_parallel_double
 
         mov  rsi, rbx
-        call blowfish_expand_state_parallel
+        call blowfish_expand_state_parallel_double
 
         .expand_0_state:
             %define salt_ptr  rbx
@@ -498,20 +498,20 @@ bcrypt_hashpass_parallel_double:
 
                 mov  rsi, key_ptr
                 mov  rdx, key_len
-                call blowfish_expand_0_state_parallel
+                call blowfish_expand_0_state_parallel_double
 
                 mov  rsi, salt_ptr
-                call blowfish_expand_0_state_salt_parallel
+                call blowfish_expand_0_state_salt_parallel_double
 
                 inc  round_ctr
                 jmp  .round_loop
         
     .encrypt:
-        COPY_CTEXT_YMM hash_ptr, initial_p_ctext, ymm1
+        COPY_CTEXT_YMM hash_ptr, initial_pd_ctext, ymm1
 
         %rep 64
             mov  rsi, hash_ptr
-            call blowfish_encrypt_parallel
+            call blowfish_encrypt_parallel_double
         %endrep
 
         %assign i 0

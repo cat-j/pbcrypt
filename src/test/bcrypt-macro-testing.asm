@@ -10,6 +10,9 @@ global copy_ctext_asm
 global f_xmm
 global blowfish_round_xmm
 global copy_ctext_xmm
+global f_ymm
+global blowfish_round_ymm
+global copy_ctext_ymm
 
 
 section .data
@@ -21,8 +24,8 @@ endianness_mask: db \
 0x13, 0x12, 0x11, 0x10, 0x17, 0x16, 0x15, 0x14, \
 0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
 
-element_offset: dd 0x0, 0x1, 0x2, 0x3
-gather_mask: times 4 dd 0x80000000
+element_offset: dd 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
+gather_mask: times 8 dd 0x80000000
 
 
 section .text
@@ -32,7 +35,7 @@ section .text
 ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; Intended exclusively for testing Feistel function
-; uint32_t f_asm(blf_ctx *state, uint32_t *bytes)
+; uint32_t f_xmm(p_blf_ctx *state, uint32_t *bytes)
 
 f_xmm:
     ; rdi -> parallel blowfish state
@@ -52,6 +55,31 @@ f_xmm:
     movdqu data, [rsi]
     F_XMM rdi, data, output, tmp1, tmp2, mask
     movdqu [rsi], output
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing Feistel function
+; uint32_t f_ymm(pd_blf_ctx *state, uint32_t *bytes)
+
+f_ymm:
+    ; rdi -> parallel blowfish state
+    ; rsi -> eight 32-bit data blocks from different keys
+    %define data   ymm4
+    %define output ymm5
+    %define tmp1   ymm6
+    %define tmp2   ymm7
+    %define mask   ymm8
+
+    push rbp
+    mov  rbp, rsp
+
+    vmovdqa element_offset_ymm, [element_offset]
+    vmovdqa gather_mask_ymm, [gather_mask]
+
+    vmovdqu data, [rsi]
+    F_YMM rdi, data, output, tmp1, tmp2, mask
+    vmovdqu [rsi], output
 
     pop rbp
     ret
@@ -120,6 +148,36 @@ blowfish_round_xmm:
     pop rbp
     ret
 
+; void blowfish_round_ymm(const p_blf_ctx *state, uint32_t *xl, uint32_t *xr,
+;                         uint32_t n)
+
+blowfish_round_ymm:
+    ; rdi -> parallel blowfish state
+    ; rsi -> eight 32-bit left halves from different keys
+    ; rdx -> eight 32-bit right halves from different keys
+    ; rcx: P-array index
+    push rbp
+    mov  rbp, rsp
+
+    %define xl_ymm ymm0
+    %define xr_ymm ymm1
+    %define p_ymm  ymm2
+    %define output ymm3
+    %define tmp1   ymm4
+    %define tmp2   ymm5
+    %define mask   ymm6
+
+    shl     rcx, 3 ; multiply by 8 because there are 8 copies of each
+    vmovdqu xl_ymm, [rsi]
+    vmovdqu xr_ymm, [rdx]
+    vmovdqu p_ymm, [rdi + PD_BLF_CTX_P_OFFSET + rcx*P_VALUE_MEMORY_SIZE]
+
+    BLOWFISH_ROUND_YMM rdi, p_ymm, xr_ymm, xl_ymm, output, tmp1, tmp2, mask
+    vmovdqu [rdx], xr_ymm
+
+    pop rbp
+    ret
+
 ; Intended exclusively for testing byte reversal macro
 ; uint64_t reverse_bytes(uint64_t data)
 
@@ -159,6 +217,21 @@ copy_ctext_xmm:
 
     vmovdqa endianness_mask_ymm, [endianness_mask]
     COPY_CTEXT_XMM rdi, rsi, ymm0
+
+    pop rbp
+    ret
+
+; Intended exclusively for testing ciphertext copying macro
+; void copy_ctext_ymm(uint64_t *data, const char *ctext)
+
+copy_ctext_ymm:
+    ; rdi -> destination ciphertext
+    ; rsi -> source ciphertext
+    push rbp
+    mov  rbp, rsp
+
+    vmovdqa endianness_mask_ymm, [endianness_mask]
+    COPY_CTEXT_YMM rdi, rsi, ymm0
 
     pop rbp
     ret

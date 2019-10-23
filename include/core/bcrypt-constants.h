@@ -289,4 +289,6 @@ const uint8_t initial_pd_ctext[] = "OrphOrphOrphOrphOrphOrphOrphOrph"
    or any functions that use it, such as bcrypt itself */
 p_blf_ctx initstate_parallel;
 
+pd_blf_ctx initstate_parallel_double;
+
 #endif

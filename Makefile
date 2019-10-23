@@ -28,7 +28,7 @@ OBJS_NO_UNROLLING=bcrypt-no-unrolling.o loaded-p-test-wrappers.o
 OBJS_LOADED_P=bcrypt-loaded-p.o loaded-p-test-wrappers.o
 OBJS_PARALLEL=bcrypt-parallel.o parallel-test-wrappers.o
 OBJS_PARALLEL_NO_VPERMQ=bcrypt-parallel-no-vpermq.o parallel-test-wrappers.o
-OBJS_PARALLEL_DOUBLE=bcrypt-parallel-double.o parallel-test-wrappers.o
+OBJS_PARALLEL_DOUBLE=bcrypt-parallel-double.o parallel-double-test-wrappers.o
 OBJS_LOADED_P_NO_PENALTIES=bcrypt-loaded-p-no-penalties.o loaded-p-no-penalties-test-wrappers.o
 OBJS_TESTING=bcrypt-macro-testing.o
 
@@ -121,7 +121,7 @@ test-parallel-no-vpermq: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parall
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel-no-vpermq
 
-test-parallel-double: $(TEST)parallel.c $(TEST_SOURCES) variant-bcrypt-parallel-double.o $(OBJS) $(OBJS_PARALLEL_DOUBLE) $(OBJS_TESTING)
+test-parallel-double: $(TEST)parallel-double.c $(TEST_SOURCES) variant-bcrypt-parallel-double.o $(OBJS) $(OBJS_PARALLEL_DOUBLE) $(OBJS_TESTING)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 	./build/test-parallel-double
 
@@ -222,6 +222,9 @@ bcrypt-macro-testing.o: $(TEST)bcrypt-macro-testing.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 loaded-p-no-penalties-test-wrappers.o: $(TEST)loaded-p-no-penalties-test-wrappers.asm build
+	$(NASM) $(NASMFLAGS) $< -o $@
+
+parallel-double-test-wrappers.o: $(TEST)parallel-double-test-wrappers.asm build
 	$(NASM) $(NASMFLAGS) $< -o $@
 
 

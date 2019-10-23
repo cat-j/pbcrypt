@@ -18,13 +18,13 @@
  * from eight single-data states (either S elements
  * or P elements).
  */
-void blowfish_parallelise_state(p_blf_ctx *state, const blf_ctx *src);
+void blowfish_parallelise_state_double(pd_blf_ctx *state, const blf_ctx *src);
 
 /*
  * For parallel key schedule.
  * Copy source state to destination state.
  */
-void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src);
+void blowfish_init_state_parallel_double(pd_blf_ctx *dst, pd_blf_ctx *src);
 
 /*
  * For parallel key schedule.
@@ -35,7 +35,7 @@ void blowfish_init_state_parallel(p_blf_ctx *dst, p_blf_ctx *src);
  * each jth of which should in turn be encrypted with the jth key.
  * Keys must be null-terminated.
  */
-void blowfish_expand_state_parallel_double(p_blf_ctx *state, const uint8_t *salt,
+void blowfish_expand_state_parallel_double(pd_blf_ctx *state, const uint8_t *salt,
                                            const char *keys, uint16_t keybytes);
 
 /*
@@ -47,7 +47,7 @@ void blowfish_expand_state_parallel_double(p_blf_ctx *state, const uint8_t *salt
  * each jth of which should in turn be encrypted with the jth key.
  * Keys must be null-terminated.
  */
-void blowfish_expand_0_state_parallel_double(p_blf_ctx *state, const char *keys,
+void blowfish_expand_0_state_parallel_double(pd_blf_ctx *state, const char *keys,
                                              uint16_t keybytes);
 
 /*
@@ -58,7 +58,7 @@ void blowfish_expand_0_state_parallel_double(p_blf_ctx *state, const char *keys,
  * i.e. each 32-bit block is broadcast once into a 128-bit register
  * and no further memory accesses are needed for salt data.
  */
-void blowfish_expand_0_state_salt_parallel_double(p_blf_ctx *state,
+void blowfish_expand_0_state_salt_parallel_double(pd_blf_ctx *state,
                                                   const uint8_t *salt);
 
 /*
@@ -69,7 +69,7 @@ void blowfish_expand_0_state_salt_parallel_double(p_blf_ctx *state,
  * should contain the nth elements from eight single-data hashes.
  * Keys must be null-terminated.
  */
-void bcrypt_hashpass_parallel_double(p_blf_ctx *state, const uint8_t *salt,
+void bcrypt_hashpass_parallel_double(pd_blf_ctx *state, const uint8_t *salt,
                                      const char *keys, uint16_t keybytes,
                                      uint8_t *hashes, uint64_t rounds);
 

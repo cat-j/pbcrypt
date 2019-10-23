@@ -16,11 +16,18 @@ void copy_ctext_asm(uint64_t *data, const uint8_t *ctext);
 
 void copy_ctext_xmm(uint64_t *data, const uint8_t *ctext);
 
+void copy_ctext_ymm(uint64_t *data, const uint8_t *ctext);
+
 void load_salt_and_p(blf_ctx *state, uint8_t *salt);
 
 void f_xmm(p_blf_ctx *state, uint32_t *bytes);
 
+void f_ymm(pd_blf_ctx *state, uint32_t *bytes);
+
 void blowfish_round_xmm(const p_blf_ctx *state, uint32_t *xl, uint32_t *xr,
+                        uint32_t n);
+
+void blowfish_round_ymm(const pd_blf_ctx *state, uint32_t *xl, uint32_t *xr,
                         uint32_t n);
 
 #endif
