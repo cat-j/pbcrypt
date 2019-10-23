@@ -141,6 +141,8 @@ do
     make "cracker-openbsd-O${i}"
 done
 
+make cracker-parallel-no-vpermq
+
 make encrypt
 
 make benchmark
@@ -219,4 +221,16 @@ for j in {32..2048..32}
 do
     WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
     ./build/cracker-parallel $RECORD $WORDLIST 16
+done
+
+# Parallel cracker without expensive vpermq instruction
+
+export RESULTS_FILENAME="./experiments/measurements/growing-wordlist-parallel-no-vpermq.csv"
+
+RECORD=`generate_record 13 8`
+
+for j in {32..8192..32}
+do
+    WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
+    ./build/cracker-parallel-no-vpermq $RECORD $WORDLIST 16
 done
