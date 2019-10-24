@@ -16,10 +16,15 @@ int process_args(int argc, char const *argv[]) {
             break;
         case(4):
             n_passwords = strtoul(argv[3], &end, 10);
+            
+            // pbcrypt with four passwords
+            if (variant == 3 || variant == 8 || variant == 10) {
             // Make sure it's divisible by 4
-            if ((n_passwords >> 2) << 2 != n_passwords || n_passwords == 0)
-                return ERR_N_PASSWORDS;
-            // In double pbcrypt, it must also be divisible by 8
+                if ((n_passwords >> 2) << 2 != n_passwords || n_passwords == 0)
+                    return ERR_N_PASSWORDS;
+            }
+
+            // double pbcrypt, it must also be divisible by 8
             if (variant == 11) {
                 if ((n_passwords >> 3) << 3 != n_passwords || n_passwords == 0)
                 return ERR_N_PASSWORDS;
