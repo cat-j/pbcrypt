@@ -232,7 +232,7 @@ void test_blowfish_expand_0_state_parallel(p_blf_ctx *p_state, blf_ctx **states,
     test_start(test_name, "p_state: %s, keys: %s, keybytes: %d",
         p_state_name, keys, keybytes);
 
-    blowfish_expand_0_state_parallel(p_state, keys, keybytes);
+    blowfish_expand_0_state_parallel_wrapper(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
         blowfish_expand_0_state_asm(states[i], &keys[i*(keybytes)], keybytes);
