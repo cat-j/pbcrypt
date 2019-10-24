@@ -19,6 +19,11 @@ int process_args(int argc, char const *argv[]) {
             // Make sure it's divisible by 4
             if ((n_passwords >> 2) << 2 != n_passwords || n_passwords == 0)
                 return ERR_N_PASSWORDS;
+            // In double pbcrypt, it must also be divisible by 8
+            if (variant == 11) {
+                if ((n_passwords >> 3) << 3 != n_passwords || n_passwords == 0)
+                return ERR_N_PASSWORDS;
+            }
             break;
         default:
             fprintf(stderr,

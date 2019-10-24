@@ -259,3 +259,12 @@ do
     WORDLIST="./experiments/test-cases/wordlist-13bytes-${j}passwords"
     ./build/cracker-parallel-double $RECORD $WORDLIST 16
 done
+
+export RESULTS_FILENAME="./experiments/measurements/growing-rounds-parallel-double-RAUL.csv"
+
+for j in {4..16}
+do
+    RECORD=`generate_record 13 $j`
+    WORDLIST="./experiments/test-cases/wordlist-13bytes-1024passwords"
+    ./build/cracker-parallel-double $RECORD $WORDLIST 16
+done
