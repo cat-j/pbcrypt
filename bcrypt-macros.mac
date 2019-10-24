@@ -202,7 +202,7 @@
     ; output <- s[x & 0xff] + s[0x100 + (x>>8) & 0xff]
     vmovdqa    %4, %2
     vpsrld     %4, 24                 ; highest byte
-    vpslld     %4, 2                  ; multiply by 4
+    vpslld     %4, 3                  ; multiply by 8
     vpaddd     %4, element_offset_ymm ; move inside vector
     vmovdqa    %6, gather_mask_ymm
     vpgatherdd %3, [%4*S_ELEMENT_MEMORY_SIZE + %1], %6
@@ -210,7 +210,7 @@
     vmovdqa    %4, %2
     vpslld     %4, 8
     vpsrld     %4, 24                 ; 2nd-highest byte
-    vpslld     %4, 2                  ; multiply by 4
+    vpslld     %4, 3                  ; multiply by 8
     vpaddd     %4, element_offset_ymm
     vmovdqa    %6, gather_mask_ymm
     vpgatherdd %5, \
@@ -220,7 +220,7 @@
     vmovdqa    %4, %2
     vpslld     %4, 16
     vpsrld     %4, 24                 ; 2nd-lowest byte
-    vpslld     %4, 2                  ; multiply by 4
+    vpslld     %4, 3                  ; multiply by 8
     vpaddd     %4, element_offset_ymm
     vmovdqa    %6, gather_mask_ymm
     vpgatherdd %5, \
@@ -230,7 +230,7 @@
     vmovdqa    %4, %2
     vpslld     %4, 24
     vpsrld     %4, 24                 ; lowest byte
-    vpslld     %4, 2                  ; multiply by 4
+    vpslld     %4, 3                  ; multiply by 8
     vpaddd     %4, element_offset_ymm
     vmovdqa    %6, gather_mask_ymm
     vpgatherdd %5, \
@@ -448,17 +448,18 @@
 %endmacro
 
 ; %1: key_data
-; %2: key_data_ctr
+; %2: key_data_ctr_1
 ; %3: key_ptr
 ; %4: key_len
 ; %5: loop_ctr
 ; %6: iteration number
 ; %7: lower 16 bytes of key_data
 ; %8: helper XMM register
-%macro READ_4_KEY_BYTES_PARALLEL_DOUBLE 8
+; %9: key_data_ctr_2
+%macro READ_4_KEY_BYTES_PARALLEL_DOUBLE 9
     .lower_key_loop_%6:
         cmp %5, 4 ; four iterations, one for each byte
-        je  .higher_key_loop_%6
+        je  .end_lower_key_loop_%6
         ; leave space for next bytes
         vpslld %7, 8
 
@@ -469,9 +470,9 @@
         
         .continue_extract_lower_%6:
             ; extract a byte from each key
-            vpinsrb xmm1, [%3 + %2], 0
+            vpinsrb %7, [%3 + %2], 0
             add     %3, %4
-            vpinsrb xmm1, [%3 + %2], 4
+            vpinsrb %7, [%3 + %2], 4
             add     %3, %4
             vpinsrb %7, [%3 + %2], 8
             add     %3, %4
@@ -488,40 +489,51 @@
             inc %5
             jmp .lower_key_loop_%6
 
+    .end_lower_key_loop_%6:
+        ; skip to 4th key
+        shl %4, 2
+        add %3, %4
+        shr %4, 2
+
     .higher_key_loop_%6:
         cmp %5, 8 ; four iterations, one for each byte. 4 + 4 = 8
-        je  .end_key_loop_%6
+        je  .end_higher_key_loop_%6
         ; leave space for next bytes
         vpslld %8, 8
 
         .extract_higher_key_bytes_%6:
-            cmp %2, %4
+            cmp %9, %4
             jl  .continue_extract_higher_%6
-            xor %2, %2 ; reset counter
+            xor %9, %9 ; reset counter
         
         .continue_extract_higher_%6:
             ; extract a byte from each key
-            vpinsrb xmm1, [%3 + %2], 0
+            vpinsrb %8, [%3 + %9], 0
             add     %3, %4
-            vpinsrb xmm1, [%3 + %2], 4
+            vpinsrb %8, [%3 + %9], 4
             add     %3, %4
-            vpinsrb %8, [%3 + %2], 8
+            vpinsrb %8, [%3 + %9], 8
             add     %3, %4
-            vpinsrb %8, [%3 + %2], 12
+            vpinsrb %8, [%3 + %9], 12
             add     %3, %4
 
-            ; back to first key
+            ; back to 4th key
             shl %4, 2
             sub %3, %4
             shr %4, 2
 
             ; loop
-            inc %2
+            inc %9
             inc %5
             jmp .higher_key_loop_%6
 
-    .end_key_loop_%6:
+    .end_higher_key_loop_%6:
         vinserti128 %1, %8, 1
+
+        ; back to first key
+        shl %4, 2
+        sub %3, %4
+        shr %4, 2
 %endmacro
 
 ; %8: iteration number

@@ -176,25 +176,27 @@ blowfish_expand_state_parallel_double:
 
     .p_array_keys:
         ; read four bytes from each key and XOR
-        %define key_data     ymm1
-        %define key_data_low xmm1
-        %define key_data_ctr r8
-        %define key_ptr      rdx
-        %define key_len      rcx
-        %define loop_ctr     r9
-        %define tmp          ymm2
-        %define tmp_key      xmm3
+        %define key_data       ymm1
+        %define key_data_low   xmm1
+        %define key_data_ctr_1 r8
+        %define key_data_ctr_2 r10
+        %define key_ptr        rdx
+        %define key_len        rcx
+        %define loop_ctr       r9
+        %define tmp            ymm2
+        %define tmp_key        xmm3
 
         ; initialise registers
-        xor key_data_ctr, key_data_ctr
+        xor key_data_ctr_1, key_data_ctr_1
+        xor key_data_ctr_2, key_data_ctr_2
 
         %assign i 0
         %rep 18
             xor     loop_ctr, loop_ctr
-            READ_4_KEY_BYTES_PARALLEL_DOUBLE key_data, key_data_ctr, key_ptr, \
-                key_len, loop_ctr, i, key_data_low, tmp_key
-            vpxor   key_data, [rdi + P_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE]
-            vmovdqa [rdi + P_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE], key_data
+            READ_4_KEY_BYTES_PARALLEL_DOUBLE key_data, key_data_ctr_1, key_ptr, \
+                key_len, loop_ctr, i, key_data_low, tmp_key, key_data_ctr_2
+            vpxor   key_data, [rdi + PD_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE]
+            vmovdqa [rdi + PD_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE], key_data
             %assign i i+1
         %endrep
 
@@ -280,23 +282,25 @@ blowfish_expand_0_state_parallel_double:
 
     .p_array_keys:
         ; read four bytes from each key and XOR
-        %define key_data     ymm1
-        %define key_data_low xmm1
-        %define key_data_ctr r8
-        %define key_ptr      rsi
-        %define key_len      rdx
-        %define loop_ctr     r9
-        %define tmp          ymm2
-        %define tmp_key      xmm3
+        %define key_data       ymm1
+        %define key_data_low   xmm1
+        %define key_data_ctr_1 r8
+        %define key_data_ctr_2 r10
+        %define key_ptr        rsi
+        %define key_len        rdx
+        %define loop_ctr       r9
+        %define tmp            ymm2
+        %define tmp_key        xmm3
 
         ; initialise registers
-        xor key_data_ctr, key_data_ctr
+        xor key_data_ctr_1, key_data_ctr_1
+        xor key_data_ctr_2, key_data_ctr_2
 
         %assign i 0
         %rep 18
             xor     loop_ctr, loop_ctr
-            READ_4_KEY_BYTES_PARALLEL_DOUBLE key_data, key_data_ctr, key_ptr, \
-                key_len, loop_ctr, i, key_data_low, tmp_key
+            READ_4_KEY_BYTES_PARALLEL_DOUBLE key_data, key_data_ctr_1, key_ptr, \
+                key_len, loop_ctr, i, key_data_low, tmp_key, key_data_ctr_2
             vpxor   key_data, [rdi + PD_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE]
             vmovdqa [rdi + PD_BLF_CTX_P_OFFSET + i*8*P_VALUE_MEMORY_SIZE], key_data
             %assign i i+1
@@ -351,10 +355,10 @@ blowfish_expand_0_state_salt_parallel_double:
         vpbroadcastd salt_3, [rsi + 12]
 
         ; initialise variables
-        vpshufb     ymm2, endianness_mask_ymm
-        vpshufb     ymm3, endianness_mask_ymm
-        vpshufb     ymm4, endianness_mask_ymm
-        vpshufb     ymm5, endianness_mask_ymm
+        vpshufb ymm2, endianness_mask_ymm
+        vpshufb ymm3, endianness_mask_ymm
+        vpshufb ymm4, endianness_mask_ymm
+        vpshufb ymm5, endianness_mask_ymm
 
         ; P[0]s to P[15]s
         %assign i 0
@@ -391,8 +395,8 @@ blowfish_expand_0_state_salt_parallel_double:
         vmovdqa [rdi + PD_BLF_CTX_P_OFFSET + i*YMM_SIZE], tmp_salt
 
     p_array_data:
-        %define data_l xmm0
-        %define data_r xmm1
+        %define data_l ymm0
+        %define data_r ymm1
 
         vpxor data_l, data_l
         vpxor data_r, data_r
@@ -515,7 +519,7 @@ bcrypt_hashpass_parallel_double:
         %endrep
 
         %assign i 0
-        %rep 3
+        %rep 6
             vmovdqu ymm0, [hash_ptr + i*YMM_SIZE]
             vpshufb ymm0, endianness_mask_ymm
             vmovdqu [hash_ptr + i*YMM_SIZE], ymm0

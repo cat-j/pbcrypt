@@ -42,9 +42,9 @@ void test_blowfish_round_ymm(pd_blf_ctx *p_state, blf_ctx *state,
         "xr_actual: 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x 0x%08x, "
         "n: %d, p_state: %s",
         xl_actual[0], xl_actual[1], xl_actual[2], xl_actual[3],
-        xl_actual[4], xl_actual[5], xl_actual[6], xl_actual[7], 
+        xl_actual[4], xl_actual[5], xl_actual[6], xl_actual[7],
         xr_actual[0], xr_actual[1], xr_actual[2], xr_actual[3],
-        xr_actual[4], xr_actual[5], xr_actual[6], xr_actual[7], 
+        xr_actual[4], xr_actual[5], xr_actual[6], xr_actual[7],
         n, state_name);
 
     blowfish_round_ymm(p_state, xl_actual, xr_actual, n);
@@ -236,7 +236,7 @@ void test_blowfish_expand_0_state_parallel(pd_blf_ctx *p_state, blf_ctx **states
     test_start(test_name, "p_state: %s, keys: %s, keybytes: %d",
         p_state_name, keys, keybytes);
 
-    blowfish_expand_0_state_parallel_double(p_state, keys, keybytes);
+    blowfish_expand_0_state_parallel_double_wrapper(p_state, keys, keybytes);
 
     for (size_t i = 0; i < scale; ++i) {
         blowfish_expand_0_state_asm(states[i], &keys[i*(keybytes)], keybytes);
@@ -280,7 +280,7 @@ void compare_p_ciphertexts(const uint8_t *actual, const uint8_t *expected,
             
             if (current_actual != current_expected) {
                 test_fail("Ciphertexts in test %s differ. "
-                    "Ciphertext: %d, index: %d,"
+                    "Ciphertext: %d, index: %d, "
                     "expected value: 0x%08x, actual value: 0x%08x\n",
                     test_name, j, i, current_expected, current_actual);
             }
@@ -328,7 +328,8 @@ void test_bcrypt_hashpass() {
     }
 
     uint8_t salt[] = "opabiniaOPABINIA";
-    char keys[] = "acknowledgers\nacknowledging\nacquaintances\nGo Landcrabs!\n";
+    char keys[] = "anomalocaris\0GoLandcrabs!\0ANOMALOCARIS\0goLANDCRABS!\0"
+                  "jimmy mcgill\0saul goodman\0Jimmy McGill\0Saul Goodman\0";
     uint16_t keybytes = strlen(keys) / DWORDS_PER_YMM - 1;
 
     uint8_t hashes_actual[BCRYPT_HASH_BYTES*DWORDS_PER_YMM];
@@ -372,16 +373,18 @@ int main(int argc, char const *argv[]) {
 
     uint32_t xl_actual[8] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed,
                              0xbeef1dad, 0xc001dadd, 0xbaddad61, 0xfeeeddad};
+
     uint32_t xr_actual[8] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00,
                              0xbeef1dad, 0xc001dadd, 0xbaddad61, 0xfeeeddad};
+
     uint32_t xl_expected[8] = {0xdeadbeef, 0xfeedbeef, 0xbeefdead, 0xbeeffeed,
                                0xbeef1dad, 0xc001dadd, 0xbaddad61, 0xfeeeddad};
+
     uint32_t xr_expected[8] = {0xaac0ffee, 0xc0ffeeee, 0xc0ffffee, 0xc0ffee00,
                                0xbeef1dad, 0xc001dadd, 0xbaddad61, 0xfeeeddad};
 
-    test_blowfish_round_ymm(state_actual, src, (uint32_t *) &xl_actual,
-        (uint32_t *) &xr_actual, (uint32_t *) &xl_expected,
-        (uint32_t *) &xr_expected, 1, "initial_state");
+    test_blowfish_round_ymm(state_actual, src, xl_actual, xr_actual,
+        xl_expected, xr_expected, 1, "initial_state");
 
     blf_ctx **states = malloc(DWORDS_PER_YMM * sizeof(blf_ctx *)); // expected single-data states
     blf_ctx *current;
@@ -412,7 +415,7 @@ int main(int argc, char const *argv[]) {
 
     test_bcrypt_hashpass();
 
-    test_copy_ctext_ymm(data_actual, data_expected, initial_p_ctext);
+    test_copy_ctext_ymm(data_actual, data_expected, initial_pd_ctext);
 
     return 0;
 }

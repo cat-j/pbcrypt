@@ -167,6 +167,9 @@ blowfish_round_ymm:
     %define tmp2   ymm5
     %define mask   ymm6
 
+    vmovdqa element_offset_ymm, [element_offset]
+    vmovdqa gather_mask_ymm, [gather_mask]
+
     shl     rcx, 3 ; multiply by 8 because there are 8 copies of each
     vmovdqu xl_ymm, [rsi]
     vmovdqu xr_ymm, [rdx]

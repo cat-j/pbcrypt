@@ -8,10 +8,12 @@
 
 ; Functions to be wrapped
 extern blowfish_expand_state_parallel_double
+extern blowfish_expand_0_state_parallel_double
 extern blowfish_expand_0_state_salt_parallel_double
 
 ; Exported functions
 global blowfish_expand_state_parallel_double_wrapper
+global blowfish_expand_0_state_parallel_double_wrapper
 global blowfish_expand_0_state_salt_parallel_double_wrapper
 
 
@@ -23,6 +25,9 @@ endianness_mask: db \
 0x0b, 0x0a, 0x09, 0x08, 0x0f, 0x0e, 0x0d, 0x0c, \
 0x13, 0x12, 0x11, 0x10, 0x17, 0x16, 0x15, 0x14, \
 0x1b, 0x1a, 0x19, 0x18, 0x1f, 0x1e, 0x1d, 0x1c
+
+element_offset: dd 0x0, 0x1, 0x2, 0x3, 0x4, 0x5, 0x6, 0x7
+gather_mask: times 8 dd 0x80000000
 
 
 section .text
@@ -36,7 +41,24 @@ blowfish_expand_state_parallel_double_wrapper:
     mov  rbp, rsp
 
     vmovdqa endianness_mask_ymm, [endianness_mask]
+    vmovdqa gather_mask_ymm, [gather_mask]
+    vmovdqa element_offset_ymm, [element_offset]
     call    blowfish_expand_state_parallel_double
+
+    pop rbp
+    ret
+
+blowfish_expand_0_state_parallel_double_wrapper:
+    ; rdi -> parallel blowfish state (modified)
+    ; rsi -> array of four 4 to 56 byte keys
+    ; rdx:   key length
+    push rbp
+    mov  rbp, rsp
+
+    vmovdqa endianness_mask_ymm, [endianness_mask]
+    vmovdqa gather_mask_ymm, [gather_mask]
+    vmovdqa element_offset_ymm, [element_offset]
+    call    blowfish_expand_0_state_parallel_double
 
     pop rbp
     ret
@@ -48,6 +70,8 @@ blowfish_expand_0_state_salt_parallel_double_wrapper:
     mov  rbp, rsp
 
     vmovdqa endianness_mask_ymm, [endianness_mask]
+    vmovdqa gather_mask_ymm, [gather_mask]
+    vmovdqa element_offset_ymm, [element_offset]
     call    blowfish_expand_0_state_salt_parallel_double
 
     pop rbp
