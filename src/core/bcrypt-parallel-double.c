@@ -23,7 +23,7 @@ int hash_match_parallel_double(const uint8_t *hashes, const uint8_t *target) {
             if (j%BYTES_PER_DATA_BLOCK != 3) {
                 ++k;
             } else {
-                k += 13; // move to next data block
+                k += 29; // move to next data block
             }
 
             if (j == BCRYPT_HASH_BYTES - 4)

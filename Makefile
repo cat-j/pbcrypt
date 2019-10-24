@@ -21,6 +21,7 @@ NASMFLAGS=-f elf64 -g -F DWARF
 
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CRACKER)cracker-common.c
 SOURCES_PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
+SOURCES_PARALLEL_DOUBLE=$(CORE)bcrypt-parallel-double.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c $(CRACKER)cracker-common.c
 TEST_SOURCES=$(TEST)openbsd.c $(TEST)test.c
 OBJS=bcrypt.o loaded-p-test-wrappers.o
@@ -88,7 +89,7 @@ cracker-openbsd-O3: $(CRACKER)cracker.c $(SOURCES) $(CRACKER_SOURCES) $(CORE)bcr
 cracker-parallel-no-vpermq: $(CRACKER)cracker-parallel.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-no-vpermq.o $(OBJS_PARALLEL_NO_VPERMQ)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
-cracker-parallel-double: $(CRACKER)cracker-parallel-double.c $(SOURCES_PARALLEL) $(CRACKER_SOURCES) variant-bcrypt-parallel-double.o $(OBJS_PARALLEL)
+cracker-parallel-double: $(CRACKER)cracker-parallel-double.c $(SOURCES_PARALLEL_DOUBLE) $(CRACKER_SOURCES) variant-bcrypt-parallel-double.o $(OBJS_PARALLEL_DOUBLE)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 
