@@ -24,7 +24,7 @@ char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
 {
     uint8_t hash[BCRYPT_HASH_BYTES];
     int status;
-    char version = 'b'; // TODO: accept other versions
+    char version = 'b';
     uint64_t rounds = 1L << rounds_log;
 
     if ( (status = bcrypt_asm_wrapper(salt, hash, key, keybytes, rounds)) ) {
@@ -52,7 +52,6 @@ char *bcrypt(const uint8_t *salt, const char *key, uint16_t keybytes,
     return record;
 }
 
-// TODO: accept different bcrypt versions
 int bcrypt_asm_wrapper(const uint8_t *salt, uint8_t *hash, const char *key,
                        uint16_t keybytes, uint64_t rounds)
 {

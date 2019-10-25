@@ -106,7 +106,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
         return ERR_RECORD_FORMAT;
     record++;
 
-    if (record[0] != '2' || !is_valid_version(record[1]))
+    if (record[0] != '2' || record[1] != 'b')
         return ERR_VERSION;
     record += 3;
 
@@ -137,8 +137,4 @@ int get_record_data(char *record, uint8_t *ciphertext,
     print_hex(ciphertext, BCRYPT_HASH_BYTES-3);
 
     return 0;
-}
-
-int is_valid_version(char c) {
-    return c == 'a' || c == 'b' || c == 'x' || c == 'y';
 }

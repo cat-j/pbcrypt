@@ -90,9 +90,4 @@ int initialise_measure();
 int get_record_data(char *record, uint8_t *ciphertext,
                     uint8_t *salt, uint64_t *rounds);
 
-/*
- * Helper function for parsing record.
- */
-int is_valid_version(char c);
-
 #endif
