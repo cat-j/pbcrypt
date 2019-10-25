@@ -8,6 +8,8 @@ global benchmark_vpinsrq
 global benchmark_vpermq
 global benchmark_vpshufb
 global benchmark_bswap
+global benchmark_read_p
+global benchmark_write_p
 
 
 section .data
@@ -240,6 +242,52 @@ benchmark_bswap:
             bswap  edx
             inc    rcx
             jmp    .execute
+
+    .end:
+        pop rbp
+        ret
+
+; void benchmark_read_p(uint64_t iterations, uint64_t *data)
+
+benchmark_read_p:
+    ; rdi: iterations
+    ; rsi: pointer to read from (32-bit aligned)
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_benchmark:
+        xor rcx, rcx
+
+        .execute:
+            cmp     rcx, rdi
+            je      .end
+            vmovdqa xmm1, [rsi]
+            inc     rcx
+            jmp     .execute
+
+    .end:
+        pop rbp
+        ret
+
+; void benchmark_write_p(uint64_t iterations, uint64_t *data)
+
+benchmark_write_p:
+    ; rdi: iterations
+    ; rsi: pointer to write to (32-bit aligned)
+    .build_frame:
+        push rbp
+        mov  rbp, rsp
+
+    .do_benchmark:
+        xor rcx, rcx
+
+        .execute:
+            cmp     rcx, rdi
+            je      .end
+            vmovdqa [rsi], xmm1
+            inc     rcx
+            jmp     .execute
 
     .end:
         pop rbp
