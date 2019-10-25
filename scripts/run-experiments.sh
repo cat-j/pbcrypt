@@ -260,7 +260,7 @@ do
     ./build/cracker-parallel-double $RECORD $WORDLIST 16
 done
 
-export RESULTS_FILENAME="./experiments/measurements/growing-rounds-parallel-double-RAUL.csv"
+export RESULTS_FILENAME="./experiments/measurements/growing-rounds-parallel-double.csv"
 
 for j in {4..16}
 do
