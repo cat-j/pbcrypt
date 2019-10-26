@@ -31,16 +31,17 @@ base directory.
 ```$ make cracker```
 
 will create the executable `./build/cracker`.
-- For the version without loop unrolling, replace `cracker` with
+- For the variant without loop unrolling, replace `cracker` with
   `cracker-no-unrolling`.
-- For the version with pre-loaded salt and P-array, replace it
+- For the variant with pre-loaded salt and P-array, replace it
   with `cracker-loaded-p`.
-- For the parallel version, replace it with `cracker-parallel`.
-- For the double parallel version (8 passwords), replace it
+- For the parallel variant, replace it with `cracker-parallel`.
+- For the double parallel variant (8 passwords), replace it
   with `cracker-parallel-double`.
-- For cache-aligned versions, add `-aligned` to executable name:
+- For cache-aligned variants, add `-aligned` to executable name:
   `cracker-aligned`, `cracker-no-unrolling-aligned`, etc.
-- For the loaded P-array version with no AVX-SSE transition,
+  This doesn't work with the double parallel variant.
+- For the loaded P-array variant with no AVX-SSE transition,
   use `cracker-loaded-p-no-penalties`.
 
 ### Tests
@@ -73,11 +74,10 @@ it must be a multiple of 8.
 
 ### Test case generation
 
-Unfortunately, I downloaded my wordlist from a site whose CDN is now broken.
-I'll put it up on Mega or something as soon as I have the time but you'll
-have to do without the original wordlist for a bit. Sorry!
+First, download the wordlist from [here](https://mega.nz/#!dNYCUSiI!5RkPoiP80Ej_IE4AUXhcQ_bWSCdP--YuVUcRjMv8l9E)
+and extract it into a folder called `wordlists/`.
 
-```$ python3 ./scripts/split-wordlist.py```
+```$ python3 ./scripts/split-wordlist.py ./wordlists/realhuman-phill.txt```
 
 will split the wordlist into many different files that satisfy the cracker's
 preconditions: all passwords are the same length in bytes and said length is
