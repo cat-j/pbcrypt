@@ -36,6 +36,8 @@ will create the executable `./build/cracker`.
 - For the version with pre-loaded salt and P-array, replace it
   with `cracker-loaded-p`.
 - For the parallel version, replace it with `cracker-parallel`.
+- For the double parallel version (8 passwords), replace it
+  with `cracker-parallel-double`.
 - For cache-aligned versions, add `-aligned` to executable name:
   `cracker-aligned`, `cracker-no-unrolling-aligned`, etc.
 - For the loaded P-array version with no AVX-SSE transition,
@@ -61,8 +63,9 @@ where `<PATH_TO_WORDLIST>` is the **absolute path** to a list of **newline-separ
 plaintext passwords** of the **same length**. The **first line** should be
 the **length of the passwords** in base 10.
 The optional argument `<PASSWORDS_PER_BATCH>` is the number of passwords read
-into each batch for hashing and it defaults to 1024. For experiment design reasons,
-the batch size must be a multiple of 4.
+into each batch for hashing and it defaults to 1024. If using `cracker-parallel`,
+`<PASSWORDS_PER_BATCH` must be a multiple of 4, and if using `cracker-parallel-double`,
+it must be a multiple of 8.
 
 #### Example:
 
