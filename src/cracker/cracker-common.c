@@ -106,7 +106,7 @@ int get_record_data(char *record, uint8_t *ciphertext,
         return ERR_RECORD_FORMAT;
     record++;
 
-    if (record[0] != '2' || record[1] != 'b')
+    if (record[0] != '2' || record[1] != 'a' || record[1] != 'b')
         return ERR_VERSION;
     record += 3;
 
