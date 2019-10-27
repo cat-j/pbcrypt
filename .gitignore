@@ -1,6 +1,6 @@
 .vscode/
 .gdb_history
-.references/tp_pino/
+.references/
 *.o
 *.csv
 testexec
