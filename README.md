@@ -7,12 +7,14 @@ This is basically research into different methods for optimising a
 **brute-force password cracker for bcrypt** with Intel's AVX2 extensions,
 such as storing frequently used data in YMM registers and hashing
 several passwords at once with SIMD instructions after rearranging
-the bytes from all plaintexts. 
+the bytes from all plaintexts.
+
+Latest release: [v0.1](https://github.com/cat-j/pbcrypt/releases/tag/first-alpha)
 
 ## Details
 
 Currently limited in scope to bcrypt version `$2b$`. More versions
-will be supported later.
+might be supported later.
 
 All commands in the next two sections must be executed from the repository's
 base directory.
