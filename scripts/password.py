@@ -1,5 +1,5 @@
 # pbcrypt: parallel bcrypt for password cracking
-# Copyright (C) 2019  Catalina Juarros (catalinajuarros@protonmail.com)
+# Copyright (C) 2019  Catalina Juarros <https://github.com/cat-j>
 
 # This file is part of pbcrypt.
 
