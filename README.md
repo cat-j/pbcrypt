@@ -77,7 +77,7 @@ it must be a multiple of 8.
 ### Test case generation
 
 First, download the wordlist from [here](https://mega.nz/#!dNYCUSiI!5RkPoiP80Ej_IE4AUXhcQ_bWSCdP--YuVUcRjMv8l9E)
-and extract it into a folder called `wordlists/`.
+(warning, it's over 600MB when extracted) and extract it into a folder called `wordlists/`.
 
 ```$ python3 ./scripts/split-wordlist.py ./wordlists/realhuman-phill.txt```
 
