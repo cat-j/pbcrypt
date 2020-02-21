@@ -9,7 +9,7 @@ such as storing frequently used data in YMM registers and hashing
 several passwords at once with SIMD instructions after rearranging
 the bytes from all plaintexts.
 
-Latest release: [v0.1](https://github.com/cat-j/pbcrypt/releases/tag/first-alpha)
+Latest release: [v0.1.2](https://github.com/cat-j/pbcrypt/releases/tag/third-alpha)
 
 ## Details
 
