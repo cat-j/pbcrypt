@@ -38,6 +38,7 @@ NASMFLAGS=-f elf64 -g -F DWARF
 
 
 SOURCES=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c $(CRACKER)cracker-common.c
+SOURCES_NO_CRACKER=$(CORE)bcrypt.c $(UTILS)base64.c $(UTILS)print.c
 SOURCES_PARALLEL=$(CORE)bcrypt-parallel.c $(UTILS)base64.c $(UTILS)print.c
 SOURCES_PARALLEL_DOUBLE=$(CORE)bcrypt-parallel-double.c $(UTILS)base64.c $(UTILS)print.c
 CRACKER_SOURCES=$(UTILS)config.c $(CRACKER)cracker-common.c
@@ -113,7 +114,7 @@ cracker-parallel-double: $(CRACKER)cracker-parallel-double.c $(SOURCES_PARALLEL_
 
 # Utilities and tests
 
-encrypt: $(CORE)encrypt.c $(SOURCES) $(OBJS)
+encrypt: $(CORE)encrypt.c $(SOURCES_NO_CRACKER) $(OBJS)
 	$(CC) $(CFLAGS) $(INC_PARAMS) $^ -o $(BUILD)$@
 
 test: $(TEST)single.c $(SOURCES) $(TEST_SOURCES) variant-bcrypt.o $(OBJS) $(OBJS_TESTING)
