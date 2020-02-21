@@ -74,6 +74,15 @@ it must be a multiple of 8.
 
 ```$ ./build/cracker \$2b\$08\$Z1/fWkjsYUDNSCDAQS3HOO.jYkAT2lI6RZco8UP86hp5oqS7.kZJV ./my_wordlist```
 
+#### Measuring performance
+
+If you would like to measure execution time when cracking a password, set `cracker-config` to
+```measure 1```
+and execute
+```export RESULTS_FILENAME=<my_filename>```
+The program will return on error before starting to crack if measuring is enabled
+and this environment variable isn't set.
+
 ### Test case generation
 
 First, download the wordlist from [here](https://mega.nz/#!dNYCUSiI!5RkPoiP80Ej_IE4AUXhcQ_bWSCdP--YuVUcRjMv8l9E)
