@@ -24,7 +24,7 @@ base directory.
 - 64-bit Intel processor with AVX2 capabilities
 - Linux kernel
 - Python 3 (exclusively for generating test cases)
-- GCC
+- GCC + make + NASM
 
 ## How to build
 
